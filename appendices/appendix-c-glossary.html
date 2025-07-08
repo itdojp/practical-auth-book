@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>付録C 用語集 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>付録C 用語集</h1><h2>A</h2><h3>AAA (Authentication, Authorization, Accounting)</h3>
+<p>認証、認可、アカウンティング（監査）の3つのセキュリティ機能を表す概念。ネットワークセキュリティの基本フレームワーク。</p><h3>ABAC (Attribute-Based Access Control)</h3>
+<p>属性ベースアクセス制御。ユーザー、リソース、環境の属性を組み合わせてアクセス制御を行う方式。</p><h3>Access Token</h3>
+<p>リソースへのアクセス権限を表すトークン。通常、短い有効期限を持ち、特定のスコープに制限される。</p><h3>ACL (Access Control List)</h3>
+<p>アクセス制御リスト。リソースごとに、誰がどのような操作を実行できるかを定義したリスト。</p><h3>Adaptive Authentication</h3>
+<p>リスクベース認証とも呼ばれる。アクセスコンテキストに基づいて認証強度を動的に調整する方式。</p><h3>API Key</h3>
+<p>APIへのアクセスを認証するための一意の識別子。通常、長い有効期限を持つが、スコープは限定的。</p><h3>Argon2</h3>
+<p>パスワードハッシュアルゴリズムの一つ。2015年のPassword Hashing Competitionで優勝。メモリハード関数。</p><h3>Assertion</h3>
+<p>認証や認可の文脈で、ユーザーやシステムの属性に関する主張。SAMLやJWTで使用される。</p><h3>Asymmetric Encryption</h3>
+<p>非対称暗号。公開鍵と秘密鍵のペアを使用する暗号方式。RSAやECDSAが代表例。</p><h3>Authentication</h3>
+<p>認証。ユーザーやシステムが主張する身元が正しいことを確認するプロセス。</p><h3>Authentication Factor</h3>
+<p>認証要素。知識（パスワード）、所持（トークン）、生体（指紋）の3つのカテゴリに分類される。</p><h3>Authenticator</h3>
+<p>認証器。FIDO2/WebAuthnにおいて、ユーザーの認証情報を生成・保管するデバイスまたはソフトウェア。</p><h3>Authorization</h3>
+<p>認可。認証されたユーザーが特定のリソースや操作にアクセスする権限を持っているか判定するプロセス。</p><h3>Authorization Code</h3>
+<p>OAuth 2.0のフローで使用される一時的なコード。アクセストークンと交換される。</p><h3>Authorization Server</h3>
+<p>OAuth 2.0において、アクセストークンを発行するサーバー。</p><h2>B</h2><h3>Basic Authentication</h3>
+<p>HTTPベーシック認証。ユーザー名とパスワードをBase64エンコードしてHTTPヘッダーで送信する単純な認証方式。</p><h3>Bearer Token</h3>
+<p>HTTPのAuthorizationヘッダーで送信されるトークン。所持していることで認証を示す。</p><h3>bcrypt</h3>
+<p>パスワードハッシュアルゴリズム。Blowfish暗号を基にした、計算量的に安全なハッシュ関数。</p><h3>Biometric Authentication</h3>
+<p>生体認証。指紋、顔、虹彩などの生体情報を使用した認証方式。</p><h3>Brute Force Attack</h3>
+<p>総当たり攻撃。可能なすべての組み合わせを試してパスワードを破る攻撃手法。</p><h2>C</h2><h3>CA (Certificate Authority)</h3>
+<p>認証局。デジタル証明書を発行する信頼できる第三者機関。</p><h3>CAPTCHA</h3>
+<p>Completely Automated Public Turing test to tell Computers and Humans Apart。人間とボットを区別するためのテスト。</p><h3>Certificate Pinning</h3>
+<p>証明書ピンニング。特定の証明書のみを信頼することで、中間者攻撃を防ぐ手法。</p><h3>Challenge-Response</h3>
+<p>チャレンジレスポンス認証。サーバーからのチャレンジに対して、クライアントが適切なレスポンスを返す認証方式。</p><h3>Claim</h3>
+<p>クレーム。JWTやSAMLにおいて、エンティティに関する情報の断片。</p><h3>Client Credentials</h3>
+<p>OAuth 2.0のグラントタイプの一つ。クライアントアプリケーション自体の認証に使用。</p><h3>Client ID</h3>
+<p>OAuth 2.0において、クライアントアプリケーションを識別するための公開識別子。</p><h3>Client Secret</h3>
+<p>OAuth 2.0において、クライアントアプリケーションを認証するための秘密情報。</p><h3>CORS (Cross-Origin Resource Sharing)</h3>
+<p>異なるオリジン間でのリソース共有を可能にするメカニズム。</p><h3>Credential</h3>
+<p>クレデンシャル。認証に使用される情報（パスワード、証明書、トークンなど）の総称。</p><h3>Credential Stuffing</h3>
+<p>漏洩したユーザー名とパスワードの組み合わせを、他のサービスで試す攻撃手法。</p><h3>CSRF (Cross-Site Request Forgery)</h3>
+<p>クロスサイトリクエストフォージェリ。ユーザーの意図しない操作を実行させる攻撃。</p><h3>CSP (Content Security Policy)</h3>
+<p>コンテンツセキュリティポリシー。XSS攻撃を防ぐためのセキュリティ機能。</p><h2>D</h2><h3>Delegation</h3>
+<p>委譲。ユーザーが自身の権限の一部を他のエンティティに委譲すること。</p><h3>Device Fingerprinting</h3>
+<p>デバイスフィンガープリンティング。ブラウザやデバイスの特徴を組み合わせて一意に識別する技術。</p><h3>DID (Decentralized Identifier)</h3>
+<p>分散型識別子。中央管理者なしに、検証可能でユーザーが管理できる識別子。</p><h3>Digest Authentication</h3>
+<p>HTTPダイジェスト認証。Basic認証の改良版で、パスワードをハッシュ化して送信。</p><h3>Digital Signature</h3>
+<p>デジタル署名。データの完全性と送信者の認証を保証する暗号技術。</p><h2>E</h2><h3>Encryption</h3>
+<p>暗号化。データを読めない形式に変換し、機密性を保護する技術。</p><h3>Entropy</h3>
+<p>エントロピー。パスワードやトークンのランダム性や予測困難性を表す尺度。</p><h3>Ephemeral Key</h3>
+<p>一時鍵。セッションごとに生成され、使用後に破棄される暗号鍵。</p><h2>F</h2><h3>Factor (Authentication Factor)</h3>
+<p>認証要素。Something you know（知識）、Something you have（所持）、Something you are（生体）の分類。</p><h3>Federated Identity</h3>
+<p>フェデレーテッドアイデンティティ。複数の独立したシステム間でアイデンティティを共有する仕組み。</p><h3>FIDO (Fast IDentity Online)</h3>
+<p>パスワードレス認証の標準化を推進する業界団体、およびその規格。</p><h3>FIDO2</h3>
+<p>FIDOアライアンスの最新規格。WebAuthnとCTAPで構成される。</p><h3>Fingerprint (Device/Browser)</h3>
+<p>デバイスやブラウザの特徴的な情報の組み合わせ。一意識別に使用。</p><h2>G</h2><h3>Grant Type</h3>
+<p>OAuth 2.0において、アクセストークンを取得する方法の種類。</p><h3>Group</h3>
+<p>グループ。権限管理において、複数のユーザーをまとめて管理する単位。</p><h2>H</h2><h3>Hash Function</h3>
+<p>ハッシュ関数。任意長の入力から固定長の出力を生成する一方向関数。</p><h3>HMAC (Hash-based Message Authentication Code)</h3>
+<p>ハッシュベースメッセージ認証コード。秘密鍵とハッシュ関数を組み合わせた認証技術。</p><h3>HOTP (HMAC-based One-Time Password)</h3>
+<p>HMACベースのワンタイムパスワード。カウンターベースのOTP生成アルゴリズム。</p><h3>HTTP Basic Authentication</h3>
+<p>HTTPベーシック認証。最も単純なHTTP認証スキーム。</p><h3>HTTPS</h3>
+<p>HTTP over TLS/SSL。暗号化された安全なHTTP通信。</p><h2>I</h2><h3>Identity</h3>
+<p>アイデンティティ。システム内でエンティティを一意に識別する属性の集合。</p><h3>Identity Provider (IdP)</h3>
+<p>アイデンティティプロバイダー。ユーザーの認証を行い、アイデンティティ情報を提供するシステム。</p><h3>Implicit Flow</h3>
+<p>OAuth 2.0の認可フローの一つ。現在は非推奨。</p><h3>Impersonation</h3>
+<p>なりすまし。他のユーザーやシステムの身元を偽る行為。</p><h2>J</h2><h3>JSON Web Token (JWT)</h3>
+<p>JSON形式で表現される、署名または暗号化されたトークン。</p><h3>JWE (JSON Web Encryption)</h3>
+<p>JSONデータを暗号化するための標準。</p><h3>JWK (JSON Web Key)</h3>
+<p>暗号鍵をJSON形式で表現する標準。</p><h3>JWKS (JSON Web Key Set)</h3>
+<p>複数のJWKを含むJSONドキュメント。</p><h3>JWS (JSON Web Signature)</h3>
+<p>JSONデータに署名を付与するための標準。</p><h2>K</h2><h3>Kerberos</h3>
+<p>ネットワーク認証プロトコル。チケットベースの認証システム。</p><h3>Key Derivation Function (KDF)</h3>
+<p>鍵導出関数。パスワードなどの入力から暗号鍵を生成する関数。</p><h3>Key Rotation</h3>
+<p>鍵のローテーション。セキュリティ向上のため定期的に暗号鍵を更新すること。</p><h3>Keychain</h3>
+<p>キーチェーン。認証情報を安全に保存・管理するシステム。</p><h2>L</h2><h3>LDAP (Lightweight Directory Access Protocol)</h3>
+<p>ディレクトリサービスにアクセスするためのプロトコル。企業の認証システムでよく使用。</p><h3>Least Privilege</h3>
+<p>最小権限の原則。タスク実行に必要な最小限の権限のみを付与する原則。</p><h3>Login</h3>
+<p>ログイン。システムへの認証を行い、セッションを開始する行為。</p><h3>Logout</h3>
+<p>ログアウト。セッションを終了し、認証状態を解除する行為。</p><h2>M</h2><h3>MAC (Message Authentication Code)</h3>
+<p>メッセージ認証コード。メッセージの完全性と認証を保証する短い情報。</p><h3>Magic Link</h3>
+<p>マジックリンク。パスワードの代わりにメールで送信される一時的な認証リンク。</p><h3>Man-in-the-Middle Attack (MITM)</h3>
+<p>中間者攻撃。通信を盗聴・改ざんする攻撃手法。</p><h3>MFA (Multi-Factor Authentication)</h3>
+<p>多要素認証。複数の認証要素を組み合わせた認証方式。</p><h3>Mutual TLS (mTLS)</h3>
+<p>相互TLS認証。クライアントとサーバーが互いに証明書で認証し合う方式。</p><h2>N</h2><h3>Nonce</h3>
+<p>Number used once。リプレイ攻撃を防ぐために使用される一度だけ使用される値。</p><h3>Non-Repudiation</h3>
+<p>否認防止。行為を後で否定できないようにする仕組み。</p><h2>O</h2><h3>OAuth 2.0</h3>
+<p>認可のための業界標準プロトコル。アクセス委譲のフレームワーク。</p><h3>OIDC (OpenID Connect)</h3>
+<p>OAuth 2.0の上に構築された認証レイヤー。</p><h3>One-Time Password (OTP)</h3>
+<p>ワンタイムパスワード。一度だけ使用可能なパスワード。</p><h3>Opaque Token</h3>
+<p>不透明トークン。内容が暗号化されているか、意味を持たない識別子のみのトークン。</p><h2>P</h2><h3>PAM (Pluggable Authentication Modules)</h3>
+<p>プラガブル認証モジュール。Unixシステムの認証フレームワーク。</p><h3>Passkey</h3>
+<p>パスキー。FIDO2/WebAuthnベースのパスワードレス認証方式の消費者向け名称。</p><h3>Password</h3>
+<p>パスワード。最も一般的な知識ベースの認証要素。</p><h3>Password Hash</h3>
+<p>パスワードハッシュ。パスワードを不可逆的に変換した値。</p><h3>Password Policy</h3>
+<p>パスワードポリシー。パスワードの複雑性や有効期限に関する規則。</p><h3>PBAC (Policy-Based Access Control)</h3>
+<p>ポリシーベースアクセス制御。宣言的なポリシーによってアクセスを制御する方式。</p><h3>PBKDF2</h3>
+<p>Password-Based Key Derivation Function 2。パスワードから鍵を導出する標準的な関数。</p><h3>Phishing</h3>
+<p>フィッシング。偽のWebサイトやメールで認証情報を盗む攻撃。</p><h3>PKCE (Proof Key for Code Exchange)</h3>
+<p>OAuth 2.0の拡張。公開クライアントのセキュリティを向上させる。</p><h3>PKI (Public Key Infrastructure)</h3>
+<p>公開鍵基盤。公開鍵暗号を使用したセキュリティインフラ。</p><h3>Principal</h3>
+<p>プリンシパル。認証されたエンティティ（ユーザー、サービス、デバイスなど）を表す概念。</p><h3>Privilege Escalation</h3>
+<p>権限昇格。通常より高い権限を不正に取得すること。</p><h2>Q</h2><h3>QR Code Authentication</h3>
+<p>QRコード認証。QRコードを使用した認証方式。</p><h3>Quantum-Resistant Cryptography</h3>
+<p>量子耐性暗号。量子コンピュータでも破れない暗号アルゴリズム。</p><h2>R</h2><h3>Rainbow Table</h3>
+<p>レインボーテーブル。ハッシュ値から元のパスワードを逆引きするための事前計算済みテーブル。</p><h3>Rate Limiting</h3>
+<p>レート制限。一定時間内のリクエスト数を制限する仕組み。</p><h3>RBAC (Role-Based Access Control)</h3>
+<p>ロールベースアクセス制御。役割に基づいて権限を管理する方式。</p><h3>Realm</h3>
+<p>レルム。認証や認可の適用範囲を表す領域。</p><h3>Refresh Token</h3>
+<p>リフレッシュトークン。新しいアクセストークンを取得するための長期有効なトークン。</p><h3>Registration</h3>
+<p>登録。新しいユーザーアカウントを作成するプロセス。</p><h3>Relying Party (RP)</h3>
+<p>証明書利用者。OpenID ConnectやSAMLで、IdPからの認証情報を信頼して利用する側。</p><h3>Replay Attack</h3>
+<p>リプレイ攻撃。過去の正当な通信を再送信して認証を突破する攻撃。</p><h3>Resource Owner</h3>
+<p>リソースオーナー。OAuth 2.0において、保護されたリソースの所有者（通常はエンドユーザー）。</p><h3>Resource Server</h3>
+<p>リソースサーバー。OAuth 2.0において、保護されたリソースをホストするサーバー。</p><h3>Revocation</h3>
+<p>失効。トークンや証明書を無効化すること。</p><h3>Risk-Based Authentication</h3>
+<p>リスクベース認証。アクセスのリスクレベルに応じて認証要件を調整する方式。</p><h3>Role</h3>
+<p>ロール。権限管理において、複数の権限をまとめた単位。</p><h3>Root of Trust</h3>
+<p>信頼の起点。セキュリティシステムにおいて、他のすべての信頼の基礎となる要素。</p><h3>Rotation (Key/Secret)</h3>
+<p>ローテーション。セキュリティ向上のため、鍵や秘密情報を定期的に更新すること。</p><h2>S</h2><h3>SAML (Security Assertion Markup Language)</h3>
+<p>セキュリティアサーションマークアップ言語。XMLベースの認証・認可情報交換標準。</p><h3>Salt</h3>
+<p>ソルト。パスワードハッシュに追加するランダムなデータ。レインボーテーブル攻撃を防ぐ。</p><h3>SCIM (System for Cross-domain Identity Management)</h3>
+<p>クロスドメインアイデンティティ管理システム。ユーザー情報の同期のための標準。</p><h3>Scope</h3>
+<p>スコープ。OAuth 2.0において、アクセス権限の範囲を定義する文字列。</p><h3>Secret</h3>
+<p>シークレット。認証に使用される秘密情報の総称。</p><h3>Secure Cookie</h3>
+<p>セキュアCookie。HTTPS接続でのみ送信されるCookie。</p><h3>Security Token</h3>
+<p>セキュリティトークン。認証や認可の情報を含むデータ構造。</p><h3>Session</h3>
+<p>セッション。ログインからログアウトまでの一連のインタラクション。</p><h3>Session Fixation</h3>
+<p>セッション固定攻撃。攻撃者が事前に用意したセッションIDを被害者に使用させる攻撃。</p><h3>Session Hijacking</h3>
+<p>セッションハイジャック。正当なユーザーのセッションを乗っ取る攻撃。</p><h3>Session ID</h3>
+<p>セッションID。セッションを一意に識別する識別子。</p><h3>SFA (Single Factor Authentication)</h3>
+<p>単一要素認証。一つの認証要素のみを使用する認証方式。</p><h3>SHA (Secure Hash Algorithm)</h3>
+<p>安全なハッシュアルゴリズム。SHA-1、SHA-256などのハッシュ関数ファミリー。</p><h3>Signature</h3>
+<p>署名。データの完全性と真正性を保証するための暗号学的な値。</p><h3>Single Sign-On (SSO)</h3>
+<p>シングルサインオン。一度の認証で複数のシステムにアクセスできる仕組み。</p><h3>Single Sign-Out (SLO)</h3>
+<p>シングルサインアウト。一度のログアウトで複数のシステムからログアウトする仕組み。</p><h3>SMTP</h3>
+<p>Simple Mail Transfer Protocol。メール送信プロトコル。パスワードリセット等で使用。</p><h3>Social Login</h3>
+<p>ソーシャルログイン。FacebookやGoogleなどのソーシャルメディアアカウントでログインする方式。</p><h3>SPNEGO</h3>
+<p>Simple and Protected GSSAPI Negotiation Mechanism。Kerberosベースの認証ネゴシエーション。</p><h3>SQL Injection</h3>
+<p>SQLインジェクション。SQLクエリに悪意のあるコードを挿入する攻撃。</p><h3>SRP (Secure Remote Password)</h3>
+<p>安全なリモートパスワードプロトコル。パスワードを送信せずに認証を行う方式。</p><h3>SSL/TLS</h3>
+<p>Secure Sockets Layer/Transport Layer Security。暗号化通信プロトコル。</p><h3>State Parameter</h3>
+<p>OAuth 2.0やOpenID Connectで、CSRF攻撃を防ぐために使用されるパラメータ。</p><h3>Step-up Authentication</h3>
+<p>ステップアップ認証。特定の操作時に追加の認証を要求する方式。</p><h3>Strong Authentication</h3>
+<p>強力な認証。複数要素や高強度の認証方式を使用した認証。</p><h3>Subject</h3>
+<p>サブジェクト。認証や認可の対象となるエンティティ。JWTではsubクレーム。</p><h3>Symmetric Encryption</h3>
+<p>対称暗号。暗号化と復号に同じ鍵を使用する暗号方式。</p><h2>T</h2><h3>TAN (Transaction Authentication Number)</h3>
+<p>取引認証番号。特定の取引を認証するための一時的な番号。</p><h3>Tenant</h3>
+<p>テナント。マルチテナントシステムにおける論理的な分離単位。</p><h3>Third-Party Cookie</h3>
+<p>サードパーティCookie。訪問しているサイトとは異なるドメインから設定されるCookie。</p><h3>Threat Model</h3>
+<p>脅威モデル。システムに対する潜在的な脅威を体系的に分析したもの。</p><h3>Time-based One-Time Password (TOTP)</h3>
+<p>時間ベースワンタイムパスワード。現在時刻を基にOTPを生成するアルゴリズム。</p><h3>TLS (Transport Layer Security)</h3>
+<p>トランスポート層セキュリティ。SSLの後継となる暗号化通信プロトコル。</p><h3>Token</h3>
+<p>トークン。認証や認可の情報を含むデータの塊。</p><h3>Token Binding</h3>
+<p>トークンバインディング。トークンを特定のTLS接続に紐付ける技術。</p><h3>Token Endpoint</h3>
+<p>トークンエンドポイント。OAuth 2.0でアクセストークンを発行するエンドポイント。</p><h3>Token Introspection</h3>
+<p>トークンイントロスペクション。トークンの有効性や詳細情報を確認するプロセス。</p><h3>Token Revocation</h3>
+<p>トークン失効。発行済みトークンを無効化すること。</p><h3>Trust</h3>
+<p>信頼。セキュリティシステムにおいて、エンティティ間の信頼関係。</p><h3>Trusted Platform Module (TPM)</h3>
+<p>信頼できるプラットフォームモジュール。ハードウェアベースのセキュリティチップ。</p><h3>Two-Factor Authentication (2FA)</h3>
+<p>二要素認証。2つの異なる認証要素を使用する認証方式。</p><h2>U</h2><h3>UAF (Universal Authentication Framework)</h3>
+<p>FIDO仕様の一つ。パスワードレス認証のためのフレームワーク。</p><h3>User</h3>
+<p>ユーザー。システムを利用する人間のエンドユーザー。</p><h3>User Agent</h3>
+<p>ユーザーエージェント。ユーザーの代理としてサーバーと通信するソフトウェア（ブラウザなど）。</p><h3>User Consent</h3>
+<p>ユーザー同意。データアクセスや処理に対するユーザーからの明示的な許可。</p><h3>Username</h3>
+<p>ユーザー名。ユーザーを識別するための一意の文字列。</p><h2>V</h2><h3>Validation</h3>
+<p>検証。入力データやトークンが正しい形式や値であることを確認するプロセス。</p><h3>Vault</h3>
+<p>ボールト。秘密情報を安全に保管・管理するシステム。</p><h3>Verification</h3>
+<p>照合。提供された認証情報が正しいことを確認するプロセス。</p><h3>Verifiable Credentials</h3>
+<p>検証可能な資格情報。分散型アイデンティティで使用される、暗号学的に検証可能な属性情報。</p><h2>W</h2><h3>Web Authentication API (WebAuthn)</h3>
+<p>W3C標準のブラウザAPIで、公開鍵暗号を使用したパスワードレス認証を実現。</p><h3>Web Credential</h3>
+<p>Webクレデンシャル。ブラウザに保存される認証情報。</p><h3>Whitelist</h3>
+<p>ホワイトリスト。許可されたエンティティのリスト。</p><h2>X</h2><h3>X.509</h3>
+<p>公開鍵証明書の標準フォーマット。</p><h3>XSS (Cross-Site Scripting)</h3>
+<p>クロスサイトスクリプティング。悪意のあるスクリプトを注入する攻撃。</p><h2>Y</h2><h3>Yubikey</h3>
+<p>ハードウェア認証デバイスの一種。FIDO2、OTP、スマートカードなど複数の認証方式をサポート。</p><h2>Z</h2><h3>Zero Knowledge Proof</h3>
+<p>ゼロ知識証明。秘密情報を明かすことなく、その知識を持っていることを証明する暗号学的手法。</p><h3>Zero Trust</h3>
+<p>ゼロトラスト。「決して信頼せず、常に検証する」というセキュリティモデル。</p><h3>Zone</h3>
+<p>ゾーン。セキュリティ境界で区切られた領域。異なるセキュリティレベルを適用。</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

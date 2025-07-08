@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第3章 認可の基礎 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第3章 認可の基礎</h1><h2>なぜこの章が重要か</h2><p>「ログインできた」ことと「何でもできる」ことは全く別の問題です。適切な認可設計により、システムの柔軟性とセキュリティを両立できます。この章では、認可モデルの本質を理解し、組織の成長に対応できる権限管理システムの構築方法を学びます。実装を通じて、セキュアで保守性の高い認可システムを設計する力を身につけましょう。</p><h2>3.1 アクセス制御の基本原則 - なぜ最小権限が重要なのか</h2><h3>3.1.1 認可の本質的な役割</h3><p>認証が「誰であるか」を確認するのに対し、認可は「何ができるか」を決定します。この区別が曖昧だと、深刻なセキュリティホールが生まれます。</p><p><strong>実例：ある金融システムの事故</strong></p><p>2022年、ある証券会社で発生した内部不正事件を見てみましょう：</p><p><pre><code>
+<p>事件の概要：</p>
+<p>- 一般職員が顧客の投資情報に不正アクセス</p>
+<p>- 6ヶ月間にわたり、5000件以上の顧客データを閲覧</p>
+<p>- 情報を外部に売却し、1億円以上の被害</p><p>根本原因：</p>
+<p>- 「ログインできる = すべてのデータが見られる」という設計</p>
+<p>- 職務に関係ないデータへのアクセス制限なし</p>
+<p>- アクセスログの監視不足</p>
+<p></code></pre></p><p>この事件は、認証だけでは不十分であることを明確に示しています。</p><h3>3.1.2 最小権限の原則（Principle of Least Privilege）</h3><p>#### なぜ最小権限が必要なのか</p><p><pre><code>python</p>
+<p>class SecurityIncidentSimulation:</p>
+<p>    """最小権限の重要性をシミュレーション"""</p>
+    
+<p>    def simulate_without_least_privilege(self):</p>
+<p>        """最小権限なしの場合の被害想定"""</p>
+<p>        compromised_account = {</p>
+<p>            'type': 'regular_employee',</p>
+<p>            'default_permissions': ['read_all', 'write_all', 'delete_all']</p>
+<p>        }</p>
+        
+<p>        potential_damage = {</p>
+<p>            'data_breach': 'ALL customer records accessible',</p>
+<p>            'data_manipulation': 'Financial records can be altered',</p>
+<p>            'service_disruption': 'Critical services can be stopped',</p>
+<p>            'lateral_movement': 'Access to other systems possible'</p>
+<p>        }</p>
+        
+<p>        return {</p>
+<p>            'impact_scope': 'ENTIRE ORGANIZATION',</p>
+<p>            'recovery_time': 'WEEKS to MONTHS',</p>
+<p>            'financial_loss': 'MILLIONS'</p>
+<p>        }</p>
+    
+<p>    def simulate_with_least_privilege(self):</p>
+<p>        """最小権限ありの場合の被害限定"""</p>
+<p>        compromised_account = {</p>
+<p>            'type': 'regular_employee',</p>
+<p>            'actual_permissions': ['read_own_data', 'write_own_tasks']</p>
+<p>        }</p>
+        
+<p>        limited_damage = {</p>
+<p>            'data_breach': 'Only assigned customer records',</p>
+<p>            'data_manipulation': 'Only own task data',</p>
+<p>            'service_disruption': 'None',</p>
+<p>            'lateral_movement': 'Blocked by permission boundaries'</p>
+<p>        }</p>
+        
+<p>        return {</p>
+<p>            'impact_scope': 'LIMITED to user\'s scope',</p>
+<p>            'recovery_time': 'HOURS',</p>
+<p>            'financial_loss': 'MINIMAL'</p>
+<p>        }</p>
+<p></code></pre></p><p>#### 最小権限の実装パターン</p><p><pre><code>python</p>
+<p>from enum import Enum</p>
+<p>from typing import Set, Dict, List</p>
+<p>import time</p><p>class Permission(Enum):</p>
+<p>    """権限の定義"""</p>
+<p>    # リソースに対する操作</p>
+<p>    READ = "read"</p>
+<p>    WRITE = "write"</p>
+<p>    DELETE = "delete"</p>
+<p>    EXECUTE = "execute"</p>
+    
+<p>    # 管理操作</p>
+<p>    GRANT = "grant"  # 権限の付与</p>
+<p>    REVOKE = "revoke"  # 権限の剥奪</p><p>class Resource:</p>
+<p>    """保護されるリソース"""</p>
+<p>    def __init__(self, resource_id: str, resource_type: str, owner: str):</p>
+<p>        self.id = resource_id</p>
+<p>        self.type = resource_type</p>
+<p>        self.owner = owner</p>
+<p>        self.created_at = time.time()</p><p>class LeastPrivilegeSystem:</p>
+<p>    """最小権限の原則を実装したシステム"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.permissions = {}  # {user_id: {resource_id: Set[Permission]}}</p>
+<p>        self.audit_log = []</p>
+        
+<p>    def grant_permission(self, granter_id: str, user_id: str, </p>
+<p>                        resource: Resource, permission: Permission) -> bool:</p>
+<p>        """権限の付与（最小権限の原則に基づく）"""</p>
+        
+<p>        # 1. 付与者が付与権限を持っているか確認</p>
+<p>        if not self._can_grant(granter_id, resource):</p>
+<p>            self._log_denied_action(granter_id, "grant", resource.id, </p>
+<p>                                  "Insufficient privileges")</p>
+<p>            return False</p>
+        
+<p>        # 2. 最小権限の原則に基づく検証</p>
+<p>        if not self._is_permission_necessary(user_id, resource, permission):</p>
+<p>            self._log_denied_action(granter_id, "grant", resource.id, </p>
+<p>                                  "Violates least privilege principle")</p>
+<p>            return False</p>
+        
+<p>        # 3. 権限を付与</p>
+<p>        if user_id not in self.permissions:</p>
+<p>            self.permissions[user_id] = {}</p>
+<p>        if resource.id not in self.permissions[user_id]:</p>
+<p>            self.permissions[user_id][resource.id] = set()</p>
+        
+<p>        self.permissions[user_id][resource.id].add(permission)</p>
+        
+<p>        # 4. 監査ログに記録</p>
+<p>        self._log_action(granter_id, "granted", permission, user_id, resource.id)</p>
+        
+<p>        return True</p>
+    
+<p>    def _is_permission_necessary(self, user_id: str, resource: Resource, </p>
+<p>                                permission: Permission) -> bool:</p>
+<p>        """権限が本当に必要かを判定"""</p>
+<p>        # ここでは職務分離や役割に基づいた判定を行う</p>
+        
+<p>        # 例：自分が所有していないリソースへの削除権限は原則不可</p>
+<p>        if permission == Permission.DELETE and resource.owner != user_id:</p>
+<p>            return False</p>
+        
+<p>        # 例：読み取り権限なしに書き込み権限は付与しない</p>
+<p>        if permission == Permission.WRITE:</p>
+<p>            current_perms = self.permissions.get(user_id, {}).get(resource.id, set())</p>
+<p>            if Permission.READ not in current_perms:</p>
+<p>                return False</p>
+        
+<p>        return True</p>
+    
+<p>    def check_permission(self, user_id: str, resource: Resource, </p>
+<p>                        permission: Permission) -> bool:</p>
+<p>        """権限チェック"""</p>
+<p>        result = (user_id in self.permissions and </p>
+<p>                 resource.id in self.permissions[user_id] and </p>
+<p>                 permission in self.permissions[user_id][resource.id])</p>
+        
+<p>        # すべてのアクセス試行を記録（セキュリティ監査のため）</p>
+<p>        self._log_access_attempt(user_id, resource.id, permission, result)</p>
+        
+<p>        return result</p>
+    
+<p>    def revoke_expired_permissions(self):</p>
+<p>        """期限切れ権限の自動剥奪"""</p>
+<p>        current_time = time.time()</p>
+<p>        revoked_count = 0</p>
+        
+<p>        for user_id in list(self.permissions.keys()):</p>
+<p>            for resource_id in list(self.permissions[user_id].keys()):</p>
+<p>                # 時限的権限のチェック（実装例）</p>
+<p>                if self._is_permission_expired(user_id, resource_id, current_time):</p>
+<p>                    del self.permissions[user_id][resource_id]</p>
+<p>                    revoked_count += 1</p>
+<p>                    self._log_action("system", "auto-revoked", "all", </p>
+<p>                                   user_id, resource_id)</p>
+        
+<p>        return revoked_count</p>
+    
+<p>    def _log_action(self, actor: str, action: str, permission, </p>
+<p>                   target_user: str, resource_id: str):</p>
+<p>        """監査ログへの記録"""</p>
+<p>        log_entry = {</p>
+<p>            'timestamp': time.time(),</p>
+<p>            'actor': actor,</p>
+<p>            'action': action,</p>
+<p>            'permission': str(permission),</p>
+<p>            'target_user': target_user,</p>
+<p>            'resource_id': resource_id</p>
+<p>        }</p>
+<p>        self.audit_log.append(log_entry)</p>
+<p></code></pre></p><h3>3.1.3 職務分離（Separation of Duties）</h3><p>#### なぜ職務分離が必要か</p><p>職務分離は、不正や誤りを防ぐための重要な原則です。一人の人間が取引の開始から完了まですべてを制御できないようにします。</p><p><pre><code>python</p>
+<p>class SeparationOfDuties:</p>
+<p>    """職務分離の実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.conflicting_roles = {</p>
+<p>            'payment_initiator': ['payment_approver', 'payment_auditor'],</p>
+<p>            'payment_approver': ['payment_initiator', 'payment_auditor'],</p>
+<p>            'payment_auditor': ['payment_initiator', 'payment_approver'],</p>
+            
+<p>            'code_developer': ['code_deployer', 'production_admin'],</p>
+<p>            'code_reviewer': ['code_developer'],  # 同じコードの開発者とレビュアーは分離</p>
+            
+<p>            'user_creator': ['user_approver'],</p>
+<p>            'permission_granter': ['permission_auditor']</p>
+<p>        }</p>
+        
+<p>        self.user_roles = {}  # {user_id: Set[role]}</p>
+<p>        self.pending_operations = {}  # 承認待ちオペレーション</p>
+    
+<p>    def assign_role(self, user_id: str, role: str) -> tuple[bool, str]:</p>
+<p>        """役割の割り当て（職務分離チェック付き）"""</p>
+        
+<p>        # 既存の役割を取得</p>
+<p>        current_roles = self.user_roles.get(user_id, set())</p>
+        
+<p>        # 職務分離違反をチェック</p>
+<p>        for current_role in current_roles:</p>
+<p>            if role in self.conflicting_roles.get(current_role, []):</p>
+<p>                return False, f"Role '{role}' conflicts with existing role '{current_role}'"</p>
+        
+<p>        # 役割を割り当て</p>
+<p>        if user_id not in self.user_roles:</p>
+<p>            self.user_roles[user_id] = set()</p>
+<p>        self.user_roles[user_id].add(role)</p>
+        
+<p>        return True, f"Role '{role}' assigned successfully"</p>
+    
+<p>    def initiate_sensitive_operation(self, initiator_id: str, </p>
+<p>                                   operation_type: str, </p>
+<p>                                   operation_data: dict) -> str:</p>
+<p>        """センシティブな操作の開始（承認が必要）"""</p>
+        
+<p>        operation_id = f"op_{int(time.time() * 1000)}"</p>
+        
+<p>        self.pending_operations[operation_id] = {</p>
+<p>            'type': operation_type,</p>
+<p>            'initiator': initiator_id,</p>
+<p>            'data': operation_data,</p>
+<p>            'status': 'pending',</p>
+<p>            'created_at': time.time(),</p>
+<p>            'required_approvals': self._get_required_approvals(operation_type),</p>
+<p>            'approvals': []</p>
+<p>        }</p>
+        
+<p>        return operation_id</p>
+    
+<p>    def approve_operation(self, approver_id: str, operation_id: str) -> tuple[bool, str]:</p>
+<p>        """操作の承認"""</p>
+        
+<p>        if operation_id not in self.pending_operations:</p>
+<p>            return False, "Operation not found"</p>
+        
+<p>        operation = self.pending_operations[operation_id]</p>
+        
+<p>        # 自己承認の禁止</p>
+<p>        if approver_id == operation['initiator']:</p>
+<p>            return False, "Self-approval is not allowed"</p>
+        
+<p>        # 承認者の役割チェック</p>
+<p>        approver_roles = self.user_roles.get(approver_id, set())</p>
+<p>        required_roles = operation['required_approvals']</p>
+        
+<p>        valid_role = None</p>
+<p>        for role in approver_roles:</p>
+<p>            if role in required_roles:</p>
+<p>                valid_role = role</p>
+<p>                break</p>
+        
+<p>        if not valid_role:</p>
+<p>            return False, "Approver does not have required role"</p>
+        
+<p>        # 承認を記録</p>
+<p>        operation['approvals'].append({</p>
+<p>            'approver': approver_id,</p>
+<p>            'role': valid_role,</p>
+<p>            'timestamp': time.time()</p>
+<p>        })</p>
+        
+<p>        # すべての必要な承認が揃ったかチェック</p>
+<p>        approved_roles = {approval['role'] for approval in operation['approvals']}</p>
+<p>        if approved_roles >= set(required_roles):</p>
+<p>            operation['status'] = 'approved'</p>
+<p>            return True, "Operation fully approved and ready for execution"</p>
+        
+<p>        return True, f"Approval recorded. Still waiting for: {set(required_roles) - approved_roles}"</p>
+    
+<p>    def _get_required_approvals(self, operation_type: str) -> List[str]:</p>
+<p>        """操作タイプに基づいて必要な承認者の役割を返す"""</p>
+<p>        approval_requirements = {</p>
+<p>            'high_value_payment': ['payment_approver', 'finance_manager'],</p>
+<p>            'user_deletion': ['user_admin', 'security_officer'],</p>
+<p>            'permission_elevation': ['security_admin', 'compliance_officer'],</p>
+<p>            'system_configuration': ['system_admin', 'change_manager']</p>
+<p>        }</p>
+        
+<p>        return approval_requirements.get(operation_type, ['supervisor'])</p>
+<p></code></pre></p><h3>3.1.4 Defense in Depth（多層防御）</h3><p>認可は単独で機能するのではなく、セキュリティの複数の層の一つとして機能します。</p><p><pre><code>python</p>
+<p>class DefenseInDepth:</p>
+<p>    """多層防御の実装例"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.security_layers = {</p>
+<p>            'network': NetworkSecurity(),</p>
+<p>            'authentication': AuthenticationLayer(),</p>
+<p>            'authorization': AuthorizationLayer(),</p>
+<p>            'application': ApplicationSecurity(),</p>
+<p>            'data': DataProtection()</p>
+<p>        }</p>
+    
+<p>    def process_request(self, request):</p>
+<p>        """リクエストを多層防御で処理"""</p>
+        
+<p>        # 各層でセキュリティチェック</p>
+<p>        for layer_name, layer in self.security_layers.items():</p>
+<p>            result = layer.check(request)</p>
+            
+<p>            if not result.passed:</p>
+<p>                return {</p>
+<p>                    'allowed': False,</p>
+<p>                    'blocked_at': layer_name,</p>
+<p>                    'reason': result.reason,</p>
+<p>                    'timestamp': time.time()</p>
+<p>                }</p>
+            
+<p>            # 各層でコンテキストを追加</p>
+<p>            request.security_context[layer_name] = result.context</p>
+        
+<p>        return {</p>
+<p>            'allowed': True,</p>
+<p>            'security_context': request.security_context,</p>
+<p>            'timestamp': time.time()</p>
+<p>        }</p><p>class AuthorizationLayer:</p>
+<p>    """認可層の実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.policies = []</p>
+<p>        self.decision_log = []</p>
+    
+<p>    def check(self, request):</p>
+<p>        """認可チェック"""</p>
+        
+<p>        # 1. コンテキスト情報の収集</p>
+<p>        context = self._build_context(request)</p>
+        
+<p>        # 2. 適用可能なポリシーの特定</p>
+<p>        applicable_policies = self._find_applicable_policies(context)</p>
+        
+<p>        # 3. ポリシー評価</p>
+<p>        decisions = []</p>
+<p>        for policy in applicable_policies:</p>
+<p>            decision = self._evaluate_policy(policy, context)</p>
+<p>            decisions.append(decision)</p>
+            
+<p>            # 即座に拒否するポリシーがあれば終了</p>
+<p>            if decision.effect == 'DENY' and policy.priority == 'OVERRIDE':</p>
+<p>                return AuthzResult(</p>
+<p>                    passed=False,</p>
+<p>                    reason=f"Denied by policy: {policy.name}",</p>
+<p>                    context={'denied_by': policy.id}</p>
+<p>                )</p>
+        
+<p>        # 4. 決定の集約</p>
+<p>        final_decision = self._combine_decisions(decisions)</p>
+        
+<p>        # 5. 監査ログ</p>
+<p>        self._log_decision(request, decisions, final_decision)</p>
+        
+<p>        return AuthzResult(</p>
+<p>            passed=(final_decision == 'ALLOW'),</p>
+<p>            reason=self._format_reason(decisions),</p>
+<p>            context={'evaluated_policies': len(applicable_policies)}</p>
+<p>        )</p>
+    
+<p>    def _build_context(self, request):</p>
+<p>        """認可判断のためのコンテキスト構築"""</p>
+<p>        return {</p>
+<p>            'user': {</p>
+<p>                'id': request.user_id,</p>
+<p>                'roles': request.user_roles,</p>
+<p>                'attributes': request.user_attributes,</p>
+<p>                'authentication_level': request.auth_context.get('level', 'basic')</p>
+<p>            },</p>
+<p>            'resource': {</p>
+<p>                'type': request.resource_type,</p>
+<p>                'id': request.resource_id,</p>
+<p>                'owner': request.resource_owner,</p>
+<p>                'classification': request.resource_classification</p>
+<p>            },</p>
+<p>            'action': request.action,</p>
+<p>            'environment': {</p>
+<p>                'time': time.time(),</p>
+<p>                'ip_address': request.ip_address,</p>
+<p>                'user_agent': request.user_agent,</p>
+<p>                'location': request.geo_location</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>3.2 認可モデルの比較（ACL, RBAC, ABAC）- 各モデルの適用場面</h2><h3>3.2.1 Access Control List (ACL) - シンプルだが限界がある</h3><p>#### ACLの仕組みと実装</p><p>ACLは最も基本的な認可モデルで、各リソースに対して「誰が何をできるか」を直接指定します。</p><p><pre><code>python</p>
+<p>class ACLSystem:</p>
+<p>    """ACL（Access Control List）の実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.acls = {}  # {resource_id: {user_id: Set[permission]}}</p>
+<p>        self.groups = {}  # {group_id: Set[user_id]}</p>
+<p>        self.resource_metadata = {}</p>
+    
+<p>    def create_resource(self, resource_id: str, owner_id: str, </p>
+<p>                       resource_type: str = "file"):</p>
+<p>        """リソース作成時のデフォルトACL設定"""</p>
+        
+<p>        # オーナーにはフルアクセス権限</p>
+<p>        self.acls[resource_id] = {</p>
+<p>            owner_id: {</p>
+<p>                Permission.READ, </p>
+<p>                Permission.WRITE, </p>
+<p>                Permission.DELETE,</p>
+<p>                Permission.GRANT  # ACL変更権限</p>
+<p>            }</p>
+<p>        }</p>
+        
+<p>        self.resource_metadata[resource_id] = {</p>
+<p>            'owner': owner_id,</p>
+<p>            'type': resource_type,</p>
+<p>            'created_at': time.time(),</p>
+<p>            'inherit_from': None</p>
+<p>        }</p>
+    
+<p>    def grant_permission(self, resource_id: str, granter_id: str,</p>
+<p>                        target: str, permissions: Set[Permission],</p>
+<p>                        target_type: str = "user") -> bool:</p>
+<p>        """権限の付与"""</p>
+        
+<p>        # 付与者がGRANT権限を持っているか確認</p>
+<p>        if not self._has_permission(granter_id, resource_id, Permission.GRANT):</p>
+<p>            raise PermissionError(f"User {granter_id} cannot grant permissions")</p>
+        
+<p>        if resource_id not in self.acls:</p>
+<p>            self.acls[resource_id] = {}</p>
+        
+<p>        if target_type == "user":</p>
+<p>            # ユーザーへの直接付与</p>
+<p>            if target not in self.acls[resource_id]:</p>
+<p>                self.acls[resource_id][target] = set()</p>
+<p>            self.acls[resource_id][target].update(permissions)</p>
+            
+<p>        elif target_type == "group":</p>
+<p>            # グループへの付与（グループメンバー全員に適用）</p>
+<p>            if target not in self.groups:</p>
+<p>                raise ValueError(f"Group {target} does not exist")</p>
+            
+<p>            for user_id in self.groups[target]:</p>
+<p>                if user_id not in self.acls[resource_id]:</p>
+<p>                    self.acls[resource_id][user_id] = set()</p>
+<p>                self.acls[resource_id][user_id].update(permissions)</p>
+        
+<p>        return True</p>
+    
+<p>    def check_permission(self, user_id: str, resource_id: str, </p>
+<p>                        permission: Permission) -> bool:</p>
+<p>        """権限チェック"""</p>
+        
+<p>        # 直接の権限チェック</p>
+<p>        if self._has_permission(user_id, resource_id, permission):</p>
+<p>            return True</p>
+        
+<p>        # 継承された権限のチェック（ディレクトリ構造など）</p>
+<p>        parent_id = self.resource_metadata.get(resource_id, {}).get('inherit_from')</p>
+<p>        if parent_id:</p>
+<p>            return self.check_permission(user_id, parent_id, permission)</p>
+        
+<p>        return False</p>
+    
+<p>    def _has_permission(self, user_id: str, resource_id: str, </p>
+<p>                       permission: Permission) -> bool:</p>
+<p>        """直接の権限を持っているかチェック"""</p>
+<p>        return (resource_id in self.acls and</p>
+<p>                user_id in self.acls[resource_id] and</p>
+<p>                permission in self.acls[resource_id][user_id])</p>
+    
+<p>    def get_effective_permissions(self, user_id: str, resource_id: str) -> Set[Permission]:</p>
+<p>        """ユーザーの実効権限を取得"""</p>
+<p>        permissions = set()</p>
+        
+<p>        # 直接付与された権限</p>
+<p>        if resource_id in self.acls and user_id in self.acls[resource_id]:</p>
+<p>            permissions.update(self.acls[resource_id][user_id])</p>
+        
+<p>        # グループ経由の権限</p>
+<p>        for group_id, members in self.groups.items():</p>
+<p>            if user_id in members and resource_id in self.acls:</p>
+<p>                group_perms = self.acls[resource_id].get(f"group:{group_id}", set())</p>
+<p>                permissions.update(group_perms)</p>
+        
+<p>        return permissions</p><h1>ACLの限界を示す例</h1>
+<p>def demonstrate_acl_limitations():</p>
+<p>    """ACLのスケーラビリティ問題を実証"""</p>
+    
+<p>    acl_system = ACLSystem()</p>
+    
+<p>    # 1000人のユーザーと1000個のリソースがある場合</p>
+<p>    users = [f"user_{i}" for i in range(1000)]</p>
+<p>    resources = [f"resource_{i}" for i in range(1000)]</p>
+    
+<p>    # 各リソースに対して個別に権限を設定する必要がある</p>
+<p>    permission_entries = 0</p>
+<p>    for resource in resources:</p>
+<p>        acl_system.create_resource(resource, "admin", "file")</p>
+<p>        # 各ユーザーに読み取り権限を付与</p>
+<p>        for user in users[:100]:  # 100人のユーザーのみでも</p>
+<p>            acl_system.grant_permission(resource, "admin", user, {Permission.READ})</p>
+<p>            permission_entries += 1</p>
+    
+<p>    print(f"ACLエントリ数: {permission_entries}")  # 100,000エントリ！</p>
+<p>    print("問題点:")</p>
+<p>    print("1. 管理が複雑 - 誰がどのリソースにアクセスできるか把握困難")</p>
+<p>    print("2. 一括変更が困難 - 部署異動時などに大量の更新が必要")</p>
+<p>    print("3. パフォーマンス - 大量のACLエントリの評価")</p>
+<p></code></pre></p><h3>3.2.2 Role-Based Access Control (RBAC) - 企業で最も使われるモデル</h3><p>#### RBACの設計思想</p><p>RBACは「役割」という概念を導入することで、権限管理を大幅に簡素化します。</p><p><pre><code>python</p>
+<p>from typing import Dict, Set, List, Optional</p>
+<p>from dataclasses import dataclass</p>
+<p>from abc import ABC, abstractmethod</p><p>@dataclass</p>
+<p>class Role:</p>
+<p>    """役割の定義"""</p>
+<p>    id: str</p>
+<p>    name: str</p>
+<p>    description: str</p>
+<p>    permissions: Set[str]</p>
+<p>    parent_roles: Set[str] = None  # 役割の階層化</p>
+    
+<p>    def __post_init__(self):</p>
+<p>        if self.parent_roles is None:</p>
+<p>            self.parent_roles = set()</p><p>class RBACSystem:</p>
+<p>    """階層型RBACの実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.roles: Dict[str, Role] = {}</p>
+<p>        self.user_roles: Dict[str, Set[str]] = {}  # user_id -> Set[role_id]</p>
+<p>        self.permissions: Dict[str, Dict] = {}  # permission定義</p>
+<p>        self.role_hierarchy = {}  # 役割の階層関係</p>
+<p>        self.constraints = []  # 制約条件</p>
+        
+<p>    def create_role(self, role_id: str, name: str, description: str,</p>
+<p>                   permissions: Set[str], parent_roles: Set[str] = None) -> Role:</p>
+<p>        """役割の作成"""</p>
+        
+<p>        # 循環参照のチェック</p>
+<p>        if parent_roles:</p>
+<p>            for parent_id in parent_roles:</p>
+<p>                if self._would_create_cycle(role_id, parent_id):</p>
+<p>                    raise ValueError(f"Role hierarchy would create a cycle")</p>
+        
+<p>        role = Role(role_id, name, description, permissions, parent_roles)</p>
+<p>        self.roles[role_id] = role</p>
+        
+<p>        # 階層の更新</p>
+<p>        if parent_roles:</p>
+<p>            for parent_id in parent_roles:</p>
+<p>                if parent_id not in self.role_hierarchy:</p>
+<p>                    self.role_hierarchy[parent_id] = set()</p>
+<p>                self.role_hierarchy[parent_id].add(role_id)</p>
+        
+<p>        return role</p>
+    
+<p>    def assign_role(self, user_id: str, role_id: str) -> bool:</p>
+<p>        """ユーザーへの役割割り当て"""</p>
+        
+<p>        if role_id not in self.roles:</p>
+<p>            raise ValueError(f"Role {role_id} does not exist")</p>
+        
+<p>        # 制約チェック（相互排他的役割など）</p>
+<p>        if not self._check_constraints(user_id, role_id):</p>
+<p>            return False</p>
+        
+<p>        if user_id not in self.user_roles:</p>
+<p>            self.user_roles[user_id] = set()</p>
+        
+<p>        self.user_roles[user_id].add(role_id)</p>
+        
+<p>        # 監査ログ（実装は省略）</p>
+<p>        self._log_role_assignment(user_id, role_id)</p>
+        
+<p>        return True</p>
+    
+<p>    def check_permission(self, user_id: str, permission: str, </p>
+<p>                        context: Dict = None) -> bool:</p>
+<p>        """権限チェック"""</p>
+        
+<p>        # ユーザーの全ての権限を取得（階層も考慮）</p>
+<p>        user_permissions = self.get_all_permissions(user_id)</p>
+        
+<p>        # コンテキストベースの動的チェック</p>
+<p>        if context and permission in user_permissions:</p>
+<p>            return self._evaluate_contextual_permission(</p>
+<p>                user_id, permission, context</p>
+<p>            )</p>
+        
+<p>        return permission in user_permissions</p>
+    
+<p>    def get_all_permissions(self, user_id: str) -> Set[str]:</p>
+<p>        """ユーザーの全権限を取得（役割階層を考慮）"""</p>
+        
+<p>        if user_id not in self.user_roles:</p>
+<p>            return set()</p>
+        
+<p>        all_permissions = set()</p>
+<p>        visited_roles = set()</p>
+        
+<p>        # DFSで役割階層を辿る</p>
+<p>        def collect_permissions(role_id: str):</p>
+<p>            if role_id in visited_roles:</p>
+<p>                return</p>
+            
+<p>            visited_roles.add(role_id)</p>
+<p>            role = self.roles.get(role_id)</p>
+            
+<p>            if role:</p>
+<p>                all_permissions.update(role.permissions)</p>
+                
+<p>                # 親役割の権限も収集</p>
+<p>                for parent_id in role.parent_roles:</p>
+<p>                    collect_permissions(parent_id)</p>
+        
+<p>        # ユーザーの全役割から権限を収集</p>
+<p>        for role_id in self.user_roles[user_id]:</p>
+<p>            collect_permissions(role_id)</p>
+        
+<p>        return all_permissions</p>
+    
+<p>    def add_constraint(self, constraint_type: str, roles: Set[str]):</p>
+<p>        """制約の追加（例：相互排他的役割）"""</p>
+        
+<p>        constraint = {</p>
+<p>            'type': constraint_type,</p>
+<p>            'roles': roles,</p>
+<p>            'created_at': time.time()</p>
+<p>        }</p>
+        
+<p>        self.constraints.append(constraint)</p>
+    
+<p>    def _check_constraints(self, user_id: str, new_role_id: str) -> bool:</p>
+<p>        """制約条件のチェック"""</p>
+        
+<p>        current_roles = self.user_roles.get(user_id, set())</p>
+        
+<p>        for constraint in self.constraints:</p>
+<p>            if constraint['type'] == 'mutually_exclusive':</p>
+<p>                if new_role_id in constraint['roles']:</p>
+<p>                    # 既存の役割と相互排他的でないかチェック</p>
+<p>                    conflicting = current_roles.intersection(constraint['roles'])</p>
+<p>                    if conflicting:</p>
+<p>                        print(f"Role {new_role_id} conflicts with {conflicting}")</p>
+<p>                        return False</p>
+            
+<p>            elif constraint['type'] == 'prerequisite':</p>
+<p>                # 前提条件の役割を持っているかチェック</p>
+<p>                if new_role_id in constraint['roles']:</p>
+<p>                    required = constraint.get('requires', set())</p>
+<p>                    if not required.issubset(current_roles):</p>
+<p>                        print(f"Missing prerequisite roles: {required - current_roles}")</p>
+<p>                        return False</p>
+        
+<p>        return True</p>
+    
+<p>    def _would_create_cycle(self, child_id: str, parent_id: str) -> bool:</p>
+<p>        """役割階層に循環が生じるかチェック"""</p>
+        
+<p>        # 親から子への経路が既に存在するかチェック</p>
+<p>        visited = set()</p>
+        
+<p>        def has_path(from_role: str, to_role: str) -> bool:</p>
+<p>            if from_role == to_role:</p>
+<p>                return True</p>
+            
+<p>            if from_role in visited:</p>
+<p>                return False</p>
+            
+<p>            visited.add(from_role)</p>
+            
+<p>            for child in self.role_hierarchy.get(from_role, []):</p>
+<p>                if has_path(child, to_role):</p>
+<p>                    return True</p>
+            
+<p>            return False</p>
+        
+<p>        return has_path(parent_id, child_id)</p><h1>RBACの実用例</h1>
+<p>def create_enterprise_rbac():</p>
+<p>    """企業向けRBACの構築例"""</p>
+    
+<p>    rbac = RBACSystem()</p>
+    
+<p>    # 基本権限の定義</p>
+<p>    permissions = {</p>
+<p>        # データアクセス</p>
+<p>        'read_public_data': 'Public data read access',</p>
+<p>        'read_internal_data': 'Internal data read access',</p>
+<p>        'read_confidential_data': 'Confidential data read access',</p>
+        
+<p>        # 操作権限</p>
+<p>        'create_report': 'Create reports',</p>
+<p>        'approve_report': 'Approve reports',</p>
+<p>        'publish_report': 'Publish reports',</p>
+        
+<p>        # 管理権限</p>
+<p>        'manage_users': 'User management',</p>
+<p>        'manage_roles': 'Role management',</p>
+<p>        'view_audit_logs': 'View audit logs'</p>
+<p>    }</p>
+    
+<p>    # 役割の階層的な定義</p>
+    
+<p>    # 基本役割</p>
+<p>    rbac.create_role(</p>
+<p>        'employee', </p>
+<p>        'Employee', </p>
+<p>        'Basic employee role',</p>
+<p>        {'read_public_data'}</p>
+<p>    )</p>
+    
+<p>    # 部門別役割（employeeを継承）</p>
+<p>    rbac.create_role(</p>
+<p>        'analyst',</p>
+<p>        'Data Analyst',</p>
+<p>        'Can create reports',</p>
+<p>        {'read_internal_data', 'create_report'},</p>
+<p>        {'employee'}</p>
+<p>    )</p>
+    
+<p>    rbac.create_role(</p>
+<p>        'senior_analyst',</p>
+<p>        'Senior Analyst',</p>
+<p>        'Can approve reports',</p>
+<p>        {'approve_report'},</p>
+<p>        {'analyst'}</p>
+<p>    )</p>
+    
+<p>    # 管理役割</p>
+<p>    rbac.create_role(</p>
+<p>        'manager',</p>
+<p>        'Department Manager',</p>
+<p>        'Department management',</p>
+<p>        {'read_confidential_data', 'publish_report'},</p>
+<p>        {'senior_analyst'}</p>
+<p>    )</p>
+    
+<p>    rbac.create_role(</p>
+<p>        'admin',</p>
+<p>        'System Administrator',</p>
+<p>        'Full system access',</p>
+<p>        {'manage_users', 'manage_roles', 'view_audit_logs'},</p>
+<p>        {'employee'}</p>
+<p>    )</p>
+    
+<p>    # 制約の追加</p>
+<p>    rbac.add_constraint('mutually_exclusive', {'analyst', 'admin'})</p>
+<p>    rbac.add_constraint('mutually_exclusive', {'manager', 'admin'})</p>
+    
+<p>    return rbac</p>
+<p></code></pre></p><h3>3.2.3 Attribute-Based Access Control (ABAC) - 最も柔軟なモデル</h3><p>#### ABACの力と複雑さ</p><p>ABACは属性（ユーザー属性、リソース属性、環境属性）に基づいて動的に権限を決定します。</p><p><pre><code>python</p>
+<p>from typing import Any, Dict, List, Callable</p>
+<p>import json</p>
+<p>from datetime import datetime, time</p><p>class Attribute:</p>
+<p>    """属性の定義"""</p>
+<p>    def __init__(self, name: str, value: Any, category: str):</p>
+<p>        self.name = name</p>
+<p>        self.value = value</p>
+<p>        self.category = category  # 'user', 'resource', 'environment'</p><p>class PolicyRule:</p>
+<p>    """ABACポリシールール"""</p>
+<p>    def __init__(self, rule_id: str, description: str, </p>
+<p>                 condition: str, effect: str = 'ALLOW'):</p>
+<p>        self.id = rule_id</p>
+<p>        self.description = description</p>
+<p>        self.condition = condition  # Python式として評価される</p>
+<p>        self.effect = effect  # 'ALLOW' or 'DENY'</p>
+<p>        self.priority = 0  # 高い値が優先</p><p>class ABACSystem:</p>
+<p>    """Attribute-Based Access Control システム"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.policies: List[PolicyRule] = []</p>
+<p>        self.attribute_definitions = {}</p>
+<p>        self.policy_information_point = PolicyInformationPoint()</p>
+        
+<p>    def add_policy(self, policy: PolicyRule):</p>
+<p>        """ポリシーの追加"""</p>
+<p>        # ポリシーの構文チェック</p>
+<p>        try:</p>
+<p>            compile(policy.condition, '<policy>', 'eval')</p>
+<p>        except SyntaxError as e:</p>
+<p>            raise ValueError(f"Invalid policy condition: {e}")</p>
+        
+<p>        self.policies.append(policy)</p>
+<p>        # 優先度順にソート</p>
+<p>        self.policies.sort(key=lambda p: p.priority, reverse=True)</p>
+    
+<p>    def evaluate_access(self, subject_attrs: Dict, resource_attrs: Dict, </p>
+<p>                       action: str, environment_attrs: Dict = None) -> tuple[bool, str]:</p>
+<p>        """アクセス要求の評価"""</p>
+        
+<p>        # 評価コンテキストの構築</p>
+<p>        context = {</p>
+<p>            'user': subject_attrs,</p>
+<p>            'resource': resource_attrs,</p>
+<p>            'action': action,</p>
+<p>            'env': environment_attrs or self._get_environment_attributes()</p>
+<p>        }</p>
+        
+<p>        # 追加の属性情報を取得</p>
+<p>        context = self.policy_information_point.enrich_context(context)</p>
+        
+<p>        # ポリシーを順番に評価</p>
+<p>        applicable_policies = []</p>
+        
+<p>        for policy in self.policies:</p>
+<p>            try:</p>
+<p>                # ポリシー条件を安全に評価</p>
+<p>                if self._evaluate_condition(policy.condition, context):</p>
+<p>                    applicable_policies.append(policy)</p>
+                    
+<p>                    # DENY優先（最初のDENYで即座に拒否）</p>
+<p>                    if policy.effect == 'DENY':</p>
+<p>                        return False, f"Denied by policy: {policy.description}"</p>
+                        
+<p>            except Exception as e:</p>
+<p>                # ポリシー評価エラーは拒否として扱う</p>
+<p>                print(f"Policy evaluation error: {e}")</p>
+<p>                continue</p>
+        
+<p>        # 適用可能なALLOWポリシーがあるか</p>
+<p>        allow_policies = [p for p in applicable_policies if p.effect == 'ALLOW']</p>
+<p>        if allow_policies:</p>
+<p>            return True, f"Allowed by: {allow_policies[0].description}"</p>
+        
+<p>        # デフォルトは拒否</p>
+<p>        return False, "No applicable ALLOW policy found"</p>
+    
+<p>    def _evaluate_condition(self, condition: str, context: Dict) -> bool:</p>
+<p>        """条件式の安全な評価"""</p>
+<p>        # 利用可能な関数を制限</p>
+<p>        safe_functions = {</p>
+<p>            'len': len,</p>
+<p>            'int': int,</p>
+<p>            'str': str,</p>
+<p>            'bool': bool,</p>
+<p>            'any': any,</p>
+<p>            'all': all,</p>
+<p>            'min': min,</p>
+<p>            'max': max,</p>
+<p>            'datetime': datetime,</p>
+<p>            'time': time,</p>
+<p>            'in_time_range': self._in_time_range,</p>
+<p>            'has_clearance': self._has_clearance</p>
+<p>        }</p>
+        
+<p>        # 評価環境を構築</p>
+<p>        eval_env = {<strong>context, </strong>safe_functions}</p>
+        
+<p>        # 条件を評価</p>
+<p>        return eval(condition, {"__builtins__": {}}, eval_env)</p>
+    
+<p>    def _get_environment_attributes(self) -> Dict:</p>
+<p>        """環境属性の取得"""</p>
+<p>        now = datetime.now()</p>
+<p>        return {</p>
+<p>            'current_time': now.time(),</p>
+<p>            'current_date': now.date(),</p>
+<p>            'day_of_week': now.strftime('%A'),</p>
+<p>            'is_business_hours': self._is_business_hours(now),</p>
+<p>            'threat_level': self._get_current_threat_level(),</p>
+<p>            'system_load': self._get_system_load()</p>
+<p>        }</p>
+    
+<p>    def _in_time_range(self, start: str, end: str) -> bool:</p>
+<p>        """時間範囲内かチェック"""</p>
+<p>        current = datetime.now().time()</p>
+<p>        start_time = datetime.strptime(start, '%H:%M').time()</p>
+<p>        end_time = datetime.strptime(end, '%H:%M').time()</p>
+        
+<p>        if start_time <= end_time:</p>
+<p>            return start_time <= current <= end_time</p>
+<p>        else:  # 日をまたぐ場合</p>
+<p>            return current >= start_time or current <= end_time</p>
+    
+<p>    def _has_clearance(self, user_clearance: str, required_clearance: str) -> bool:</p>
+<p>        """セキュリティクリアランスのチェック"""</p>
+<p>        clearance_levels = {</p>
+<p>            'PUBLIC': 0,</p>
+<p>            'INTERNAL': 1,</p>
+<p>            'CONFIDENTIAL': 2,</p>
+<p>            'SECRET': 3,</p>
+<p>            'TOP_SECRET': 4</p>
+<p>        }</p>
+        
+<p>        user_level = clearance_levels.get(user_clearance, 0)</p>
+<p>        required_level = clearance_levels.get(required_clearance, 999)</p>
+        
+<p>        return user_level >= required_level</p>
+    
+<p>    def _is_business_hours(self, dt: datetime) -> bool:</p>
+<p>        """営業時間内かチェック"""</p>
+<p>        if dt.weekday() >= 5:  # 土日</p>
+<p>            return False</p>
+<p>        return time(9, 0) <= dt.time() <= time(18, 0)</p>
+    
+<p>    def _get_current_threat_level(self) -> str:</p>
+<p>        """現在の脅威レベルを取得（実装例）"""</p>
+<p>        # 実際にはSIEMシステムなどから取得</p>
+<p>        return "NORMAL"</p>
+    
+<p>    def _get_system_load(self) -> float:</p>
+<p>        """システム負荷を取得（実装例）"""</p>
+<p>        # 実際にはモニタリングシステムから取得</p>
+<p>        return 0.3</p><p>class PolicyInformationPoint:</p>
+<p>    """追加の属性情報を提供するコンポーネント"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.data_sources = {}</p>
+    
+<p>    def enrich_context(self, context: Dict) -> Dict:</p>
+<p>        """コンテキストに追加情報を付加"""</p>
+<p>        enriched = context.copy()</p>
+        
+<p>        # ユーザーの追加属性を取得</p>
+<p>        if 'user' in context and 'id' in context['user']:</p>
+<p>            user_id = context['user']['id']</p>
+<p>            enriched['user'].update(self._get_user_attributes(user_id))</p>
+        
+<p>        # リソースの追加属性を取得</p>
+<p>        if 'resource' in context and 'id' in context['resource']:</p>
+<p>            resource_id = context['resource']['id']</p>
+<p>            enriched['resource'].update(self._get_resource_attributes(resource_id))</p>
+        
+<p>        return enriched</p>
+    
+<p>    def _get_user_attributes(self, user_id: str) -> Dict:</p>
+<p>        """ユーザーの追加属性を取得"""</p>
+<p>        # 実際にはLDAPやHRシステムから取得</p>
+<p>        return {</p>
+<p>            'department': 'Engineering',</p>
+<p>            'clearance_level': 'SECRET',</p>
+<p>            'employment_type': 'FULL_TIME',</p>
+<p>            'years_of_service': 5,</p>
+<p>            'training_completed': ['security_awareness', 'data_handling'],</p>
+<p>            'current_projects': ['ProjectA', 'ProjectB']</p>
+<p>        }</p>
+    
+<p>    def _get_resource_attributes(self, resource_id: str) -> Dict:</p>
+<p>        """リソースの追加属性を取得"""</p>
+<p>        # 実際にはCMDBやメタデータストアから取得</p>
+<p>        return {</p>
+<p>            'classification': 'CONFIDENTIAL',</p>
+<p>            'owner': 'user123',</p>
+<p>            'created_date': '2024-01-15',</p>
+<p>            'last_modified': '2024-03-20',</p>
+<p>            'tags': ['financial', 'quarterly_report'],</p>
+<p>            'retention_period': 7  # years</p>
+<p>        }</p><h1>ABACポリシーの実用例</h1>
+<p>def create_abac_policies():</p>
+<p>    """実用的なABACポリシーの作成"""</p>
+    
+<p>    abac = ABACSystem()</p>
+    
+<p>    # ポリシー1: 営業時間内のみアクセス可能</p>
+<p>    policy1 = PolicyRule(</p>
+<p>        'business_hours_only',</p>
+<p>        'Access allowed only during business hours',</p>
+<p>        "env['is_business_hours'] == True",</p>
+<p>        'ALLOW'</p>
+<p>    )</p>
+<p>    policy1.priority = 10</p>
+<p>    abac.add_policy(policy1)</p>
+    
+<p>    # ポリシー2: 機密データへのアクセスは適切なクリアランスが必要</p>
+<p>    policy2 = PolicyRule(</p>
+<p>        'clearance_required',</p>
+<p>        'Confidential data requires appropriate clearance',</p>
+<p>        "has_clearance(user['clearance_level'], resource['classification'])",</p>
+<p>        'ALLOW'</p>
+<p>    )</p>
+<p>    policy2.priority = 20</p>
+<p>    abac.add_policy(policy2)</p>
+    
+<p>    # ポリシー3: 部門間のデータアクセス制限</p>
+<p>    policy3 = PolicyRule(</p>
+<p>        'department_isolation',</p>
+<p>        'Cross-department access denied',</p>
+<p>        "user['department'] == resource['owner_department'] or user['role'] == 'admin'",</p>
+<p>        'ALLOW'</p>
+<p>    )</p>
+<p>    policy3.priority = 15</p>
+<p>    abac.add_policy(policy3)</p>
+    
+<p>    # ポリシー4: 高負荷時の読み取り専用</p>
+<p>    policy4 = PolicyRule(</p>
+<p>        'high_load_readonly',</p>
+<p>        'Only read access during high system load',</p>
+<p>        "env['system_load'] > 0.8 and action != 'read'",</p>
+<p>        'DENY'</p>
+<p>    )</p>
+<p>    policy4.priority = 30</p>
+    
+<p>    # ポリシー5: 地理的制限</p>
+<p>    policy5 = PolicyRule(</p>
+<p>        'geo_restriction',</p>
+<p>        'Access from approved locations only',</p>
+<p>        "env['client_country'] in ['JP', 'US', 'EU'] or user['role'] == 'remote_worker'",</p>
+<p>        'ALLOW'</p>
+<p>    )</p>
+<p>    policy5.priority = 25</p>
+    
+<p>    # ポリシー6: 時限的アクセス</p>
+<p>    policy6 = PolicyRule(</p>
+<p>        'project_timeline',</p>
+<p>        'Project data accessible only during project period',</p>
+<p>        """</p>
+<p>        resource['project'] in user['current_projects'] and </p>
+<p>        datetime.now() <= datetime.strptime(resource['project_end_date'], '%Y-%m-%d')</p>
+<p>        """,</p>
+<p>        'ALLOW'</p>
+<p>    )</p>
+    
+<p>    return abac</p>
+<p></code></pre></p><h3>3.2.4 認可モデルの選択基準</h3><p><pre><code>python</p>
+<p>class AuthorizationModelSelector:</p>
+<p>    """組織に適した認可モデルを選択するためのフレームワーク"""</p>
+    
+<p>    def analyze_requirements(self, organization_profile: Dict) -> Dict:</p>
+<p>        """要件分析に基づく推奨"""</p>
+        
+<p>        scores = {</p>
+<p>            'ACL': 0,</p>
+<p>            'RBAC': 0,</p>
+<p>            'ABAC': 0,</p>
+<p>            'Hybrid': 0</p>
+<p>        }</p>
+        
+<p>        # 組織規模</p>
+<p>        user_count = organization_profile.get('user_count', 0)</p>
+<p>        if user_count < 50:</p>
+<p>            scores['ACL'] += 3</p>
+<p>        elif user_count < 500:</p>
+<p>            scores['RBAC'] += 3</p>
+<p>        else:</p>
+<p>            scores['RBAC'] += 2</p>
+<p>            scores['ABAC'] += 2</p>
+        
+<p>        # 組織構造の複雑さ</p>
+<p>        if organization_profile.get('hierarchical_structure', False):</p>
+<p>            scores['RBAC'] += 3</p>
+        
+<p>        if organization_profile.get('matrix_organization', False):</p>
+<p>            scores['ABAC'] += 3</p>
+<p>            scores['Hybrid'] += 2</p>
+        
+<p>        # セキュリティ要件</p>
+<p>        security_level = organization_profile.get('security_requirements', 'medium')</p>
+<p>        if security_level == 'high':</p>
+<p>            scores['ABAC'] += 3</p>
+<p>            scores['Hybrid'] += 2</p>
+<p>        elif security_level == 'critical':</p>
+<p>            scores['ABAC'] += 4</p>
+<p>            scores['Hybrid'] += 3</p>
+        
+<p>        # 動的な要件</p>
+<p>        if organization_profile.get('dynamic_permissions', False):</p>
+<p>            scores['ABAC'] += 4</p>
+        
+<p>        if organization_profile.get('time_based_access', False):</p>
+<p>            scores['ABAC'] += 2</p>
+<p>            scores['Hybrid'] += 2</p>
+        
+<p>        # コンプライアンス要件</p>
+<p>        if organization_profile.get('regulatory_compliance', []):</p>
+<p>            scores['RBAC'] += 2  # 監査が容易</p>
+<p>            scores['ABAC'] += 1  # 細かい制御が可能</p>
+        
+<p>        # 運用の複雑さとのトレードオフ</p>
+<p>        if organization_profile.get('limited_it_resources', False):</p>
+<p>            scores['ACL'] += 1</p>
+<p>            scores['RBAC'] += 2</p>
+<p>            scores['ABAC'] -= 2  # 複雑すぎる</p>
+        
+<p>        # 推奨モデルの決定</p>
+<p>        recommended_model = max(scores, key=scores.get)</p>
+        
+<p>        return {</p>
+<p>            'scores': scores,</p>
+<p>            'recommendation': recommended_model,</p>
+<p>            'reasoning': self._generate_reasoning(recommended_model, organization_profile),</p>
+<p>            'implementation_guidance': self._get_implementation_guidance(recommended_model)</p>
+<p>        }</p>
+    
+<p>    def _generate_reasoning(self, model: str, profile: Dict) -> str:</p>
+<p>        """推奨理由の生成"""</p>
+        
+<p>        reasoning_templates = {</p>
+<p>            'ACL': "小規模で単純な権限管理には、ACLのシンプルさが適しています。",</p>
+<p>            'RBAC': "明確な組織構造と役割分担がある環境では、RBACが最適です。",</p>
+<p>            'ABAC': "複雑で動的な権限要件には、ABACの柔軟性が必要です。",</p>
+<p>            'Hybrid': "複雑な要件に対しては、複数のモデルを組み合わせることが効果的です。"</p>
+<p>        }</p>
+        
+<p>        return reasoning_templates.get(model, "要件に基づいて選択されました。")</p>
+    
+<p>    def _get_implementation_guidance(self, model: str) -> List[str]:</p>
+<p>        """実装ガイダンス"""</p>
+        
+<p>        guidance = {</p>
+<p>            'ACL': [</p>
+<p>                "リソースごとの権限マトリックスを作成",</p>
+<p>                "グループ機能を活用して管理を簡素化",</p>
+<p>                "定期的な権限レビュープロセスを確立"</p>
+<p>            ],</p>
+<p>            'RBAC': [</p>
+<p>                "組織の役割を明確に定義",</p>
+<p>                "役割の階層構造を設計",</p>
+<p>                "職務分離の原則を実装",</p>
+<p>                "役割の定期的な見直しプロセスを確立"</p>
+<p>            ],</p>
+<p>            'ABAC': [</p>
+<p>                "属性のカタログを作成",</p>
+<p>                "ポリシー言語を選定（XACML、OPAなど）",</p>
+<p>                "ポリシーのテストフレームワークを構築",</p>
+<p>                "属性の信頼できるソースを確立"</p>
+<p>            ],</p>
+<p>            'Hybrid': [</p>
+<p>                "基本的な構造にはRBACを使用",</p>
+<p>                "例外的なケースにABACを適用",</p>
+<p>                "統合されたポリシー管理システムを構築"</p>
+<p>            ]</p>
+<p>        }</p>
+        
+<p>        return guidance.get(model, [])</p>
+<p></code></pre></p><h2>3.3 最小権限の原則 - セキュリティインシデントの最小化</h2><h3>3.3.1 最小権限の実装パターン</h3><p><pre><code>python</p>
+<p>class LeastPrivilegeImplementation:</p>
+<p>    """最小権限の原則の実装パターン"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.permission_lifecycle = PermissionLifecycle()</p>
+<p>        self.just_in_time_access = JustInTimeAccess()</p>
+<p>        self.privilege_elevation = PrivilegeElevation()</p>
+    
+<p>    def implement_permission_lifecycle(self):</p>
+<p>        """権限のライフサイクル管理"""</p>
+        
+<p>        class PermissionLifecycle:</p>
+<p>            def __init__(self):</p>
+<p>                self.permissions = {}</p>
+<p>                self.expiration_times = {}</p>
+<p>                self.usage_tracking = {}</p>
+            
+<p>            def grant_temporary_permission(self, user_id: str, permission: str,</p>
+<p>                                         duration_hours: int, justification: str):</p>
+<p>                """一時的な権限の付与"""</p>
+                
+<p>                expiration = time.time() + (duration_hours * 3600)</p>
+                
+<p>                grant_record = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'permission': permission,</p>
+<p>                    'granted_at': time.time(),</p>
+<p>                    'expires_at': expiration,</p>
+<p>                    'justification': justification,</p>
+<p>                    'approved_by': self._get_approver(permission),</p>
+<p>                    'usage_count': 0</p>
+<p>                }</p>
+                
+<p>                # 権限を付与</p>
+<p>                if user_id not in self.permissions:</p>
+<p>                    self.permissions[user_id] = {}</p>
+                
+<p>                self.permissions[user_id][permission] = grant_record</p>
+                
+<p>                # 自動失効をスケジュール</p>
+<p>                self._schedule_revocation(user_id, permission, expiration)</p>
+                
+<p>                return grant_record</p>
+            
+<p>            def track_permission_usage(self, user_id: str, permission: str):</p>
+<p>                """権限の使用を追跡"""</p>
+                
+<p>                if (user_id in self.permissions and </p>
+<p>                    permission in self.permissions[user_id]):</p>
+                    
+<p>                    self.permissions[user_id][permission]['usage_count'] += 1</p>
+<p>                    self.permissions[user_id][permission]['last_used'] = time.time()</p>
+                    
+<p>                    # 使用パターンの分析</p>
+<p>                    self._analyze_usage_pattern(user_id, permission)</p>
+            
+<p>            def review_unused_permissions(self, days_threshold: int = 30):</p>
+<p>                """使用されていない権限の検出"""</p>
+                
+<p>                current_time = time.time()</p>
+<p>                unused_permissions = []</p>
+                
+<p>                for user_id, user_perms in self.permissions.items():</p>
+<p>                    for permission, details in user_perms.items():</p>
+<p>                        last_used = details.get('last_used', details['granted_at'])</p>
+<p>                        days_unused = (current_time - last_used) / 86400</p>
+                        
+<p>                        if days_unused > days_threshold:</p>
+<p>                            unused_permissions.append({</p>
+<p>                                'user_id': user_id,</p>
+<p>                                'permission': permission,</p>
+<p>                                'days_unused': int(days_unused),</p>
+<p>                                'usage_count': details['usage_count']</p>
+<p>                            })</p>
+                
+<p>                return unused_permissions</p>
+            
+<p>            def auto_revoke_unused(self, permissions_to_revoke: List[Dict]):</p>
+<p>                """未使用権限の自動取り消し"""</p>
+                
+<p>                revoked = []</p>
+<p>                for perm in permissions_to_revoke:</p>
+<p>                    if self._should_auto_revoke(perm):</p>
+<p>                        self._revoke_permission(</p>
+<p>                            perm['user_id'], </p>
+<p>                            perm['permission'],</p>
+<p>                            reason='Unused for extended period'</p>
+<p>                        )</p>
+<p>                        revoked.append(perm)</p>
+                
+<p>                return revoked</p>
+    
+<p>    def implement_just_in_time_access(self):</p>
+<p>        """Just-In-Time (JIT) アクセスの実装"""</p>
+        
+<p>        class JustInTimeAccess:</p>
+<p>            def __init__(self):</p>
+<p>                self.elevation_requests = {}</p>
+<p>                self.approval_workflows = {}</p>
+<p>                self.active_elevations = {}</p>
+            
+<p>            def request_elevation(self, user_id: str, requested_role: str,</p>
+<p>                                reason: str, duration_minutes: int = 60):</p>
+<p>                """権限昇格のリクエスト"""</p>
+                
+<p>                request_id = f"req_{int(time.time() * 1000)}"</p>
+                
+<p>                request = {</p>
+<p>                    'id': request_id,</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'current_roles': self._get_current_roles(user_id),</p>
+<p>                    'requested_role': requested_role,</p>
+<p>                    'reason': reason,</p>
+<p>                    'duration': duration_minutes,</p>
+<p>                    'status': 'pending',</p>
+<p>                    'created_at': time.time(),</p>
+<p>                    'risk_score': self._calculate_risk_score(user_id, requested_role)</p>
+<p>                }</p>
+                
+<p>                self.elevation_requests[request_id] = request</p>
+                
+<p>                # リスクに基づいて承認フローを決定</p>
+<p>                if request['risk_score'] < 30:</p>
+<p>                    # 低リスク：自動承認</p>
+<p>                    self._auto_approve(request_id)</p>
+<p>                elif request['risk_score'] < 70:</p>
+<p>                    # 中リスク：マネージャー承認</p>
+<p>                    self._route_to_manager(request_id)</p>
+<p>                else:</p>
+<p>                    # 高リスク：複数承認者</p>
+<p>                    self._route_to_security_team(request_id)</p>
+                
+<p>                return request_id</p>
+            
+<p>            def _calculate_risk_score(self, user_id: str, requested_role: str) -> int:</p>
+<p>                """リスクスコアの計算"""</p>
+                
+<p>                score = 0</p>
+                
+<p>                # 要求された権限の危険度</p>
+<p>                high_risk_roles = ['admin', 'security_admin', 'database_admin']</p>
+<p>                if requested_role in high_risk_roles:</p>
+<p>                    score += 50</p>
+                
+<p>                # ユーザーの信頼度</p>
+<p>                user_trust = self._get_user_trust_score(user_id)</p>
+<p>                score -= user_trust</p>
+                
+<p>                # 時間帯</p>
+<p>                current_hour = datetime.now().hour</p>
+<p>                if current_hour < 6 or current_hour > 22:</p>
+<p>                    score += 20  # 深夜早朝はリスク高</p>
+                
+<p>                # 過去の昇格履歴</p>
+<p>                elevation_history = self._get_elevation_history(user_id)</p>
+<p>                if elevation_history['violations'] > 0:</p>
+<p>                    score += 30</p>
+                
+<p>                return max(0, min(100, score))</p>
+            
+<p>            def activate_elevation(self, request_id: str):</p>
+<p>                """承認された権限昇格を有効化"""</p>
+                
+<p>                request = self.elevation_requests.get(request_id)</p>
+<p>                if not request or request['status'] != 'approved':</p>
+<p>                    return False</p>
+                
+<p>                # セッションベースの権限昇格</p>
+<p>                elevation_token = secrets.token_urlsafe(32)</p>
+                
+<p>                self.active_elevations[elevation_token] = {</p>
+<p>                    'user_id': request['user_id'],</p>
+<p>                    'elevated_role': request['requested_role'],</p>
+<p>                    'original_roles': request['current_roles'],</p>
+<p>                    'started_at': time.time(),</p>
+<p>                    'expires_at': time.time() + (request['duration'] * 60),</p>
+<p>                    'request_id': request_id</p>
+<p>                }</p>
+                
+<p>                # 監査ログとモニタリング</p>
+<p>                self._start_elevation_monitoring(elevation_token)</p>
+                
+<p>                return elevation_token</p>
+            
+<p>            def check_elevation(self, elevation_token: str) -> Optional[Dict]:</p>
+<p>                """昇格状態の確認"""</p>
+                
+<p>                if elevation_token not in self.active_elevations:</p>
+<p>                    return None</p>
+                
+<p>                elevation = self.active_elevations[elevation_token]</p>
+                
+<p>                # 期限切れチェック</p>
+<p>                if time.time() > elevation['expires_at']:</p>
+<p>                    self._end_elevation(elevation_token, reason='expired')</p>
+<p>                    return None</p>
+                
+<p>                # 異常な使用パターンの検出</p>
+<p>                if self._detect_anomalous_usage(elevation_token):</p>
+<p>                    self._end_elevation(elevation_token, reason='anomaly_detected')</p>
+<p>                    return None</p>
+                
+<p>                return elevation</p>
+            
+<p>            def _start_elevation_monitoring(self, elevation_token: str):</p>
+<p>                """昇格中の行動を監視"""</p>
+                
+<p>                elevation = self.active_elevations[elevation_token]</p>
+                
+<p>                # リアルタイムモニタリングの設定</p>
+<p>                monitoring_config = {</p>
+<p>                    'user_id': elevation['user_id'],</p>
+<p>                    'session_id': elevation_token,</p>
+<p>                    'alerts': {</p>
+<p>                        'high_volume_access': 100,  # 100回以上のアクセス</p>
+<p>                        'sensitive_data_access': True,</p>
+<p>                        'configuration_changes': True,</p>
+<p>                        'bulk_operations': True</p>
+<p>                    },</p>
+<p>                    'recording': True  # セッション記録</p>
+<p>                }</p>
+                
+<p>                # モニタリングシステムに登録（実装は省略）</p>
+<p>                self._register_monitoring(monitoring_config)</p>
+<p></code></pre></p><h3>3.3.2 権限の定期的な見直し</h3><p><pre><code>python</p>
+<p>class PermissionReviewProcess:</p>
+<p>    """権限の定期的なレビュープロセス"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.review_cycles = {</p>
+<p>            'high_privilege': 30,  # 日</p>
+<p>            'normal': 90,</p>
+<p>            'low_risk': 180</p>
+<p>        }</p>
+<p>        self.certification_records = {}</p>
+    
+<p>    def initiate_access_review(self, review_type: str = 'quarterly'):</p>
+<p>        """アクセスレビューの開始"""</p>
+        
+<p>        review_id = f"review_{datetime.now().strftime('%Y%m%d')}"</p>
+        
+<p>        review = {</p>
+<p>            'id': review_id,</p>
+<p>            'type': review_type,</p>
+<p>            'started_at': time.time(),</p>
+<p>            'status': 'in_progress',</p>
+<p>            'scope': self._determine_review_scope(review_type),</p>
+<p>            'reviewers': {},</p>
+<p>            'findings': []</p>
+<p>        }</p>
+        
+<p>        # レビュー対象の特定</p>
+<p>        review_items = self._identify_review_items(review['scope'])</p>
+        
+<p>        # レビュアーへの割り当て</p>
+<p>        for item in review_items:</p>
+<p>            reviewer = self._assign_reviewer(item)</p>
+<p>            if reviewer not in review['reviewers']:</p>
+<p>                review['reviewers'][reviewer] = []</p>
+<p>            review['reviewers'][reviewer].append(item)</p>
+        
+<p>        # 通知の送信</p>
+<p>        self._send_review_notifications(review)</p>
+        
+<p>        return review_id</p>
+    
+<p>    def _identify_review_items(self, scope: Dict) -> List[Dict]:</p>
+<p>        """レビュー対象の特定"""</p>
+        
+<p>        items = []</p>
+        
+<p>        # 高権限ユーザー</p>
+<p>        if scope.get('high_privilege_users', True):</p>
+<p>            high_priv_users = self._get_high_privilege_users()</p>
+<p>            for user in high_priv_users:</p>
+<p>                items.append({</p>
+<p>                    'type': 'user_permissions',</p>
+<p>                    'user_id': user['id'],</p>
+<p>                    'risk_level': 'high',</p>
+<p>                    'permissions': user['permissions'],</p>
+<p>                    'last_review': user.get('last_review_date')</p>
+<p>                })</p>
+        
+<p>        # 長期未使用の権限</p>
+<p>        if scope.get('unused_permissions', True):</p>
+<p>            unused = self._find_unused_permissions(days=60)</p>
+<p>            for perm in unused:</p>
+<p>                items.append({</p>
+<p>                    'type': 'unused_permission',</p>
+<p>                    'user_id': perm['user_id'],</p>
+<p>                    'permission': perm['permission'],</p>
+<p>                    'last_used': perm['last_used'],</p>
+<p>                    'recommendation': 'revoke'</p>
+<p>                })</p>
+        
+<p>        # 異常なアクセスパターン</p>
+<p>        if scope.get('anomalous_access', True):</p>
+<p>            anomalies = self._detect_access_anomalies()</p>
+<p>            for anomaly in anomalies:</p>
+<p>                items.append({</p>
+<p>                    'type': 'anomalous_pattern',</p>
+<p>                    'user_id': anomaly['user_id'],</p>
+<p>                    'pattern': anomaly['pattern'],</p>
+<p>                    'risk_score': anomaly['risk_score'],</p>
+<p>                    'recommendation': 'investigate'</p>
+<p>                })</p>
+        
+<p>        return items</p>
+    
+<p>    def process_review_decision(self, review_id: str, item_id: str, </p>
+<p>                              decision: str, justification: str):</p>
+<p>        """レビュー決定の処理"""</p>
+        
+<p>        decisions_map = {</p>
+<p>            'approve': self._approve_access,</p>
+<p>            'revoke': self._revoke_access,</p>
+<p>            'modify': self._modify_access,</p>
+<p>            'investigate': self._flag_for_investigation</p>
+<p>        }</p>
+        
+<p>        if decision in decisions_map:</p>
+<p>            result = decisions_map<a href="item_id, justification">decision</a></p>
+            
+<p>            # 証跡の記録</p>
+<p>            self._record_certification(review_id, item_id, decision, justification)</p>
+            
+<p>            return result</p>
+        
+<p>        return False</p>
+    
+<p>    def generate_review_report(self, review_id: str) -> Dict:</p>
+<p>        """レビュー結果のレポート生成"""</p>
+        
+<p>        review = self._get_review(review_id)</p>
+        
+<p>        report = {</p>
+<p>            'review_id': review_id,</p>
+<p>            'period': f"{review['started_at']} - {time.time()}",</p>
+<p>            'summary': {</p>
+<p>                'total_items_reviewed': 0,</p>
+<p>                'approvals': 0,</p>
+<p>                'revocations': 0,</p>
+<p>                'modifications': 0,</p>
+<p>                'investigations': 0</p>
+<p>            },</p>
+<p>            'risk_findings': [],</p>
+<p>            'compliance_status': 'compliant',</p>
+<p>            'recommendations': []</p>
+<p>        }</p>
+        
+<p>        # 統計情報の集計</p>
+<p>        for decision in self.certification_records.get(review_id, {}).values():</p>
+<p>            report['summary']['total_items_reviewed'] += 1</p>
+<p>            report['summary'][f"{decision['decision']}s"] += 1</p>
+        
+<p>        # リスク所見</p>
+<p>        report['risk_findings'] = self._analyze_risk_findings(review_id)</p>
+        
+<p>        # 推奨事項</p>
+<p>        report['recommendations'] = self._generate_recommendations(report)</p>
+        
+<p>        return report</p>
+<p></code></pre></p><h2>3.4 動的認可と静的認可 - パフォーマンスとセキュリティのバランス</h2><h3>3.4.1 静的認可の実装</h3><p><pre><code>python</p>
+<p>class StaticAuthorization:</p>
+<p>    """コンパイル時に決定される静的認可"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.permission_cache = {}</p>
+<p>        self.role_permission_matrix = {}</p>
+<p>        self.compiled_policies = {}</p>
+    
+<p>    def precompile_permissions(self):</p>
+<p>        """権限の事前計算"""</p>
+        
+<p>        # 役割と権限のマトリックスを事前計算</p>
+<p>        for role_id, role in self.get_all_roles().items():</p>
+<p>            permissions = set()</p>
+            
+<p>            # 直接の権限</p>
+<p>            permissions.update(role.permissions)</p>
+            
+<p>            # 継承された権限</p>
+<p>            for parent_role in role.parent_roles:</p>
+<p>                permissions.update(self._get_role_permissions(parent_role))</p>
+            
+<p>            self.role_permission_matrix[role_id] = permissions</p>
+        
+<p>        # ユーザーごとの実効権限を計算</p>
+<p>        for user_id, user_roles in self.get_user_roles().items():</p>
+<p>            effective_permissions = set()</p>
+            
+<p>            for role_id in user_roles:</p>
+<p>                effective_permissions.update(</p>
+<p>                    self.role_permission_matrix.get(role_id, set())</p>
+<p>                )</p>
+            
+<p>            self.permission_cache[user_id] = effective_permissions</p>
+        
+<p>        return len(self.permission_cache)</p>
+    
+<p>    def check_permission_static(self, user_id: str, permission: str) -> bool:</p>
+<p>        """静的な権限チェック（高速）"""</p>
+        
+<p>        # O(1)のルックアップ</p>
+<p>        user_permissions = self.permission_cache.get(user_id, set())</p>
+<p>        return permission in user_permissions</p>
+    
+<p>    def optimize_for_performance(self):</p>
+<p>        """パフォーマンス最適化"""</p>
+        
+<p>        # ビットマスクによる権限表現</p>
+<p>        class BitMaskPermissions:</p>
+<p>            def __init__(self):</p>
+<p>                self.permission_bits = {}</p>
+<p>                self.next_bit = 0</p>
+            
+<p>            def register_permission(self, permission: str) -> int:</p>
+<p>                """権限にビットを割り当て"""</p>
+<p>                if permission not in self.permission_bits:</p>
+<p>                    self.permission_bits[permission] = 1 << self.next_bit</p>
+<p>                    self.next_bit += 1</p>
+<p>                return self.permission_bits[permission]</p>
+            
+<p>            def create_permission_mask(self, permissions: Set[str]) -> int:</p>
+<p>                """権限セットからビットマスクを作成"""</p>
+<p>                mask = 0</p>
+<p>                for perm in permissions:</p>
+<p>                    mask |= self.permission_bits.get(perm, 0)</p>
+<p>                return mask</p>
+            
+<p>            def check_permission(self, user_mask: int, permission: str) -> bool:</p>
+<p>                """ビット演算による高速チェック"""</p>
+<p>                perm_bit = self.permission_bits.get(permission, 0)</p>
+<p>                return (user_mask & perm_bit) != 0</p>
+        
+<p>        return BitMaskPermissions()</p>
+<p></code></pre></p><h3>3.4.2 動的認可の実装</h3><p><pre><code>python</p>
+<p>class DynamicAuthorization:</p>
+<p>    """実行時に評価される動的認可"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.policy_engine = PolicyEngine()</p>
+<p>        self.context_providers = []</p>
+<p>        self.decision_cache = LRUCache(maxsize=10000)</p>
+    
+<p>    def evaluate_dynamic_permission(self, request: Dict) -> tuple[bool, str]:</p>
+<p>        """動的な権限評価"""</p>
+        
+<p>        # キャッシュチェック</p>
+<p>        cache_key = self._generate_cache_key(request)</p>
+<p>        cached_decision = self.decision_cache.get(cache_key)</p>
+        
+<p>        if cached_decision and not self._is_cache_expired(cached_decision):</p>
+<p>            return cached_decision['result'], cached_decision['reason']</p>
+        
+<p>        # コンテキストの収集</p>
+<p>        context = self._gather_context(request)</p>
+        
+<p>        # ポリシーの評価</p>
+<p>        decision = self.policy_engine.evaluate(context)</p>
+        
+<p>        # 結果をキャッシュ（適切な場合のみ）</p>
+<p>        if self._is_cacheable(context, decision):</p>
+<p>            self.decision_cache.put(cache_key, {</p>
+<p>                'result': decision.permit,</p>
+<p>                'reason': decision.reason,</p>
+<p>                'timestamp': time.time(),</p>
+<p>                'ttl': self._determine_ttl(context)</p>
+<p>            })</p>
+        
+<p>        return decision.permit, decision.reason</p>
+    
+<p>    def _gather_context(self, request: Dict) -> Dict:</p>
+<p>        """動的コンテキストの収集"""</p>
+        
+<p>        context = {</p>
+<p>            'request': request,</p>
+<p>            'timestamp': time.time(),</p>
+<p>            'dynamic_attributes': {}</p>
+<p>        }</p>
+        
+<p>        # 各コンテキストプロバイダーから情報を収集</p>
+<p>        for provider in self.context_providers:</p>
+<p>            try:</p>
+<p>                provider_data = provider.get_context(request)</p>
+<p>                context['dynamic_attributes'].update(provider_data)</p>
+<p>            except Exception as e:</p>
+<p>                # プロバイダーの失敗は認可拒否につながらない</p>
+<p>                print(f"Context provider error: {e}")</p>
+        
+<p>        return context</p>
+    
+<p>    def add_context_provider(self, provider):</p>
+<p>        """コンテキストプロバイダーの追加"""</p>
+<p>        self.context_providers.append(provider)</p><p>class LocationContextProvider:</p>
+<p>    """位置情報コンテキストプロバイダー"""</p>
+    
+<p>    def get_context(self, request: Dict) -> Dict:</p>
+<p>        ip_address = request.get('ip_address')</p>
+        
+<p>        # GeoIP検索（実装は省略）</p>
+<p>        location_info = self._lookup_geoip(ip_address)</p>
+        
+<p>        return {</p>
+<p>            'client_country': location_info.get('country', 'unknown'),</p>
+<p>            'client_city': location_info.get('city', 'unknown'),</p>
+<p>            'is_corporate_network': self._is_corporate_ip(ip_address),</p>
+<p>            'is_vpn': self._detect_vpn(ip_address)</p>
+<p>        }</p><p>class RiskContextProvider:</p>
+<p>    """リスク評価コンテキストプロバイダー"""</p>
+    
+<p>    def get_context(self, request: Dict) -> Dict:</p>
+<p>        user_id = request.get('user_id')</p>
+        
+<p>        # ユーザーの行動分析</p>
+<p>        risk_indicators = {</p>
+<p>            'failed_login_attempts': self._get_recent_failures(user_id),</p>
+<p>            'unusual_access_time': self._is_unusual_time(user_id),</p>
+<p>            'new_device': self._is_new_device(request),</p>
+<p>            'concurrent_sessions': self._count_active_sessions(user_id)</p>
+<p>        }</p>
+        
+<p>        # リスクスコアの計算</p>
+<p>        risk_score = self._calculate_risk_score(risk_indicators)</p>
+        
+<p>        return {</p>
+<p>            'risk_score': risk_score,</p>
+<p>            'risk_level': self._categorize_risk(risk_score),</p>
+<p>            'risk_indicators': risk_indicators</p>
+<p>        }</p>
+<p></code></pre></p><h3>3.4.3 ハイブリッドアプローチ</h3><p><pre><code>python</p>
+<p>class HybridAuthorization:</p>
+<p>    """静的と動的を組み合わせたハイブリッド認可"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.static_auth = StaticAuthorization()</p>
+<p>        self.dynamic_auth = DynamicAuthorization()</p>
+<p>        self.performance_monitor = PerformanceMonitor()</p>
+    
+<p>    def authorize(self, request: Dict) -> tuple[bool, str, Dict]:</p>
+<p>        """ハイブリッド認可の実行"""</p>
+        
+<p>        start_time = time.time()</p>
+<p>        metrics = {'static_time': 0, 'dynamic_time': 0, 'total_time': 0}</p>
+        
+<p>        # フェーズ1: 静的チェック（高速）</p>
+<p>        static_start = time.time()</p>
+<p>        static_result = self.static_auth.check_permission_static(</p>
+<p>            request['user_id'], </p>
+<p>            request['permission']</p>
+<p>        )</p>
+<p>        metrics['static_time'] = time.time() - static_start</p>
+        
+<p>        # 静的に拒否された場合は即座に終了</p>
+<p>        if not static_result:</p>
+<p>            metrics['total_time'] = time.time() - start_time</p>
+<p>            return False, "Statically denied", metrics</p>
+        
+<p>        # フェーズ2: 動的チェックが必要か判定</p>
+<p>        if self._requires_dynamic_check(request):</p>
+<p>            dynamic_start = time.time()</p>
+<p>            dynamic_result, reason = self.dynamic_auth.evaluate_dynamic_permission(request)</p>
+<p>            metrics['dynamic_time'] = time.time() - dynamic_start</p>
+            
+<p>            if not dynamic_result:</p>
+<p>                metrics['total_time'] = time.time() - start_time</p>
+<p>                return False, f"Dynamically denied: {reason}", metrics</p>
+        
+<p>        metrics['total_time'] = time.time() - start_time</p>
+        
+<p>        # パフォーマンスモニタリング</p>
+<p>        self.performance_monitor.record(request['permission'], metrics)</p>
+        
+<p>        return True, "Authorized", metrics</p>
+    
+<p>    def _requires_dynamic_check(self, request: Dict) -> bool:</p>
+<p>        """動的チェックが必要か判定"""</p>
+        
+<p>        # 高リスクリソース</p>
+<p>        if request.get('resource_classification') in ['SECRET', 'TOP_SECRET']:</p>
+<p>            return True</p>
+        
+<p>        # 特定の操作</p>
+<p>        if request.get('action') in ['delete', 'modify_permissions', 'export_data']:</p>
+<p>            return True</p>
+        
+<p>        # 特定の条件</p>
+<p>        if request.get('amount', 0) > 10000:  # 高額取引</p>
+<p>            return True</p>
+        
+<p>        # コンテキストベースのフラグ</p>
+<p>        if request.get('require_dynamic_check', False):</p>
+<p>            return True</p>
+        
+<p>        return False</p>
+    
+<p>    def optimize_authorization_strategy(self):</p>
+<p>        """認可戦略の最適化"""</p>
+        
+<p>        # パフォーマンスデータの分析</p>
+<p>        stats = self.performance_monitor.get_statistics()</p>
+        
+<p>        recommendations = []</p>
+        
+<p>        # 静的チェックで十分な権限の特定</p>
+<p>        for permission, metrics in stats.items():</p>
+<p>            if metrics['dynamic_check_rate'] < 0.1:  # 10%未満</p>
+<p>                recommendations.append({</p>
+<p>                    'permission': permission,</p>
+<p>                    'recommendation': 'move_to_static_only',</p>
+<p>                    'expected_improvement': f"{metrics['avg_dynamic_time']}ms"</p>
+<p>                })</p>
+        
+<p>        # 頻繁に評価される動的ポリシーのキャッシュ推奨</p>
+<p>        for permission, metrics in stats.items():</p>
+<p>            if metrics['request_rate'] > 100:  # 100 req/s以上</p>
+<p>                recommendations.append({</p>
+<p>                    'permission': permission,</p>
+<p>                    'recommendation': 'increase_cache_ttl',</p>
+<p>                    'current_ttl': metrics.get('cache_ttl', 0),</p>
+<p>                    'suggested_ttl': min(300, metrics.get('cache_ttl', 0) * 2)</p>
+<p>                })</p>
+        
+<p>        return recommendations</p><p>class PerformanceMonitor:</p>
+<p>    """認可パフォーマンスのモニタリング"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.metrics = {}</p>
+<p>        self.thresholds = {</p>
+<p>            'static_latency_ms': 1,</p>
+<p>            'dynamic_latency_ms': 50,</p>
+<p>            'total_latency_ms': 100</p>
+<p>        }</p>
+    
+<p>    def record(self, permission: str, timing: Dict):</p>
+<p>        """メトリクスの記録"""</p>
+        
+<p>        if permission not in self.metrics:</p>
+<p>            self.metrics[permission] = {</p>
+<p>                'count': 0,</p>
+<p>                'static_time_sum': 0,</p>
+<p>                'dynamic_time_sum': 0,</p>
+<p>                'dynamic_checks': 0,</p>
+<p>                'cache_hits': 0</p>
+<p>            }</p>
+        
+<p>        m = self.metrics[permission]</p>
+<p>        m['count'] += 1</p>
+<p>        m['static_time_sum'] += timing['static_time'] * 1000  # ms</p>
+        
+<p>        if timing['dynamic_time'] > 0:</p>
+<p>            m['dynamic_checks'] += 1</p>
+<p>            m['dynamic_time_sum'] += timing['dynamic_time'] * 1000</p>
+        
+<p>        # 閾値チェック</p>
+<p>        self._check_thresholds(permission, timing)</p>
+    
+<p>    def get_statistics(self) -> Dict:</p>
+<p>        """統計情報の取得"""</p>
+        
+<p>        stats = {}</p>
+        
+<p>        for perm, metrics in self.metrics.items():</p>
+<p>            count = metrics['count']</p>
+<p>            if count == 0:</p>
+<p>                continue</p>
+            
+<p>            stats[perm] = {</p>
+<p>                'request_rate': count,  # 実際は時間窓で計算</p>
+<p>                'avg_static_time': metrics['static_time_sum'] / count,</p>
+<p>                'avg_dynamic_time': (metrics['dynamic_time_sum'] / </p>
+<p>                                   metrics['dynamic_checks'] </p>
+<p>                                   if metrics['dynamic_checks'] > 0 else 0),</p>
+<p>                'dynamic_check_rate': metrics['dynamic_checks'] / count,</p>
+<p>                'cache_hit_rate': metrics['cache_hits'] / count</p>
+<p>            }</p>
+        
+<p>        return stats</p>
+<p></code></pre></p><h2>まとめ</h2><p>この章では、認可の基礎として以下を学びました：</p><p>1. <strong>アクセス制御の基本原則</strong></p>
+<p>   - 最小権限の原則の重要性と実装</p>
+<p>   - 職務分離による不正防止</p>
+<p>   - 多層防御の考え方</p><p>2. <strong>認可モデルの比較</strong></p>
+<p>   - ACL：シンプルだが管理が困難</p>
+<p>   - RBAC：組織構造に適合し、最も普及</p>
+<p>   - ABAC：柔軟だが複雑</p><p>3. <strong>最小権限の実装</strong></p>
+<p>   - Just-In-Time アクセス</p>
+<p>   - 権限の定期的な見直し</p>
+<p>   - 自動化による管理負荷の軽減</p><p>4. <strong>静的・動的認可のバランス</strong></p>
+<p>   - パフォーマンスとセキュリティのトレードオフ</p>
+<p>   - ハイブリッドアプローチの利点</p>
+<p>   - 継続的な最適化</p><p>次章では、これらの認証・認可の仕組みを実際のWebアプリケーションで実装する方法として、セッション管理について詳しく学んでいきます。</p><h2>演習問題</h2><h3>問題1：RBACシステムの設計</h3>
+<p>中規模IT企業（従業員300名）のRBACシステムを設計しなさい。以下を含むこと：</p>
+<p>- 部門構造（開発、営業、管理、人事）</p>
+<p>- 各部門の典型的な役割</p>
+<p>- 権限の階層構造</p>
+<p>- 職務分離の実装</p><h3>問題2：ABACポリシーの作成</h3>
+<p>以下のシナリオに対するABACポリシーを作成しなさい：</p>
+<p>- 医療記録システム</p>
+<p>- 患者は自分の記録のみ閲覧可能</p>
+<p>- 担当医は担当患者の記録を閲覧・編集可能</p>
+<p>- 緊急時は任意の医師が閲覧可能</p>
+<p>- 診療時間外は読み取りのみ</p><h3>問題3：最小権限の実装</h3>
+<p>既存システムに最小権限の原則を適用する計画を立てなさい：</p>
+<p>- 現状分析の方法</p>
+<p>- 段階的な権限削減計画</p>
+<p>- 影響を受けるユーザーへの対応</p>
+<p>- 効果測定の方法</p><h3>問題4：認可パフォーマンスの最適化</h3>
+<p>1秒間に1000件の認可リクエストを処理する必要があるシステムで、以下の要件を満たす設計を行いなさい：</p>
+<p>- 平均レスポンスタイム：10ms以下</p>
+<p>- 動的ポリシー評価が20%のリクエストで必要</p>
+<p>- 99.9%の可用性</p><h3>問題5：認可モデルの移行</h3>
+<p>ACLベースの既存システムをRBACに移行する計画を作成しなさい：</p>
+<p>- 現状のACL分析</p>
+<p>- 役割の抽出方法</p>
+<p>- 移行期間中の並行運用</p>
+<p>- 検証とロールバック計画</p><h3>チャレンジ問題：Zero Trust認可の設計</h3>
+<p>Zero Trustアーキテクチャに基づく認可システムを設計しなさい：</p>
+<p>- 継続的な検証の仕組み</p>
+<p>- コンテキストベースの動的認可</p>
+<p>- マイクロセグメンテーション</p>
+<p>- 監査とコンプライアンス</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

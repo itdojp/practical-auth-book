@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第6章 OAuth 2.0 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第6章 OAuth 2.0</h1><h2>なぜこの章が重要か</h2><p>現代のWebにおいて、OAuth 2.0は認可の事実上の標準プロトコルです。GitHubでログイン、Googleドライブへのアクセス許可、TwitterへのツイートBot - これらすべてがOAuth 2.0によって実現されています。しかし、その柔軟性ゆえに誤った実装も多く、セキュリティインシデントの原因となっています。この章では、OAuth 2.0が解決する問題、正しい実装方法、そして進化し続けるセキュリティ対策を学びます。</p><h2>6.1 OAuth 2.0の設計思想 - なぜOAuthが生まれたのか</h2><h3>6.1.1 パスワードアンチパターンの問題</h3><p>OAuth登場以前、サードパーティアプリケーションがユーザーのリソースにアクセスする方法は問題だらけでした。</p><p><pre><code>python
+<p>class PreOAuthProblems:</p>
+<p>    """OAuth以前の認可の問題"""</p>
+    
+<p>    def password_antipattern(self):</p>
+<p>        """パスワードアンチパターンの実例"""</p>
+        
+<p>        # 2007年頃の典型的な実装</p>
+<p>        bad_practice = {</p>
+<p>            'scenario': '''</p>
+<p>            TwitterクライアントアプリがTwitter APIを使う場合：</p>
+<p>            1. アプリ：「Twitterのユーザー名とパスワードを入力してください」</p>
+<p>            2. ユーザー：自分のパスワードをサードパーティアプリに渡す</p>
+<p>            3. アプリ：受け取ったパスワードを保存（！）</p>
+<p>            4. アプリ：ユーザーのパスワードでTwitter APIにアクセス</p>
+<p>            ''',</p>
+            
+<p>            'problems': [</p>
+<p>                {</p>
+<p>                    'issue': 'パスワードの漏洩リスク',</p>
+<p>                    'impact': 'アプリのDBが侵害されるとユーザーのパスワードが流出',</p>
+<p>                    'example': '2009年、某Twitter管理ツールから10万件のパスワード流出'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'issue': '過剰な権限',</p>
+<p>                    'impact': 'パスワードを持つ = すべての操作が可能',</p>
+<p>                    'example': 'ツイート投稿だけしたいのにDM閲覧も可能に'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'issue': 'アクセス取り消しの困難さ',</p>
+<p>                    'impact': 'パスワード変更しないとアクセスを止められない',</p>
+<p>                    'example': '使わなくなったアプリが永続的にアクセス可能'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'issue': '信頼の連鎖の破綻',</p>
+<p>                    'impact': 'ユーザーはすべてのアプリを信頼する必要',</p>
+<p>                    'example': '悪意あるアプリがパスワードを悪用'</p>
+<p>                }</p>
+<p>            ]</p>
+<p>        }</p>
+        
+<p>        return bad_practice</p>
+<p></code></pre></p><h3>6.1.2 OAuthが解決する問題の本質</h3><p><pre><code>python</p>
+<p>class OAuthPhilosophy:</p>
+<p>    """OAuth 2.0の設計哲学"""</p>
+    
+<p>    def core_principles(self):</p>
+<p>        """OAuth 2.0の中核原則"""</p>
+        
+<p>        return {</p>
+<p>            'delegation_not_impersonation': {</p>
+<p>                'concept': '委任であって、なりすましではない',</p>
+<p>                'meaning': '''</p>
+<p>                # 従来：なりすまし</p>
+<p>                app.login_as_user(username, password)  # アプリがユーザーになりすます</p>
+                
+<p>                # OAuth：委任</p>
+<p>                user.grant_permission_to(app, scope=['read_tweets'])  # ユーザーが権限を委任</p>
+<p>                ''',</p>
+<p>                'benefit': 'ユーザーが主体的に権限をコントロール'</p>
+<p>            },</p>
+            
+<p>            'separation_of_concerns': {</p>
+<p>                'concept': '関心の分離',</p>
+<p>                'roles': {</p>
+<p>                    'resource_owner': 'リソースの所有者（エンドユーザー）',</p>
+<p>                    'client': 'リソースにアクセスしたいアプリケーション',</p>
+<p>                    'authorization_server': '認可を管理するサーバー',</p>
+<p>                    'resource_server': 'リソースを提供するAPIサーバー'</p>
+<p>                },</p>
+<p>                'benefit': '各コンポーネントが単一の責任を持つ'</p>
+<p>            },</p>
+            
+<p>            'limited_scope': {</p>
+<p>                'concept': '権限の最小化',</p>
+<p>                'example': '''</p>
+<p>                # スコープによる権限制限</p>
+<p>                scopes = {</p>
+<p>                    'read:profile': 'プロフィール情報の読み取り',</p>
+<p>                    'write:tweets': 'ツイートの投稿',</p>
+<p>                    'read:dm': 'ダイレクトメッセージの読み取り'</p>
+<p>                }</p>
+                
+<p>                # アプリは必要最小限のスコープのみ要求</p>
+<p>                requested_scopes = ['read:profile', 'write:tweets']</p>
+<p>                ''',</p>
+<p>                'benefit': '過剰な権限付与を防ぐ'</p>
+<p>            },</p>
+            
+<p>            'revocability': {</p>
+<p>                'concept': 'いつでも取り消し可能',</p>
+<p>                'implementation': '''</p>
+<p>                # ユーザーはいつでもアクセスを取り消せる</p>
+<p>                def revoke_access(user_id: str, client_id: str):</p>
+<p>                    tokens = Token.query.filter_by(</p>
+<p>                        user_id=user_id,</p>
+<p>                        client_id=client_id</p>
+<p>                    ).all()</p>
+                    
+<p>                    for token in tokens:</p>
+<p>                        token.revoked = True</p>
+                    
+<p>                    db.session.commit()</p>
+<p>                ''',</p>
+<p>                'benefit': 'ユーザーが自分のデータをコントロール'</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>6.1.3 なぜOAuth 2.0なのか（1.0との違い）</h3><p><pre><code>python</p>
+<p>class OAuth2Evolution:</p>
+<p>    """OAuth 1.0から2.0への進化"""</p>
+    
+<p>    def why_oauth2(self):</p>
+<p>        """なぜOAuth 2.0が必要だったのか"""</p>
+        
+<p>        oauth1_problems = {</p>
+<p>            'signature_complexity': {</p>
+<p>                'issue': '署名の計算が複雑',</p>
+<p>                'oauth1_example': '''</p>
+<p>                # OAuth 1.0の署名計算</p>
+<p>                def create_oauth1_signature(method, url, params, consumer_secret, token_secret):</p>
+<p>                    # 1. パラメータの正規化</p>
+<p>                    normalized_params = normalize_parameters(params)</p>
+                    
+<p>                    # 2. ベース文字列の作成</p>
+<p>                    base_string = f"{method}&{percent_encode(url)}&{percent_encode(normalized_params)}"</p>
+                    
+<p>                    # 3. 署名キーの作成</p>
+<p>                    signing_key = f"{percent_encode(consumer_secret)}&{percent_encode(token_secret)}"</p>
+                    
+<p>                    # 4. HMAC-SHA1で署名</p>
+<p>                    signature = hmac.new(</p>
+<p>                        signing_key.encode(),</p>
+<p>                        base_string.encode(),</p>
+<p>                        hashlib.sha1</p>
+<p>                    ).digest()</p>
+                    
+<p>                    return base64.b64encode(signature).decode()</p>
+<p>                ''',</p>
+<p>                'developer_impact': '実装ミスが頻発、デバッグが困難'</p>
+<p>            },</p>
+            
+<p>            'limited_client_types': {</p>
+<p>                'issue': 'Webアプリケーション中心の設計',</p>
+<p>                'limitations': [</p>
+<p>                    'モバイルアプリでの実装が困難',</p>
+<p>                    'JavaScriptアプリ（SPA）での使用が非現実的',</p>
+<p>                    'IoTデバイスでの実装が複雑'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'performance_overhead': {</p>
+<p>                'issue': '毎リクエストでの署名計算',</p>
+<p>                'impact': 'API呼び出しのオーバーヘッド増大'</p>
+<p>            }</p>
+<p>        }</p>
+        
+<p>        oauth2_improvements = {</p>
+<p>            'simplicity': {</p>
+<p>                'change': 'Bearer Tokenによるシンプルな認可',</p>
+<p>                'example': '''</p>
+<p>                # OAuth 2.0のシンプルなAPI呼び出し</p>
+<p>                headers = {</p>
+<p>                    'Authorization': f'Bearer {access_token}'</p>
+<p>                }</p>
+<p>                response = requests.get('https://api.example.com/user', headers=headers)</p>
+<p>                ''',</p>
+<p>                'benefit': '実装が容易、エラーが少ない'</p>
+<p>            },</p>
+            
+<p>            'flexibility': {</p>
+<p>                'change': '複数のグラントタイプ',</p>
+<p>                'types': {</p>
+<p>                    'authorization_code': 'Webアプリ向け',</p>
+<p>                    'implicit': 'SPAア向け（現在は非推奨）',</p>
+<p>                    'client_credentials': 'サーバー間通信',</p>
+<p>                    'resource_owner_password': 'レガシー対応'</p>
+<p>                },</p>
+<p>                'benefit': '様々なユースケースに対応'</p>
+<p>            },</p>
+            
+<p>            'extensibility': {</p>
+<p>                'change': '拡張可能な仕様',</p>
+<p>                'extensions': [</p>
+<p>                    'PKCE（Proof Key for Code Exchange）',</p>
+<p>                    'Device Authorization Grant',</p>
+<p>                    'Token Introspection',</p>
+<p>                    'Token Revocation'</p>
+<p>                ],</p>
+<p>                'benefit': '進化する脅威への対応が可能'</p>
+<p>            }</p>
+<p>        }</p>
+        
+<p>        return {</p>
+<p>            'oauth1_problems': oauth1_problems,</p>
+<p>            'oauth2_improvements': oauth2_improvements,</p>
+<p>            'migration_impact': 'OAuth 2.0は後方互換性を捨てて、より良い設計を選択'</p>
+<p>        }</p>
+<p></code></pre></p><h2>6.2 各種グラントタイプの使い分け - ユースケースに応じた選択</h2><h3>6.2.1 Authorization Code Grant - 最も安全な標準フロー</h3><p><pre><code>python</p>
+<p>class AuthorizationCodeGrant:</p>
+<p>    """認可コードグラントの実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.flow_explanation = self._explain_flow()</p>
+<p>        self.implementation = self._implement_flow()</p>
+        
+<p>    def _explain_flow(self):</p>
+<p>        """なぜ認可コードグラントが安全なのか"""</p>
+        
+<p>        return {</p>
+<p>            'security_features': {</p>
+<p>                'code_exchange': {</p>
+<p>                    'reason': 'アクセストークンがブラウザを経由しない',</p>
+<p>                    'benefit': 'ブラウザ履歴やリファラーでの漏洩を防ぐ'</p>
+<p>                },</p>
+<p>                'client_authentication': {</p>
+<p>                    'reason': 'トークンエンドポイントでクライアント認証',</p>
+<p>                    'benefit': '認可コードを盗んでも、client_secretなしでは使えない'</p>
+<p>                },</p>
+<p>                'one_time_code': {</p>
+<p>                    'reason': '認可コードは一度だけ使用可能',</p>
+<p>                    'benefit': 'リプレイ攻撃を防ぐ'</p>
+<p>                },</p>
+<p>                'short_lived_code': {</p>
+<p>                    'reason': '認可コードの有効期限は短い（通常10分）',</p>
+<p>                    'benefit': '攻撃の時間窓を最小化'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'flow_diagram': '''</p>
+<p>            User        Browser         Client App      Auth Server    Resource Server</p>
+<p>            │            │                 │               │              │</p>
+<p>            │  1. Access App              │               │              │</p>
+<p>            ├───────────────────────────▶│               │              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │  2. Redirect to Auth           │              │</p>
+<p>            │            │◀────────────────┤               │              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │  3. Authorization Request       │              │</p>
+<p>            │            ├────────────────────────────────▶│              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │  4. Login & Consent          │               │              │</p>
+<p>            │◀───────────┼────────────────────────────────┤              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │  5. Approve │                │               │              │</p>
+<p>            ├────────────┼───────────────────────────────▶│              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │  6. Redirect with Code          │              │</p>
+<p>            │            │◀────────────────────────────────┤              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │  7. Code        │               │              │</p>
+<p>            │            ├────────────────▶│               │              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │                 │  8. Exchange Code for Token │</p>
+<p>            │            │                 ├──────────────▶│              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │                 │  9. Access Token            │</p>
+<p>            │            │                 │◀──────────────┤              │</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │                 │  10. API Request            │</p>
+<p>            │            │                 ├─────────────────────────────▶│</p>
+<p>            │            │                 │               │              │</p>
+<p>            │            │                 │  11. Protected Resource     │</p>
+<p>            │            │                 │◀─────────────────────────────┤</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def _implement_flow(self):</p>
+<p>        """認可コードフローの実装"""</p>
+        
+<p>        from flask import Flask, request, redirect, session</p>
+<p>        import secrets</p>
+<p>        import requests</p>
+<p>        from urllib.parse import urlencode</p>
+        
+<p>        class OAuthClient:</p>
+<p>            def __init__(self, client_id: str, client_secret: str, </p>
+<p>                        auth_endpoint: str, token_endpoint: str):</p>
+<p>                self.client_id = client_id</p>
+<p>                self.client_secret = client_secret</p>
+<p>                self.auth_endpoint = auth_endpoint</p>
+<p>                self.token_endpoint = token_endpoint</p>
+                
+<p>            def create_authorization_url(self, redirect_uri: str, </p>
+<p>                                       scope: List[str], </p>
+<p>                                       state: Optional[str] = None) -> str:</p>
+<p>                """認可URLの作成"""</p>
+                
+<p>                # CSRF対策のstate生成</p>
+<p>                if not state:</p>
+<p>                    state = secrets.token_urlsafe(32)</p>
+<p>                    session['oauth_state'] = state</p>
+                
+<p>                params = {</p>
+<p>                    'response_type': 'code',</p>
+<p>                    'client_id': self.client_id,</p>
+<p>                    'redirect_uri': redirect_uri,</p>
+<p>                    'scope': ' '.join(scope),</p>
+<p>                    'state': state</p>
+<p>                }</p>
+                
+<p>                return f"{self.auth_endpoint}?{urlencode(params)}"</p>
+            
+<p>            def exchange_code_for_token(self, code: str, </p>
+<p>                                      redirect_uri: str, </p>
+<p>                                      state: str) -> Dict:</p>
+<p>                """認可コードをアクセストークンに交換"""</p>
+                
+<p>                # State検証（CSRF対策）</p>
+<p>                if state != session.get('oauth_state'):</p>
+<p>                    raise ValueError("Invalid state parameter")</p>
+                
+<p>                # Stateを削除（再利用防止）</p>
+<p>                session.pop('oauth_state', None)</p>
+                
+<p>                # トークンリクエスト</p>
+<p>                token_data = {</p>
+<p>                    'grant_type': 'authorization_code',</p>
+<p>                    'code': code,</p>
+<p>                    'redirect_uri': redirect_uri,</p>
+<p>                    'client_id': self.client_id,</p>
+<p>                    'client_secret': self.client_secret</p>
+<p>                }</p>
+                
+<p>                response = requests.post(</p>
+<p>                    self.token_endpoint,</p>
+<p>                    data=token_data,</p>
+<p>                    headers={'Accept': 'application/json'}</p>
+<p>                )</p>
+                
+<p>                if response.status_code != 200:</p>
+<p>                    raise Exception(f"Token exchange failed: {response.text}")</p>
+                
+<p>                tokens = response.json()</p>
+                
+<p>                # トークンの検証</p>
+<p>                self._validate_tokens(tokens)</p>
+                
+<p>                return tokens</p>
+            
+<p>            def _validate_tokens(self, tokens: Dict):</p>
+<p>                """取得したトークンの基本検証"""</p>
+                
+<p>                required_fields = ['access_token', 'token_type']</p>
+<p>                for field in required_fields:</p>
+<p>                    if field not in tokens:</p>
+<p>                        raise ValueError(f"Missing required field: {field}")</p>
+                
+<p>                if tokens['token_type'].lower() != 'bearer':</p>
+<p>                    raise ValueError(f"Unsupported token type: {tokens['token_type']}")</p>
+                
+<p>                # トークンの有効期限確認</p>
+<p>                if 'expires_in' in tokens and tokens['expires_in'] <= 0:</p>
+<p>                    raise ValueError("Token already expired")</p>
+        
+<p>        return OAuthClient</p>
+<p></code></pre></p><h3>6.2.2 Client Credentials Grant - サービス間認証</h3><p><pre><code>python</p>
+<p>class ClientCredentialsGrant:</p>
+<p>    """クライアントクレデンシャルグラントの実装"""</p>
+    
+<p>    def explain_use_case(self):</p>
+<p>        """いつClient Credentialsを使うべきか"""</p>
+        
+<p>        return {</p>
+<p>            'appropriate_scenarios': [</p>
+<p>                {</p>
+<p>                    'scenario': 'マイクロサービス間通信',</p>
+<p>                    'example': 'OrderServiceがUserServiceのAPIを呼ぶ',</p>
+<p>                    'why': 'エンドユーザーが関与しない'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'scenario': 'バッチ処理',</p>
+<p>                    'example': '夜間バッチがAPIを使ってデータ同期',</p>
+<p>                    'why': 'ユーザーコンテキストが不要'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'scenario': 'システム管理タスク',</p>
+<p>                    'example': '監視システムがメトリクスAPIにアクセス',</p>
+<p>                    'why': 'システムレベルの操作'</p>
+<p>                }</p>
+<p>            ],</p>
+            
+<p>            'inappropriate_scenarios': [</p>
+<p>                {</p>
+<p>                    'scenario': 'ユーザー固有のリソースアクセス',</p>
+<p>                    'why': 'ユーザーの認可が必要',</p>
+<p>                    'correct_grant': 'Authorization Code'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'scenario': 'モバイルアプリからの直接アクセス',</p>
+<p>                    'why': 'クライアントシークレットを安全に保存できない',</p>
+<p>                    'correct_grant': 'Authorization Code + PKCE'</p>
+<p>                }</p>
+<p>            ]</p>
+<p>        }</p>
+    
+<p>    def implement_grant(self):</p>
+<p>        """Client Credentials実装"""</p>
+        
+<p>        class ServiceAuthClient:</p>
+<p>            def __init__(self, client_id: str, client_secret: str, </p>
+<p>                        token_endpoint: str):</p>
+<p>                self.client_id = client_id</p>
+<p>                self.client_secret = client_secret</p>
+<p>                self.token_endpoint = token_endpoint</p>
+<p>                self.token_cache = {}</p>
+                
+<p>            async def get_access_token(self, scope: Optional[List[str]] = None) -> str:</p>
+<p>                """アクセストークンの取得（キャッシュ付き）"""</p>
+                
+<p>                cache_key = f"{self.client_id}:{':'.join(scope or [])}"</p>
+                
+<p>                # キャッシュチェック</p>
+<p>                cached_token = self._get_cached_token(cache_key)</p>
+<p>                if cached_token:</p>
+<p>                    return cached_token</p>
+                
+<p>                # 新規取得</p>
+<p>                token_data = {</p>
+<p>                    'grant_type': 'client_credentials',</p>
+<p>                    'client_id': self.client_id,</p>
+<p>                    'client_secret': self.client_secret</p>
+<p>                }</p>
+                
+<p>                if scope:</p>
+<p>                    token_data['scope'] = ' '.join(scope)</p>
+                
+<p>                response = await self._make_token_request(token_data)</p>
+                
+<p>                # キャッシュに保存</p>
+<p>                self._cache_token(cache_key, response)</p>
+                
+<p>                return response['access_token']</p>
+            
+<p>            def _get_cached_token(self, cache_key: str) -> Optional[str]:</p>
+<p>                """キャッシュからトークンを取得"""</p>
+                
+<p>                if cache_key not in self.token_cache:</p>
+<p>                    return None</p>
+                
+<p>                cached = self.token_cache[cache_key]</p>
+                
+<p>                # 有効期限チェック（5分のバッファ）</p>
+<p>                if time.time() < cached['expires_at'] - 300:</p>
+<p>                    return cached['access_token']</p>
+                
+<p>                # 期限切れの場合は削除</p>
+<p>                del self.token_cache[cache_key]</p>
+<p>                return None</p>
+            
+<p>            def _cache_token(self, cache_key: str, token_response: Dict):</p>
+<p>                """トークンをキャッシュに保存"""</p>
+                
+<p>                expires_in = token_response.get('expires_in', 3600)</p>
+                
+<p>                self.token_cache[cache_key] = {</p>
+<p>                    'access_token': token_response['access_token'],</p>
+<p>                    'expires_at': time.time() + expires_in</p>
+<p>                }</p>
+            
+<p>            async def make_authenticated_request(self, </p>
+<p>                                               url: str, </p>
+<p>                                               method: str = 'GET',</p>
+<p>                                               <em></em>kwargs) -> requests.Response:</p>
+<p>                """認証付きHTTPリクエスト"""</p>
+                
+<p>                token = await self.get_access_token()</p>
+                
+<p>                headers = kwargs.get('headers', {})</p>
+<p>                headers['Authorization'] = f'Bearer {token}'</p>
+<p>                kwargs['headers'] = headers</p>
+                
+<p>                response = requests.request(method, url, <em></em>kwargs)</p>
+                
+<p>                # 401の場合はトークンをリフレッシュして再試行</p>
+<p>                if response.status_code == 401:</p>
+<p>                    # キャッシュクリア</p>
+<p>                    self.token_cache.clear()</p>
+                    
+<p>                    # 新しいトークンで再試行</p>
+<p>                    token = await self.get_access_token()</p>
+<p>                    headers['Authorization'] = f'Bearer {token}'</p>
+<p>                    response = requests.request(method, url, <em></em>kwargs)</p>
+                
+<p>                return response</p>
+        
+<p>        return ServiceAuthClient</p>
+<p></code></pre></p><h3>6.2.3 Refresh Token Grant - トークンの更新</h3><p><pre><code>python</p>
+<p>class RefreshTokenGrant:</p>
+<p>    """リフレッシュトークングラントの実装"""</p>
+    
+<p>    def explain_refresh_token_design(self):</p>
+<p>        """なぜリフレッシュトークンが必要か"""</p>
+        
+<p>        return {</p>
+<p>            'design_rationale': {</p>
+<p>                'security_vs_usability': {</p>
+<p>                    'problem': 'アクセストークンの有効期限のジレンマ',</p>
+<p>                    'short_lived': {</p>
+<p>                        'pros': 'セキュア（漏洩時の影響が限定的）',</p>
+<p>                        'cons': '頻繁な再認証が必要'</p>
+<p>                    },</p>
+<p>                    'long_lived': {</p>
+<p>                        'pros': 'ユーザビリティが高い',</p>
+<p>                        'cons': '漏洩時の影響が大きい'</p>
+<p>                    },</p>
+<p>                    'solution': 'リフレッシュトークンによる両立'</p>
+<p>                },</p>
+                
+<p>                'token_characteristics': {</p>
+<p>                    'access_token': {</p>
+<p>                        'lifetime': '15分〜1時間',</p>
+<p>                        'usage': '頻繁（API呼び出しごと）',</p>
+<p>                        'storage': 'メモリ推奨',</p>
+<p>                        'scope': 'APIアクセス'</p>
+<p>                    },</p>
+<p>                    'refresh_token': {</p>
+<p>                        'lifetime': '30日〜90日',</p>
+<p>                        'usage': 'まれ（アクセストークン更新時のみ）',</p>
+<p>                        'storage': 'セキュアストレージ',</p>
+<p>                        'scope': '新しいアクセストークンの取得のみ'</p>
+<p>                    }</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def implement_refresh_flow(self):</p>
+<p>        """リフレッシュフローの実装"""</p>
+        
+<p>        class TokenManager:</p>
+<p>            def __init__(self, client_id: str, client_secret: str,</p>
+<p>                        token_endpoint: str):</p>
+<p>                self.client_id = client_id</p>
+<p>                self.client_secret = client_secret</p>
+<p>                self.token_endpoint = token_endpoint</p>
+<p>                self.token_store = SecureTokenStore()</p>
+                
+<p>            async def refresh_access_token(self, refresh_token: str) -> Dict:</p>
+<p>                """リフレッシュトークンを使用して新しいアクセストークンを取得"""</p>
+                
+<p>                refresh_data = {</p>
+<p>                    'grant_type': 'refresh_token',</p>
+<p>                    'refresh_token': refresh_token,</p>
+<p>                    'client_id': self.client_id,</p>
+<p>                    'client_secret': self.client_secret</p>
+<p>                }</p>
+                
+<p>                try:</p>
+<p>                    response = await self._make_token_request(refresh_data)</p>
+                    
+<p>                    # 新しいトークンの保存</p>
+<p>                    await self._store_tokens(response)</p>
+                    
+<p>                    # リフレッシュトークンローテーション対応</p>
+<p>                    if 'refresh_token' in response:</p>
+<p>                        # 新しいリフレッシュトークンが発行された場合</p>
+<p>                        await self._rotate_refresh_token(</p>
+<p>                            old_token=refresh_token,</p>
+<p>                            new_token=response['refresh_token']</p>
+<p>                        )</p>
+                    
+<p>                    return response</p>
+                    
+<p>                except TokenExpiredError:</p>
+<p>                    # リフレッシュトークン自体が期限切れ</p>
+<p>                    raise ReAuthenticationRequired()</p>
+<p>                except InvalidTokenError:</p>
+<p>                    # リフレッシュトークンが無効（取り消されたなど）</p>
+<p>                    raise ReAuthenticationRequired()</p>
+            
+<p>            async def _rotate_refresh_token(self, old_token: str, new_token: str):</p>
+<p>                """リフレッシュトークンのローテーション処理"""</p>
+                
+<p>                # 古いトークンを無効化</p>
+<p>                await self.token_store.revoke_token(old_token)</p>
+                
+<p>                # 新しいトークンを保存</p>
+<p>                await self.token_store.store_refresh_token(new_token)</p>
+                
+<p>                # セキュリティログ</p>
+<p>                logging.info(f"Refresh token rotated for client {self.client_id}")</p>
+            
+<p>            def implement_automatic_refresh(self):</p>
+<p>                """自動リフレッシュの実装"""</p>
+                
+<p>                class AutoRefreshClient:</p>
+<p>                    def __init__(self, token_manager: TokenManager):</p>
+<p>                        self.token_manager = token_manager</p>
+<p>                        self.access_token = None</p>
+<p>                        self.token_expiry = None</p>
+<p>                        self.refresh_token = None</p>
+<p>                        self.refresh_lock = asyncio.Lock()</p>
+                        
+<p>                    async def make_request(self, url: str, <em></em>kwargs) -> Response:</p>
+<p>                        """自動リフレッシュ機能付きリクエスト"""</p>
+                        
+<p>                        # トークンの有効性チェック</p>
+<p>                        if await self._should_refresh():</p>
+<p>                            await self._refresh_tokens()</p>
+                        
+<p>                        # リクエスト実行</p>
+<p>                        headers = kwargs.get('headers', {})</p>
+<p>                        headers['Authorization'] = f'Bearer {self.access_token}'</p>
+<p>                        kwargs['headers'] = headers</p>
+                        
+<p>                        response = await aiohttp.request('GET', url, <em></em>kwargs)</p>
+                        
+<p>                        # 401エラーの場合は再度リフレッシュ</p>
+<p>                        if response.status == 401:</p>
+<p>                            await self._refresh_tokens()</p>
+                            
+<p>                            # 再試行</p>
+<p>                            headers['Authorization'] = f'Bearer {self.access_token}'</p>
+<p>                            response = await aiohttp.request('GET', url, <em></em>kwargs)</p>
+                        
+<p>                        return response</p>
+                    
+<p>                    async def _should_refresh(self) -> bool:</p>
+<p>                        """リフレッシュが必要かチェック"""</p>
+                        
+<p>                        if not self.access_token:</p>
+<p>                            return True</p>
+                        
+<p>                        # 有効期限の5分前にリフレッシュ</p>
+<p>                        buffer_time = 300</p>
+<p>                        return time.time() >= (self.token_expiry - buffer_time)</p>
+                    
+<p>                    async def _refresh_tokens(self):</p>
+<p>                        """トークンのリフレッシュ（重複防止付き）"""</p>
+                        
+<p>                        async with self.refresh_lock:</p>
+<p>                            # 別のコルーチンが既にリフレッシュしている場合</p>
+<p>                            if not await self._should_refresh():</p>
+<p>                                return</p>
+                            
+<p>                            tokens = await self.token_manager.refresh_access_token(</p>
+<p>                                self.refresh_token</p>
+<p>                            )</p>
+                            
+<p>                            self.access_token = tokens['access_token']</p>
+<p>                            self.token_expiry = time.time() + tokens['expires_in']</p>
+                            
+<p>                            if 'refresh_token' in tokens:</p>
+<p>                                self.refresh_token = tokens['refresh_token']</p>
+                
+<p>                return AutoRefreshClient</p>
+        
+<p>        return TokenManager</p>
+<p></code></pre></p><h3>6.2.4 最新のグラントタイプ</h3><p><pre><code>python</p>
+<p>class ModernGrantTypes:</p>
+<p>    """最新のOAuth 2.0グラントタイプ"""</p>
+    
+<p>    def device_authorization_grant(self):</p>
+<p>        """Device Authorization Grant (RFC 8628)"""</p>
+        
+<p>        return {</p>
+<p>            'use_case': 'キーボード入力が困難なデバイス',</p>
+<p>            'examples': ['スマートTV', 'ゲーム機', 'IoTデバイス'],</p>
+            
+<p>            'flow': '''</p>
+<p>            1. デバイス → 認可サーバー: デバイスコードをリクエスト</p>
+<p>            2. 認可サーバー → デバイス: device_code, user_code, verification_uri</p>
+<p>            3. デバイス → ユーザー: "https://example.com/device で ABCD-1234 を入力"</p>
+<p>            4. ユーザー → ブラウザ: コード入力と認可</p>
+<p>            5. デバイス → 認可サーバー: ポーリング（device_codeでトークン確認）</p>
+<p>            6. 認可サーバー → デバイス: アクセストークン</p>
+<p>            ''',</p>
+            
+<p>            'implementation': '''</p>
+<p>            class DeviceAuthFlow:</p>
+<p>                async def initiate_device_flow(self, client_id: str) -> Dict:</p>
+<p>                    """デバイスフローの開始"""</p>
+                    
+<p>                    response = await self.http_client.post(</p>
+<p>                        'https://auth.example.com/device/code',</p>
+<p>                        data={</p>
+<p>                            'client_id': client_id,</p>
+<p>                            'scope': 'read write'</p>
+<p>                        }</p>
+<p>                    )</p>
+                    
+<p>                    return {</p>
+<p>                        'device_code': response['device_code'],</p>
+<p>                        'user_code': response['user_code'],</p>
+<p>                        'verification_uri': response['verification_uri'],</p>
+<p>                        'expires_in': response['expires_in'],</p>
+<p>                        'interval': response.get('interval', 5)</p>
+<p>                    }</p>
+                
+<p>                async def poll_for_token(self, device_code: str, </p>
+<p>                                       interval: int = 5) -> Dict:</p>
+<p>                    """トークンのポーリング"""</p>
+                    
+<p>                    while True:</p>
+<p>                        try:</p>
+<p>                            response = await self.http_client.post(</p>
+<p>                                'https://auth.example.com/token',</p>
+<p>                                data={</p>
+<p>                                    'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',</p>
+<p>                                    'device_code': device_code,</p>
+<p>                                    'client_id': self.client_id</p>
+<p>                                }</p>
+<p>                            )</p>
+                            
+<p>                            if response.status_code == 200:</p>
+<p>                                return response.json()</p>
+<p>                            elif response.json()['error'] == 'authorization_pending':</p>
+<p>                                await asyncio.sleep(interval)</p>
+<p>                            elif response.json()['error'] == 'slow_down':</p>
+<p>                                interval += 5</p>
+<p>                                await asyncio.sleep(interval)</p>
+<p>                            else:</p>
+<p>                                raise Exception(response.json()['error'])</p>
+                                
+<p>                        except Exception as e:</p>
+<p>                            raise DeviceAuthError(f"Polling failed: {e}")</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>6.3 セキュリティ考慮事項（PKCE等）- 脆弱性の歴史と対策の進化</h2><h3>6.3.1 Authorization Code Injection Attack</h3><p><pre><code>python</p>
+<p>class AuthCodeInjectionAttack:</p>
+<p>    """認可コードインジェクション攻撃と対策"""</p>
+    
+<p>    def explain_vulnerability(self):</p>
+<p>        """脆弱性の説明"""</p>
+        
+<p>        return {</p>
+<p>            'attack_scenario': '''</p>
+<p>            1. 攻撃者が正規のOAuthフローを開始</p>
+<p>            2. 認可サーバーから認可コードを取得（自分のコード）</p>
+<p>            3. 被害者に対して、攻撃者の認可コードを含むリダイレクトURLを送る</p>
+<p>            4. 被害者がそのURLをクリック</p>
+<p>            5. アプリが攻撃者の認可コードを使ってトークンを取得</p>
+<p>            6. 被害者が攻撃者のアカウントでログインしてしまう</p>
+<p>            ''',</p>
+            
+<p>            'impact': [</p>
+<p>                '被害者が攻撃者のアカウントで操作してしまう',</p>
+<p>                '被害者の情報が攻撃者のアカウントに保存される',</p>
+<p>                'CSRF攻撃の一種として悪用可能'</p>
+<p>            ],</p>
+            
+<p>            'traditional_mitigation': {</p>
+<p>                'state_parameter': '''</p>
+<p>                # stateパラメータによる対策</p>
+<p>                def create_auth_url():</p>
+<p>                    state = secrets.token_urlsafe(32)</p>
+<p>                    session['oauth_state'] = state</p>
+                    
+<p>                    return f"{auth_url}?client_id={client_id}&state={state}"</p>
+                
+<p>                def handle_callback(code, state):</p>
+<p>                    if state != session.get('oauth_state'):</p>
+<p>                        raise SecurityError("Invalid state")</p>
+<p>                ''',</p>
+<p>                'limitation': 'stateは主にCSRF対策であり、code injection対策としては不完全'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def implement_pkce(self):</p>
+<p>        """PKCE (RFC 7636) の実装"""</p>
+        
+<p>        import hashlib</p>
+<p>        import base64</p>
+<p>        import secrets</p>
+        
+<p>        class PKCEClient:</p>
+<p>            """Proof Key for Code Exchange実装"""</p>
+            
+<p>            def generate_pkce_pair(self) -> Tuple[str, str]:</p>
+<p>                """PKCE用のcode_verifierとcode_challengeを生成"""</p>
+                
+<p>                # Code Verifier: 43-128文字のランダム文字列</p>
+<p>                code_verifier = base64.urlsafe_b64encode(</p>
+<p>                    secrets.token_bytes(32)</p>
+<p>                ).decode('utf-8').rstrip('=')</p>
+                
+<p>                # Code Challenge: VerifierのSHA256ハッシュ</p>
+<p>                challenge_bytes = hashlib.sha256(</p>
+<p>                    code_verifier.encode('utf-8')</p>
+<p>                ).digest()</p>
+<p>                code_challenge = base64.urlsafe_b64encode(</p>
+<p>                    challenge_bytes</p>
+<p>                ).decode('utf-8').rstrip('=')</p>
+                
+<p>                return code_verifier, code_challenge</p>
+            
+<p>            def create_authorization_url_with_pkce(self, </p>
+<p>                                                 redirect_uri: str,</p>
+<p>                                                 scope: List[str]) -> Tuple[str, str]:</p>
+<p>                """PKCE対応の認可URL作成"""</p>
+                
+<p>                # PKCEペアの生成</p>
+<p>                code_verifier, code_challenge = self.generate_pkce_pair()</p>
+                
+<p>                # セッションに保存（後で使用）</p>
+<p>                session['pkce_verifier'] = code_verifier</p>
+                
+<p>                params = {</p>
+<p>                    'response_type': 'code',</p>
+<p>                    'client_id': self.client_id,</p>
+<p>                    'redirect_uri': redirect_uri,</p>
+<p>                    'scope': ' '.join(scope),</p>
+<p>                    'state': secrets.token_urlsafe(32),</p>
+<p>                    # PKCE パラメータ</p>
+<p>                    'code_challenge': code_challenge,</p>
+<p>                    'code_challenge_method': 'S256'</p>
+<p>                }</p>
+                
+<p>                auth_url = f"{self.auth_endpoint}?{urlencode(params)}"</p>
+                
+<p>                return auth_url, code_verifier</p>
+            
+<p>            def exchange_code_with_pkce(self, </p>
+<p>                                       code: str,</p>
+<p>                                       redirect_uri: str) -> Dict:</p>
+<p>                """PKCE検証付きでコードをトークンに交換"""</p>
+                
+<p>                # セッションからverifierを取得</p>
+<p>                code_verifier = session.pop('pkce_verifier', None)</p>
+<p>                if not code_verifier:</p>
+<p>                    raise SecurityError("PKCE verifier not found")</p>
+                
+<p>                token_data = {</p>
+<p>                    'grant_type': 'authorization_code',</p>
+<p>                    'code': code,</p>
+<p>                    'redirect_uri': redirect_uri,</p>
+<p>                    'client_id': self.client_id,</p>
+<p>                    # PKCEパラメータ</p>
+<p>                    'code_verifier': code_verifier</p>
+<p>                }</p>
+                
+<p>                # パブリッククライアントの場合はclient_secretなし</p>
+<p>                if self.client_secret:</p>
+<p>                    token_data['client_secret'] = self.client_secret</p>
+                
+<p>                response = requests.post(self.token_endpoint, data=token_data)</p>
+                
+<p>                if response.status_code != 200:</p>
+<p>                    raise OAuthError(f"Token exchange failed: {response.text}")</p>
+                
+<p>                return response.json()</p>
+            
+<p>            def explain_pkce_security(self):</p>
+<p>                """PKCEがなぜ安全なのか"""</p>
+                
+<p>                return {</p>
+<p>                    'attack_prevention': '''</p>
+<p>                    1. 攻撃者が認可コードを盗んでも...</p>
+<p>                    2. code_verifierを知らないため、トークン交換できない</p>
+<p>                    3. code_challengeからcode_verifierを逆算することは不可能（SHA256）</p>
+<p>                    ''',</p>
+                    
+<p>                    'flow_comparison': {</p>
+<p>                        'without_pkce': '''</p>
+<p>                        App → AS: code=ABCD</p>
+<p>                        AS → App: access_token（攻撃者も同じcodeで取得可能）</p>
+<p>                        ''',</p>
+                        
+<p>                        'with_pkce': '''</p>
+<p>                        App → AS: code=ABCD, code_verifier=SECRET123</p>
+<p>                        AS: SHA256(SECRET123) == stored_challenge? </p>
+<p>                        AS → App: access_token（verifierなしでは取得不可）</p>
+<p>                        '''</p>
+<p>                    }</p>
+<p>                }</p>
+        
+<p>        return PKCEClient</p>
+<p></code></pre></p><h3>6.3.2 その他の主要な脆弱性と対策</h3><p><pre><code>python</p>
+<p>class OAuthSecurityVulnerabilities:</p>
+<p>    """OAuth 2.0の脆弱性と対策"""</p>
+    
+<p>    def open_redirect_vulnerability(self):</p>
+<p>        """オープンリダイレクト脆弱性"""</p>
+        
+<p>        return {</p>
+<p>            'vulnerability': {</p>
+<p>                'description': 'redirect_uriの検証不足による任意のサイトへのリダイレクト',</p>
+<p>                'attack': '''</p>
+<p>                # 攻撃例</p>
+<p>                https://auth.example.com/authorize?</p>
+<p>                    client_id=abc123&</p>
+<p>                    redirect_uri=https://evil.com&  # 悪意のあるサイト</p>
+<p>                    response_type=code</p>
+<p>                ''',</p>
+<p>                'impact': '認可コードやトークンの窃取'</p>
+<p>            },</p>
+            
+<p>            'mitigation': '''</p>
+<p>            class RedirectURIValidator:</p>
+<p>                def __init__(self):</p>
+<p>                    # 事前登録されたredirect_uri</p>
+<p>                    self.registered_uris = {</p>
+<p>                        'client_abc123': [</p>
+<p>                            'https://app.example.com/callback',</p>
+<p>                            'https://app.example.com/oauth/callback'</p>
+<p>                        ]</p>
+<p>                    }</p>
+                
+<p>                def validate_redirect_uri(self, client_id: str, </p>
+<p>                                        redirect_uri: str) -> bool:</p>
+<p>                    """redirect_uriの厳密な検証"""</p>
+                    
+<p>                    registered = self.registered_uris.get(client_id, [])</p>
+                    
+<p>                    # 完全一致のみ許可（部分一致は危険）</p>
+<p>                    if redirect_uri not in registered:</p>
+<p>                        return False</p>
+                    
+<p>                    # プロトコルのダウングレード防止</p>
+<p>                    parsed = urlparse(redirect_uri)</p>
+<p>                    if parsed.scheme != 'https':</p>
+<p>                        # localhost開発環境のみ例外</p>
+<p>                        if not (parsed.hostname == 'localhost' and </p>
+<p>                               parsed.port in [3000, 8080]):</p>
+<p>                            return False</p>
+                    
+<p>                    return True</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def token_leakage_in_referrer(self):</p>
+<p>        """リファラーによるトークン漏洩"""</p>
+        
+<p>        return {</p>
+<p>            'vulnerability': {</p>
+<p>                'description': 'URLフラグメントのトークンがリファラーで漏洩',</p>
+<p>                'scenario': 'Implicitフロー使用時の問題',</p>
+<p>                'example': '''</p>
+<p>                # ブラウザのアドレスバー</p>
+<p>                https://app.example.com/#access_token=SECRET_TOKEN</p>
+                
+<p>                # このページから外部リンクをクリックすると...</p>
+<p>                Referer: https://app.example.com/#access_token=SECRET_TOKEN</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'mitigation': [</p>
+<p>                {</p>
+<p>                    'method': 'Implicitフローの廃止',</p>
+<p>                    'recommendation': 'Authorization Code + PKCEを使用'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'method': 'Referrer-Policyの設定',</p>
+<p>                    'implementation': '''</p>
+<p>                    # HTMLメタタグ</p>
+<p>                    <meta name="referrer" content="no-referrer"></p>
+                    
+<p>                    # HTTPヘッダー</p>
+<p>                    Referrer-Policy: no-referrer</p>
+<p>                    '''</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'method': 'トークンの即座の処理',</p>
+<p>                    'implementation': '''</p>
+<p>                    // フラグメントからトークンを抽出して削除</p>
+<p>                    if (window.location.hash) {</p>
+<p>                        const params = new URLSearchParams(</p>
+<p>                            window.location.hash.substring(1)</p>
+<p>                        );</p>
+<p>                        const token = params.get('access_token');</p>
+                        
+<p>                        // トークンを安全な場所に保存</p>
+<p>                        tokenManager.store(token);</p>
+                        
+<p>                        // URLからトークンを削除</p>
+<p>                        window.history.replaceState(</p>
+<p>                            {}, </p>
+<p>                            document.title, </p>
+<p>                            window.location.pathname</p>
+<p>                        );</p>
+<p>                    }</p>
+<p>                    '''</p>
+<p>                }</p>
+<p>            ]</p>
+<p>        }</p>
+    
+<p>    def mix_up_attack(self):</p>
+<p>        """Mix-Up攻撃"""</p>
+        
+<p>        return {</p>
+<p>            'vulnerability': {</p>
+<p>                'description': '複数のASを使う場合の混乱攻撃',</p>
+<p>                'attack_flow': '''</p>
+<p>                1. クライアントがAS1に認可リクエスト</p>
+<p>                2. 攻撃者（AS2）が、AS1のclient_idでレスポンス</p>
+<p>                3. クライアントが誤ってAS2にトークンリクエスト</p>
+<p>                4. 攻撃者がトークンを取得</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'mitigation': {</p>
+<p>                'issuer_identification': '''</p>
+<p>                # Authorization Response にissuerを含める</p>
+<p>                def create_auth_response(code: str, state: str) -> str:</p>
+<p>                    params = {</p>
+<p>                        'code': code,</p>
+<p>                        'state': state,</p>
+<p>                        'iss': 'https://auth.example.com'  # 発行者の明示</p>
+<p>                    }</p>
+<p>                    return f"{redirect_uri}?{urlencode(params)}"</p>
+                
+<p>                # クライアント側での検証</p>
+<p>                def validate_auth_response(params: Dict, expected_issuer: str):</p>
+<p>                    if params.get('iss') != expected_issuer:</p>
+<p>                        raise SecurityError("Issuer mismatch")</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>6.3.3 セキュリティベストプラクティス集</h3><p><pre><code>python</p>
+<p>class OAuthSecurityBestPractices:</p>
+<p>    """OAuth 2.0セキュリティのベストプラクティス"""</p>
+    
+<p>    def comprehensive_security_checklist(self):</p>
+<p>        """包括的なセキュリティチェックリスト"""</p>
+        
+<p>        return {</p>
+<p>            'client_authentication': {</p>
+<p>                'public_clients': [</p>
+<p>                    'PKCEを必須とする',</p>
+<p>                    'client_secretを使用しない',</p>
+<p>                    'redirect_uriの厳密な検証'</p>
+<p>                ],</p>
+<p>                'confidential_clients': [</p>
+<p>                    'client_secretの安全な管理',</p>
+<p>                    'mTLSの検討',</p>
+<p>                    'client assertion (JWT) の使用'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'token_handling': {</p>
+<p>                'storage': [</p>
+<p>                    'アクセストークンはメモリに保持',</p>
+<p>                    'リフレッシュトークンは暗号化して保存',</p>
+<p>                    'トークンのスコープを最小限に'</p>
+<p>                ],</p>
+<p>                'transmission': [</p>
+<p>                    'HTTPSの必須化',</p>
+<p>                    'Authorizationヘッダーの使用',</p>
+<p>                    'URLパラメータでのトークン送信禁止'</p>
+<p>                ],</p>
+<p>                'validation': [</p>
+<p>                    'トークンの署名検証',</p>
+<p>                    '有効期限の確認',</p>
+<p>                    'audience (aud) の検証'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'implementation_security': '''</p>
+<p>            class SecureOAuthImplementation:</p>
+<p>                def __init__(self):</p>
+<p>                    self.security_config = {</p>
+<p>                        'token_lifetime': 900,  # 15分</p>
+<p>                        'refresh_token_lifetime': 2592000,  # 30日</p>
+<p>                        'auth_code_lifetime': 600,  # 10分</p>
+<p>                        'pkce_required': True,</p>
+<p>                        'state_required': True</p>
+<p>                    }</p>
+                
+<p>                def validate_client_request(self, request: Request) -> bool:</p>
+<p>                    """クライアントリクエストの包括的検証"""</p>
+                    
+<p>                    # HTTPS必須</p>
+<p>                    if not request.is_secure:</p>
+<p>                        raise SecurityError("HTTPS required")</p>
+                    
+<p>                    # リクエストの完全性チェック</p>
+<p>                    if self._detect_parameter_pollution(request):</p>
+<p>                        raise SecurityError("Parameter pollution detected")</p>
+                    
+<p>                    # レート制限</p>
+<p>                    if not self._check_rate_limit(request.client_id):</p>
+<p>                        raise RateLimitError("Too many requests")</p>
+                    
+<p>                    return True</p>
+                
+<p>                def _detect_parameter_pollution(self, request: Request) -> bool:</p>
+<p>                    """HTTPパラメータ汚染の検出"""</p>
+                    
+<p>                    for key in request.args:</p>
+<p>                        if len(request.args.getlist(key)) > 1:</p>
+<p>                            # 同じパラメータが複数回出現</p>
+<p>                            return True</p>
+                    
+<p>                    return False</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>6.4 実装時の落とし穴 - よくある実装ミスとその影響</h2><h3>6.4.1 State Parameter の誤用</h3><p><pre><code>python</p>
+<p>class StatePitfalls:</p>
+<p>    """Stateパラメータの実装ミス"""</p>
+    
+<p>    def common_mistakes(self):</p>
+<p>        """よくある間違いとその影響"""</p>
+        
+<p>        return [</p>
+<p>            {</p>
+<p>                'mistake': '予測可能なstate値',</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：予測可能</p>
+<p>                state = str(int(time.time()))</p>
+<p>                state = f"oauth_state_{user_id}"</p>
+<p>                state = hashlib.md5(session_id.encode()).hexdigest()</p>
+<p>                ''',</p>
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：暗号学的に安全な乱数</p>
+<p>                import secrets</p>
+<p>                state = secrets.token_urlsafe(32)</p>
+<p>                ''',</p>
+<p>                'impact': 'CSRF攻撃が可能になる'</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'mistake': 'stateの再利用',</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：stateを使い回し</p>
+<p>                class OAuthClient:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.state = "my_oauth_state"  # 固定値</p>
+                    
+<p>                    def create_auth_url(self):</p>
+<p>                        return f"{auth_url}?state={self.state}"</p>
+<p>                ''',</p>
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：毎回新しいstateを生成</p>
+<p>                def create_auth_url():</p>
+<p>                    state = secrets.token_urlsafe(32)</p>
+<p>                    session['oauth_state'] = state</p>
+<p>                    session['oauth_state_timestamp'] = time.time()</p>
+<p>                    return f"{auth_url}?state={state}"</p>
+<p>                ''',</p>
+<p>                'impact': 'リプレイ攻撃の可能性'</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'mistake': 'stateの有効期限なし',</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：無期限に有効</p>
+<p>                def verify_state(state):</p>
+<p>                    return state == session.get('oauth_state')</p>
+<p>                ''',</p>
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：有効期限付き</p>
+<p>                def verify_state(state):</p>
+<p>                    stored_state = session.get('oauth_state')</p>
+<p>                    timestamp = session.get('oauth_state_timestamp', 0)</p>
+                    
+<p>                    # 10分以内のみ有効</p>
+<p>                    if time.time() - timestamp > 600:</p>
+<p>                        return False</p>
+                    
+<p>                    # 一度だけ使用可能</p>
+<p>                    if state == stored_state:</p>
+<p>                        session.pop('oauth_state', None)</p>
+<p>                        session.pop('oauth_state_timestamp', None)</p>
+<p>                        return True</p>
+                    
+<p>                    return False</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        ]</p>
+<p></code></pre></p><h3>6.4.2 トークンの取り扱いミス</h3><p><pre><code>python</p>
+<p>class TokenHandlingMistakes:</p>
+<p>    """トークン取り扱いの実装ミス"""</p>
+    
+<p>    def insecure_token_storage(self):</p>
+<p>        """安全でないトークン保存"""</p>
+        
+<p>        return {</p>
+<p>            'localStorage_abuse': {</p>
+<p>                'bad_example': '''</p>
+<p>                // ❌ 悪い例：LocalStorageに生のトークン</p>
+<p>                fetch('/oauth/callback?code=' + code)</p>
+<p>                    .then(res => res.json())</p>
+<p>                    .then(data => {</p>
+<p>                        localStorage.setItem('access_token', data.access_token);</p>
+<p>                        localStorage.setItem('refresh_token', data.refresh_token);</p>
+<p>                    });</p>
+<p>                ''',</p>
+<p>                'problems': [</p>
+<p>                    'XSS攻撃で簡単に盗まれる',</p>
+<p>                    'ブラウザ拡張からアクセス可能',</p>
+<p>                    'デバッグツールで誰でも見える'</p>
+<p>                ],</p>
+<p>                'good_example': '''</p>
+<p>                // ✅ 良い例：メモリ内管理 + HttpOnly Cookie</p>
+<p>                class TokenManager {</p>
+<p>                    constructor() {</p>
+<p>                        this.accessToken = null;</p>
+<p>                        this.expiresAt = null;</p>
+<p>                    }</p>
+                    
+<p>                    setAccessToken(token, expiresIn) {</p>
+<p>                        this.accessToken = token;</p>
+<p>                        this.expiresAt = Date.now() + (expiresIn * 1000);</p>
+                        
+<p>                        // リフレッシュトークンはHttpOnly Cookieで</p>
+<p>                        // サーバー側で設定</p>
+<p>                    }</p>
+                    
+<p>                    getAccessToken() {</p>
+<p>                        if (Date.now() >= this.expiresAt) {</p>
+<p>                            return this.refreshAccessToken();</p>
+<p>                        }</p>
+<p>                        return this.accessToken;</p>
+<p>                    }</p>
+<p>                }</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'token_in_url': {</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：URLにトークン</p>
+<p>                @app.route('/api/data')</p>
+<p>                def get_data():</p>
+<p>                    token = request.args.get('access_token')  # URLパラメータ</p>
+<p>                    return fetch_user_data(token)</p>
+                
+<p>                # 呼び出し</p>
+<p>                GET /api/data?access_token=SECRET_TOKEN</p>
+<p>                ''',</p>
+<p>                'problems': [</p>
+<p>                    'サーバーログに記録される',</p>
+<p>                    'ブラウザ履歴に残る',</p>
+<p>                    'リファラーで漏洩',</p>
+<p>                    'プロキシログに記録'</p>
+<p>                ],</p>
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：Authorizationヘッダー</p>
+<p>                @app.route('/api/data')</p>
+<p>                def get_data():</p>
+<p>                    auth_header = request.headers.get('Authorization')</p>
+<p>                    if not auth_header or not auth_header.startswith('Bearer '):</p>
+<p>                        return {'error': 'Unauthorized'}, 401</p>
+                    
+<p>                    token = auth_header.split(' ')[1]</p>
+<p>                    return fetch_user_data(token)</p>
+                
+<p>                # 呼び出し</p>
+<p>                GET /api/data</p>
+<p>                Authorization: Bearer SECRET_TOKEN</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def improper_token_validation(self):</p>
+<p>        """不適切なトークン検証"""</p>
+        
+<p>        return {</p>
+<p>            'no_expiration_check': {</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：有効期限チェックなし</p>
+<p>                def validate_token(token):</p>
+<p>                    try:</p>
+<p>                        payload = jwt.decode(token, key, options={"verify_exp": False})</p>
+<p>                        return payload</p>
+<p>                    except:</p>
+<p>                        return None</p>
+<p>                ''',</p>
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：適切な検証</p>
+<p>                def validate_token(token):</p>
+<p>                    try:</p>
+<p>                        # 有効期限も含めて検証</p>
+<p>                        payload = jwt.decode(</p>
+<p>                            token, </p>
+<p>                            key, </p>
+<p>                            algorithms=['RS256'],</p>
+<p>                            options={"verify_exp": True}</p>
+<p>                        )</p>
+                        
+<p>                        # 追加の検証</p>
+<p>                        if 'aud' in payload and payload['aud'] != expected_audience:</p>
+<p>                            raise InvalidAudienceError()</p>
+                        
+<p>                        if 'iss' in payload and payload['iss'] != expected_issuer:</p>
+<p>                            raise InvalidIssuerError()</p>
+                        
+<p>                        return payload</p>
+                        
+<p>                    except jwt.ExpiredSignatureError:</p>
+<p>                        logging.warning("Token expired")</p>
+<p>                        raise</p>
+<p>                    except jwt.InvalidTokenError as e:</p>
+<p>                        logging.error(f"Invalid token: {e}")</p>
+<p>                        raise</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>6.4.3 エラーハンドリングの落とし穴</h3><p><pre><code>python</p>
+<p>class ErrorHandlingPitfalls:</p>
+<p>    """エラーハンドリングの問題"""</p>
+    
+<p>    def information_disclosure(self):</p>
+<p>        """情報漏洩につながるエラー処理"""</p>
+        
+<p>        return {</p>
+<p>            'detailed_error_messages': {</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：詳細すぎるエラー情報</p>
+<p>                @app.route('/oauth/token', methods=['POST'])</p>
+<p>                def token_endpoint():</p>
+<p>                    try:</p>
+<p>                        client_id = request.form['client_id']</p>
+<p>                        client_secret = request.form['client_secret']</p>
+                        
+<p>                        client = Client.query.filter_by(id=client_id).first()</p>
+<p>                        if not client:</p>
+<p>                            return {</p>
+<p>                                'error': 'invalid_client',</p>
+<p>                                'error_description': f'Client {client_id} not found in database'</p>
+<p>                            }, 401</p>
+                        
+<p>                        if client.secret != client_secret:</p>
+<p>                            return {</p>
+<p>                                'error': 'invalid_client',</p>
+<p>                                'error_description': 'Client secret mismatch. Expected: ' + client.secret[:4] + '...'</p>
+<p>                            }, 401</p>
+                            
+<p>                    except Exception as e:</p>
+<p>                        return {</p>
+<p>                            'error': 'server_error',</p>
+<p>                            'error_description': str(e),</p>
+<p>                            'stack_trace': traceback.format_exc()  # 絶対ダメ！</p>
+<p>                        }, 500</p>
+<p>                ''',</p>
+                
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：最小限のエラー情報</p>
+<p>                @app.route('/oauth/token', methods=['POST'])</p>
+<p>                def token_endpoint():</p>
+<p>                    try:</p>
+<p>                        # クライアント認証</p>
+<p>                        if not authenticate_client(request):</p>
+<p>                            # 詳細を隠す</p>
+<p>                            return {</p>
+<p>                                'error': 'invalid_client'</p>
+<p>                            }, 401</p>
+                        
+<p>                        # トークン処理</p>
+<p>                        return process_token_request(request)</p>
+                        
+<p>                    except InvalidGrantError:</p>
+<p>                        return {'error': 'invalid_grant'}, 400</p>
+<p>                    except Exception as e:</p>
+<p>                        # 内部エラーはログに記録</p>
+<p>                        app.logger.error(f"Token endpoint error: {e}", exc_info=True)</p>
+                        
+<p>                        # クライアントには最小限の情報</p>
+<p>                        return {'error': 'server_error'}, 500</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'timing_attacks': {</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：タイミング攻撃に脆弱</p>
+<p>                def verify_client_secret(client_id, provided_secret):</p>
+<p>                    client = get_client(client_id)</p>
+<p>                    if not client:</p>
+<p>                        return False  # すぐに返る</p>
+                    
+<p>                    # 文字列比較（タイミングが異なる）</p>
+<p>                    return client.secret == provided_secret</p>
+<p>                ''',</p>
+                
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：定数時間比較</p>
+<p>                import hmac</p>
+                
+<p>                def verify_client_secret(client_id, provided_secret):</p>
+<p>                    client = get_client(client_id)</p>
+<p>                    if not client:</p>
+<p>                        # ダミーの比較を実行</p>
+<p>                        expected = "dummy_secret_for_timing_protection"</p>
+<p>                    else:</p>
+<p>                        expected = client.secret</p>
+                    
+<p>                    # 定数時間比較</p>
+<p>                    return hmac.compare_digest(expected, provided_secret)</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>6.4.4 設定ミスと実装の不整合</h3><p><pre><code>python</p>
+<p>class ConfigurationMistakes:</p>
+<p>    """設定ミスと実装の問題"""</p>
+    
+<p>    def common_configuration_issues(self):</p>
+<p>        """よくある設定ミス"""</p>
+        
+<p>        return {</p>
+<p>            'development_settings_in_production': {</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：開発設定が本番に</p>
+<p>                class OAuthConfig:</p>
+<p>                    # デバッグモードが有効</p>
+<p>                    DEBUG = True</p>
+                    
+<p>                    # HTTPSチェックが無効</p>
+<p>                    REQUIRE_HTTPS = False</p>
+                    
+<p>                    # すべてのredirect_uriを許可</p>
+<p>                    ALLOW_ANY_REDIRECT_URI = True</p>
+                    
+<p>                    # トークンの有効期限が長すぎる</p>
+<p>                    ACCESS_TOKEN_LIFETIME = 86400  # 24時間</p>
+<p>                ''',</p>
+                
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：環境別設定</p>
+<p>                class OAuthConfig:</p>
+<p>                    def __init__(self, env='production'):</p>
+<p>                        self.env = env</p>
+                        
+<p>                        if env == 'production':</p>
+<p>                            self.DEBUG = False</p>
+<p>                            self.REQUIRE_HTTPS = True</p>
+<p>                            self.ALLOW_ANY_REDIRECT_URI = False</p>
+<p>                            self.ACCESS_TOKEN_LIFETIME = 900  # 15分</p>
+<p>                            self.LOG_LEVEL = 'WARNING'</p>
+<p>                        else:</p>
+<p>                            # 開発環境</p>
+<p>                            self.DEBUG = True</p>
+<p>                            self.REQUIRE_HTTPS = False</p>
+<p>                            self.ALLOW_ANY_REDIRECT_URI = False  # それでも制限</p>
+<p>                            self.ACCESS_TOKEN_LIFETIME = 3600</p>
+<p>                            self.LOG_LEVEL = 'DEBUG'</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'grant_type_misconfiguration': {</p>
+<p>                'scenario': '不要なグラントタイプの有効化',</p>
+<p>                'bad_example': '''</p>
+<p>                # ❌ 悪い例：すべてのグラントタイプを有効化</p>
+<p>                ENABLED_GRANT_TYPES = [</p>
+<p>                    'authorization_code',</p>
+<p>                    'implicit',  # 非推奨</p>
+<p>                    'password',  # 危険</p>
+<p>                    'client_credentials',</p>
+<p>                    'refresh_token'</p>
+<p>                ]</p>
+<p>                ''',</p>
+                
+<p>                'good_example': '''</p>
+<p>                # ✅ 良い例：必要最小限のグラントタイプ</p>
+<p>                def get_allowed_grant_types(client):</p>
+<p>                    if client.type == 'public':</p>
+<p>                        # パブリッククライアントは限定的</p>
+<p>                        return ['authorization_code']  # + PKCE必須</p>
+<p>                    elif client.type == 'confidential':</p>
+<p>                        return ['authorization_code', 'refresh_token']</p>
+<p>                    elif client.type == 'service':</p>
+<p>                        return ['client_credentials']</p>
+<p>                    else:</p>
+<p>                        return []</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>まとめ</h2><p>この章では、OAuth 2.0の設計思想から実装の詳細まで学びました：</p><p>1. <strong>OAuth 2.0の設計思想</strong></p>
+<p>   - パスワードアンチパターンの問題</p>
+<p>   - 委任による権限管理</p>
+<p>   - OAuth 1.0からの進化</p><p>2. <strong>グラントタイプの使い分け</strong></p>
+<p>   - Authorization Code：最も安全な標準フロー</p>
+<p>   - Client Credentials：サービス間認証</p>
+<p>   - Refresh Token：トークンの更新</p>
+<p>   - 最新のグラントタイプ</p><p>3. <strong>セキュリティ考慮事項</strong></p>
+<p>   - PKCEによるcode injection対策</p>
+<p>   - 各種脆弱性と対策</p>
+<p>   - セキュリティベストプラクティス</p><p>4. <strong>実装時の落とし穴</strong></p>
+<p>   - Stateパラメータの誤用</p>
+<p>   - トークンの取り扱いミス</p>
+<p>   - エラーハンドリングの問題</p>
+<p>   - 設定ミスと実装の不整合</p><p>次章では、OpenID ConnectとSAMLについて、エンタープライズ環境でのSSO実現方法を学びます。</p><h2>演習問題</h2><h3>問題1：OAuth 2.0クライアントの実装</h3>
+<p>以下の要件を満たすOAuth 2.0クライアントを実装しなさい：</p>
+<p>- Authorization Code Grant with PKCE</p>
+<p>- 自動的なトークンリフレッシュ</p>
+<p>- 適切なエラーハンドリング</p>
+<p>- セキュアなトークン保存</p><h3>問題2：脆弱性の発見と修正</h3>
+<p>提供されたOAuth 2.0実装コードから脆弱性を見つけ、修正案を提示しなさい。</p><h3>問題3：グラントタイプの選択</h3>
+<p>以下のシナリオに対して、適切なグラントタイプを選択し、理由を説明しなさい：</p>
+<p>- モバイルアプリからのAPI利用</p>
+<p>- 定期バッチ処理</p>
+<p>- シングルページアプリケーション</p>
+<p>- IoTデバイスの認証</p><h3>問題4：PKCEの実装</h3>
+<p>PKCEを使用したAuthorization Code Grantの完全な実装を作成しなさい。サーバー側とクライアント側の両方を含むこと。</p><h3>問題5：セキュリティ監査</h3>
+<p>既存のOAuth 2.0実装に対してセキュリティ監査を実施し、以下を報告しなさい：</p>
+<p>- 発見された脆弱性</p>
+<p>- リスク評価</p>
+<p>- 修正優先度</p>
+<p>- 実装改善案</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

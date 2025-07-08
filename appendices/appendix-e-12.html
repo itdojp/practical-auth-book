@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第12章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第12章 演習問題解答</h1><h2>問題1：ボトルネック分析</h2><h3>解答</h3><p><strong>分析結果</strong>：</p><p>1. <strong>異常な処理時間</strong>：
+<p>   - Permission loading (230ms) - 最大のボトルネック</p>
+<p>   - User query (120ms) - 過度に遅い</p>
+<p>   - Session creation (85ms) - 改善余地あり</p><p>2. <strong>セキュリティ上の問題</strong>：</p>
+<p>   - MD5ハッシュ (15ms) - 脆弱で高速すぎる</p><p><strong>改善策</strong>：</p><p><pre><code>python</p>
+<p>class OptimizedAuthService:</p>
+<p>    async def authenticate(self, username, password):</p>
+<p>        # 1. コネクションプーリングの活用</p>
+<p>        async with self.db_pool.acquire() as conn:</p>
+<p>            # 2. 効率的なクエリ（JOINで1回のクエリに）</p>
+<p>            user_with_permissions = await conn.fetchone("""</p>
+<p>                SELECT u.*, array_agg(p.permission) as permissions</p>
+<p>                FROM users u</p>
+<p>                LEFT JOIN user_permissions up ON u.id = up.user_id</p>
+<p>                LEFT JOIN permissions p ON up.permission_id = p.id</p>
+<p>                WHERE u.username = $1</p>
+<p>                GROUP BY u.id</p>
+<p>            """, username)</p>
+            
+<p>        # 3. bcryptへの移行（セキュリティ強化）</p>
+<p>        if not await self.verify_password_async(</p>
+<p>            password, user_with_permissions['password_hash']</p>
+<p>        ):</p>
+<p>            raise AuthenticationError()</p>
+        
+<p>        # 4. 非同期セッション作成</p>
+<p>        session_task = self.create_session_async(user_with_permissions)</p>
+        
+<p>        # 5. 権限情報はすでに取得済み</p>
+<p>        permissions = user_with_permissions['permissions']</p>
+        
+<p>        session = await session_task</p>
+        
+<p>        return session, permissions</p>
+<p></code></pre></p><p><strong>期待される改善</strong>：</p>
+<p>- Total: 495ms → 150ms以下</p>
+<p>- 並列処理により、全体的な処理時間を削減</p>
+<p>- セキュリティの向上（MD5→bcrypt）</p><h2>問題2：キャッシュ戦略の設計</h2><h3>解答</h3><p><strong>キャッシュアーキテクチャ</strong>：</p><p><pre><code>python</p>
+<p>class CacheStrategy:</p>
+<p>    def __init__(self):</p>
+<p>        # L1: ローカルメモリキャッシュ</p>
+<p>        self.l1_config = {</p>
+<p>            'user_basic': {'ttl': 60, 'max_size': 10000},</p>
+<p>            'session': {'ttl': 300, 'max_size': 50000}</p>
+<p>        }</p>
+        
+<p>        # L2: Redis クラスター</p>
+<p>        self.l2_config = {</p>
+<p>            'user_permissions': {'ttl': 3600},  # 1時間</p>
+<p>            'user_profile': {'ttl': 1800},      # 30分</p>
+<p>            'session_data': {'ttl': 1800},      # 30分</p>
+<p>            'role_definitions': {'ttl': 86400}   # 24時間</p>
+<p>        }</p>
+    
+<p>    def get_cache_key(self, data_type, identifier):</p>
+<p>        """キャッシュキーの生成"""</p>
+<p>        version = self.get_cache_version(data_type)</p>
+<p>        return f"{data_type}:v{version}:{identifier}"</p>
+    
+<p>    def invalidation_strategy(self):</p>
+<p>        """キャッシュ無効化戦略"""</p>
+<p>        return {</p>
+<p>            'user_update': [</p>
+<p>                'user_basic:*',</p>
+<p>                'user_permissions:*',</p>
+<p>                'user_profile:*'</p>
+<p>            ],</p>
+<p>            'permission_change': [</p>
+<p>                'user_permissions:*',</p>
+<p>                'role_definitions:*'</p>
+<p>            ],</p>
+<p>            'session_logout': [</p>
+<p>                'session:*',</p>
+<p>                'session_data:*'</p>
+<p>            ]</p>
+<p>        }</p>
+<p></code></pre></p><p><strong>実装設計</strong>：</p><p><pre><code>yaml</p>
+<h1>Redis Cluster構成</h1>
+<p>redis_cluster:</p>
+<p>  nodes: 6  # 3マスター、3スレーブ</p>
+<p>  replication_factor: 1</p>
+<p>  eviction_policy: allkeys-lru</p>
+<p>  maxmemory: 8gb</p>
+  
+<h1>キャッシュウォーミング戦略</h1>
+<p>cache_warming:</p>
+<p>  - target: active_users</p>
+<p>    schedule: "<em>/15 </em> <em> </em> *"  # 15分ごと</p>
+<p>    query: |</p>
+<p>      SELECT u.id, u.username, array_agg(p.permission) as permissions</p>
+<p>      FROM users u</p>
+<p>      JOIN user_permissions up ON u.id = up.user_id</p>
+<p>      JOIN permissions p ON up.permission_id = p.id</p>
+<p>      WHERE u.last_login > NOW() - INTERVAL '1 hour'</p>
+<p>      GROUP BY u.id</p>
+<p></code></pre></p><h2>問題3：負荷試験シナリオ</h2><h3>解答</h3><p><strong>テストシナリオ</strong>：</p><p><pre><code>python</p>
+<h1>シナリオ1: 通常ログインパターン</h1>
+<p>class NormalLoginScenario:</p>
+<p>    """朝の出社時を想定したログインラッシュ"""</p>
+<p>    config = {</p>
+<p>        'duration': '30m',</p>
+<p>        'users': 10000,</p>
+<p>        'ramp_up': '5m',</p>
+<p>        'pattern': 'gradual'</p>
+<p>    }</p>
+    
+<p>    async def execute(self, user):</p>
+<p>        # 1. ログイン</p>
+<p>        token = await self.login(user.username, user.password)</p>
+<p>        await asyncio.sleep(random.uniform(1, 3))</p>
+        
+<p>        # 2. プロフィール取得（認証必要）</p>
+<p>        profile = await self.get_profile(token)</p>
+<p>        await asyncio.sleep(random.uniform(2, 5))</p>
+        
+<p>        # 3. 作業（トークン更新含む）</p>
+<p>        for _ in range(random.randint(5, 15)):</p>
+<p>            await self.do_work(token)</p>
+<p>            await asyncio.sleep(random.uniform(10, 30))</p>
+        
+<p>        # 4. ログアウト</p>
+<p>        await self.logout(token)</p><h1>シナリオ2: トークンリフレッシュ集中</h1>
+<p>class TokenRefreshScenario:</p>
+<p>    """トークン有効期限付近での更新集中"""</p>
+<p>    config = {</p>
+<p>        'duration': '15m',</p>
+<p>        'users': 50000,</p>
+<p>        'token_lifetime': '5m',</p>
+<p>        'refresh_window': '30s'</p>
+<p>    }</p>
+    
+<p>    async def execute(self, user):</p>
+<p>        token = await self.login(user.username, user.password)</p>
+        
+<p>        # トークン有効期限まで待機</p>
+<p>        await asyncio.sleep(270)  # 4.5分</p>
+        
+<p>        # 同時リフレッシュ</p>
+<p>        new_token = await self.refresh_token(token)</p><h1>シナリオ3: 異常系混在</h1>
+<p>class MixedErrorScenario:</p>
+<p>    """正常系と異常系の混在"""</p>
+<p>    config = {</p>
+<p>        'duration': '20m',</p>
+<p>        'users': 5000,</p>
+<p>        'error_rate': 0.3</p>
+<p>    }</p>
+    
+<p>    async def execute(self, user):</p>
+<p>        if random.random() < 0.3:</p>
+<p>            # 異常系：間違ったパスワード</p>
+<p>            try:</p>
+<p>                await self.login(user.username, "wrong_password")</p>
+<p>            except AuthenticationError:</p>
+<p>                pass</p>
+<p>        else:</p>
+<p>            # 正常系</p>
+<p>            token = await self.login(user.username, user.password)</p>
+<p>            await self.get_profile(token)</p>
+<p></code></pre></p><p><strong>測定メトリクス</strong>：</p><p><pre><code>yaml</p>
+<p>metrics:</p>
+<p>  performance:</p>
+<p>    - response_time_p50</p>
+<p>    - response_time_p95</p>
+<p>    - response_time_p99</p>
+<p>    - requests_per_second</p>
+<p>    - concurrent_users</p>
+    
+<p>  reliability:</p>
+<p>    - error_rate</p>
+<p>    - timeout_rate</p>
+<p>    - success_rate_by_endpoint</p>
+    
+<p>  resource:</p>
+<p>    - cpu_usage_api</p>
+<p>    - memory_usage_api</p>
+<p>    - db_connections_active</p>
+<p>    - db_query_time</p>
+<p>    - cache_hit_rate</p>
+    
+<p>  business:</p>
+<p>    - login_success_rate</p>
+<p>    - average_session_duration</p>
+<p>    - token_refresh_success_rate</p><p>performance_criteria:</p>
+<p>  response_time_p95: < 500ms</p>
+<p>  response_time_p99: < 1000ms</p>
+<p>  error_rate: < 0.1%</p>
+<p>  cpu_usage: < 80%</p>
+<p>  cache_hit_rate: > 90%</p>
+<p></code></pre></p><h2>問題4：モニタリング実装</h2><h3>解答</h3><p><pre><code>python</p>
+<p>import time</p>
+<p>import logging</p>
+<p>from prometheus_client import Counter, Histogram, Gauge</p>
+<p>from opentelemetry import trace</p>
+<p>from functools import wraps</p><h1>メトリクス定義</h1>
+<p>auth_requests = Counter(</p>
+<p>    'auth_requests_total', </p>
+<p>    'Total authentication requests',</p>
+<p>    ['status', 'error_type']</p>
+<p>)</p><p>auth_duration = Histogram(</p>
+<p>    'auth_duration_seconds',</p>
+<p>    'Authentication request duration',</p>
+<p>    ['operation'],</p>
+<p>    buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5]</p>
+<p>)</p><p>active_sessions = Gauge(</p>
+<p>    'active_sessions',</p>
+<p>    'Number of active sessions'</p>
+<p>)</p><p>cache_operations = Counter(</p>
+<p>    'cache_operations_total',</p>
+<p>    'Cache operations',</p>
+<p>    ['operation', 'result']</p>
+<p>)</p><h1>トレーサー設定</h1>
+<p>tracer = trace.get_tracer(__name__)</p><h1>デコレーターヘルパー</h1>
+<p>def monitor_operation(operation_name):</p>
+<p>    def decorator(func):</p>
+<p>        @wraps(func)</p>
+<p>        async def wrapper(<em>args, </em>*kwargs):</p>
+<p>            with tracer.start_as_current_span(operation_name) as span:</p>
+<p>                start_time = time.time()</p>
+<p>                try:</p>
+<p>                    result = await func(<em>args, </em>*kwargs)</p>
+<p>                    auth_duration.labels(operation=operation_name).observe(</p>
+<p>                        time.time() - start_time</p>
+<p>                    )</p>
+<p>                    return result</p>
+<p>                except Exception as e:</p>
+<p>                    span.record_exception(e)</p>
+<p>                    span.set_status(trace.Status(trace.StatusCode.ERROR))</p>
+<p>                    raise</p>
+<p>        return wrapper</p>
+<p>    return decorator</p><p>class MonitoredAuthenticationService:</p>
+<p>    def __init__(self):</p>
+<p>        self.db = DatabaseConnection()</p>
+<p>        self.cache = RedisCache()</p>
+<p>        self.logger = logging.getLogger(__name__)</p>
+    
+<p>    async def authenticate(self, username, password):</p>
+<p>        with tracer.start_as_current_span("authenticate") as span:</p>
+<p>            span.set_attribute("user.username", username)</p>
+<p>            start_time = time.time()</p>
+            
+<p>            try:</p>
+<p>                # ユーザー取得（キャッシュチェック付き）</p>
+<p>                user = await self._get_user_with_cache(username)</p>
+                
+<p>                # パスワード検証</p>
+<p>                if not await self._verify_password(password, user.password_hash):</p>
+<p>                    auth_requests.labels(</p>
+<p>                        status='failure',</p>
+<p>                        error_type='invalid_password'</p>
+<p>                    ).inc()</p>
+<p>                    raise InvalidPasswordError()</p>
+                
+<p>                # セッション作成</p>
+<p>                session = await self._create_session(user)</p>
+                
+<p>                # 成功メトリクス</p>
+<p>                auth_requests.labels(</p>
+<p>                    status='success',</p>
+<p>                    error_type='none'</p>
+<p>                ).inc()</p>
+                
+<p>                auth_duration.labels(operation='authenticate').observe(</p>
+<p>                    time.time() - start_time</p>
+<p>                )</p>
+                
+<p>                self.logger.info(</p>
+<p>                    f"Authentication successful",</p>
+<p>                    extra={</p>
+<p>                        'user_id': user.id,</p>
+<p>                        'duration': time.time() - start_time,</p>
+<p>                        'method': 'password'</p>
+<p>                    }</p>
+<p>                )</p>
+                
+<p>                return session</p>
+                
+<p>            except UserNotFoundError:</p>
+<p>                auth_requests.labels(</p>
+<p>                    status='failure',</p>
+<p>                    error_type='user_not_found'</p>
+<p>                ).inc()</p>
+<p>                span.set_attribute("error.type", "user_not_found")</p>
+<p>                raise</p>
+                
+<p>            except Exception as e:</p>
+<p>                auth_requests.labels(</p>
+<p>                    status='error',</p>
+<p>                    error_type=type(e).__name__</p>
+<p>                ).inc()</p>
+<p>                span.record_exception(e)</p>
+<p>                self.logger.error(</p>
+<p>                    f"Authentication error: {str(e)}",</p>
+<p>                    exc_info=True,</p>
+<p>                    extra={'username': username}</p>
+<p>                )</p>
+<p>                raise</p>
+    
+<p>    @monitor_operation("get_user")</p>
+<p>    async def _get_user_with_cache(self, username):</p>
+<p>        # キャッシュチェック</p>
+<p>        cache_key = f"user:{username}"</p>
+<p>        cached_user = await self.cache.get(cache_key)</p>
+        
+<p>        if cached_user:</p>
+<p>            cache_operations.labels(</p>
+<p>                operation='get',</p>
+<p>                result='hit'</p>
+<p>            ).inc()</p>
+<p>            return cached_user</p>
+        
+<p>        cache_operations.labels(</p>
+<p>            operation='get',</p>
+<p>            result='miss'</p>
+<p>        ).inc()</p>
+        
+<p>        # DBから取得</p>
+<p>        user = await self.db.get_user(username)</p>
+<p>        if not user:</p>
+<p>            raise UserNotFoundError()</p>
+        
+<p>        # キャッシュに保存</p>
+<p>        await self.cache.set(cache_key, user, ttl=300)</p>
+<p>        cache_operations.labels(</p>
+<p>            operation='set',</p>
+<p>            result='success'</p>
+<p>        ).inc()</p>
+        
+<p>        return user</p>
+    
+<p>    @monitor_operation("verify_password")</p>
+<p>    async def _verify_password(self, password, password_hash):</p>
+<p>        return await verify_password(password, password_hash)</p>
+    
+<p>    @monitor_operation("create_session")</p>
+<p>    async def _create_session(self, user):</p>
+<p>        session = create_session(user)</p>
+<p>        await self.cache.set(</p>
+<p>            f"session:{session.id}",</p>
+<p>            session,</p>
+<p>            ttl=1800</p>
+<p>        )</p>
+<p>        active_sessions.inc()</p>
+<p>        return session</p>
+<p></code></pre></p><h2>問題5：スケーラビリティ改善</h2><h3>解答</h3><p><strong>問題点</strong>：</p>
+<p>1. 単一障害点（SPOF）: 認証API、DB、Redisがすべて単一インスタンス</p>
+<p>2. ボトルネック: 認証APIのCPU使用率80%は限界に近い</p>
+<p>3. レスポンス時間: 800msは過度に遅い</p>
+<p>4. 将来の負荷（6倍）に対応不可能</p><p><strong>改善アーキテクチャ</strong>：</p><p><pre><code>yaml</p>
+<h1>改善後のアーキテクチャ</h1>
+<p>architecture:</p>
+<p>  load_balancer:</p>
+<p>    type: "Application Load Balancer"</p>
+<p>    health_check: "/health"</p>
+    
+<p>  web_tier:</p>
+<p>    instances: 6  # 倍増</p>
+<p>    auto_scaling:</p>
+<p>      min: 6</p>
+<p>      max: 20</p>
+<p>      target_cpu: 60%</p>
+      
+<p>  auth_api_tier:</p>
+<p>    instances: 4  # 水平スケーリング</p>
+<p>    deployment: "Blue-Green"</p>
+<p>    auto_scaling:</p>
+<p>      min: 4</p>
+<p>      max: 12</p>
+<p>      target_cpu: 50%</p>
+      
+<p>  database:</p>
+<p>    primary:</p>
+<p>      type: "PostgreSQL 14"</p>
+<p>      instance_type: "db.r6g.2xlarge"</p>
+<p>    read_replicas: 2</p>
+<p>    connection_pooling:</p>
+<p>      pgbouncer:</p>
+<p>        pool_mode: "transaction"</p>
+<p>        max_connections: 1000</p>
+        
+<p>  cache:</p>
+<p>    redis_cluster:</p>
+<p>      nodes: 6  # 3マスター、3レプリカ</p>
+<p>      instance_type: "cache.r6g.large"</p>
+      
+<p>  additional_components:</p>
+<p>    - api_gateway:  # 認証の前段処理</p>
+<p>        rate_limiting: true</p>
+<p>        caching: true</p>
+<p>    - cdn:  # 静的コンテンツ配信</p>
+<p>        provider: "CloudFront"</p>
+<p></code></pre></p><p><strong>実装の改善点</strong>：</p><p><pre><code>python</p>
+<p>class ScalableAuthArchitecture:</p>
+<p>    def __init__(self):</p>
+<p>        # コネクションプール（読み書き分離）</p>
+<p>        self.db_write = create_pool(master_db_url, max_size=50)</p>
+<p>        self.db_read = create_pool(replica_db_urls, max_size=100)</p>
+        
+<p>        # Redis Cluster</p>
+<p>        self.redis = RedisCluster(</p>
+<p>            startup_nodes=redis_nodes,</p>
+<p>            decode_responses=False,</p>
+<p>            skip_full_coverage_check=True</p>
+<p>        )</p>
+        
+<p>        # 非同期ワーカープール</p>
+<p>        self.worker_pool = ThreadPoolExecutor(max_workers=10)</p>
+    
+<p>    async def authenticate(self, username, password):</p>
+<p>        # 読み取り専用クエリはレプリカへ</p>
+<p>        async with self.db_read.acquire() as conn:</p>
+<p>            user = await conn.fetchone(</p>
+<p>                "SELECT * FROM users WHERE username = $1",</p>
+<p>                username</p>
+<p>            )</p>
+        
+<p>        # CPU集約的な処理は別スレッドで</p>
+<p>        loop = asyncio.get_event_loop()</p>
+<p>        is_valid = await loop.run_in_executor(</p>
+<p>            self.worker_pool,</p>
+<p>            verify_password,</p>
+<p>            password,</p>
+<p>            user['password_hash']</p>
+<p>        )</p>
+        
+<p>        if is_valid:</p>
+<p>            # 書き込みはマスターへ</p>
+<p>            async with self.db_write.acquire() as conn:</p>
+<p>                await conn.execute(</p>
+<p>                    "UPDATE users SET last_login = NOW() WHERE id = $1",</p>
+<p>                    user['id']</p>
+<p>                )</p>
+            
+<p>            return await self.create_session(user)</p>
+<p></code></pre></p><h2>チャレンジ問題：サーキットブレーカーの実装</h2><h3>解答</h3><p><pre><code>python</p>
+<p>import asyncio</p>
+<p>import time</p>
+<p>from collections import deque</p>
+<p>from enum import Enum</p>
+<p>from threading import Lock</p>
+<p>import logging</p><p>class CircuitState(Enum):</p>
+<p>    CLOSED = "closed"</p>
+<p>    OPEN = "open"</p>
+<p>    HALF_OPEN = "half_open"</p><p>class CircuitBreakerMetrics:</p>
+<p>    def __init__(self):</p>
+<p>        self.total_calls = 0</p>
+<p>        self.success_calls = 0</p>
+<p>        self.failed_calls = 0</p>
+<p>        self.rejected_calls = 0</p>
+<p>        self.state_changes = []</p>
+        
+<p>    def to_dict(self):</p>
+<p>        return {</p>
+<p>            'total_calls': self.total_calls,</p>
+<p>            'success_calls': self.success_calls,</p>
+<p>            'failed_calls': self.failed_calls,</p>
+<p>            'rejected_calls': self.rejected_calls,</p>
+<p>            'success_rate': self.success_calls / max(1, self.total_calls),</p>
+<p>            'state_changes': self.state_changes[-10:]  # 最新10件</p>
+<p>        }</p><p>class AdvancedCircuitBreaker:</p>
+<p>    def __init__(self, </p>
+<p>                 failure_rate_threshold=0.5,</p>
+<p>                 window_size=60,</p>
+<p>                 half_open_requests=3,</p>
+<p>                 min_calls_in_window=10,</p>
+<p>                 recovery_timeout=30):</p>
+        
+<p>        self.failure_rate_threshold = failure_rate_threshold</p>
+<p>        self.window_size = window_size</p>
+<p>        self.half_open_requests = half_open_requests</p>
+<p>        self.min_calls_in_window = min_calls_in_window</p>
+<p>        self.recovery_timeout = recovery_timeout</p>
+        
+<p>        # 状態管理</p>
+<p>        self.state = CircuitState.CLOSED</p>
+<p>        self.state_lock = Lock()</p>
+        
+<p>        # 統計情報（時間窓）</p>
+<p>        self.calls = deque()  # (timestamp, success)のタプル</p>
+<p>        self.calls_lock = Lock()</p>
+        
+<p>        # 半開状態の管理</p>
+<p>        self.half_open_count = 0</p>
+<p>        self.half_open_successes = 0</p>
+        
+<p>        # 最後の状態変更時刻</p>
+<p>        self.last_state_change = time.time()</p>
+<p>        self.last_failure_time = None</p>
+        
+<p>        # メトリクス</p>
+<p>        self.metrics = CircuitBreakerMetrics()</p>
+<p>        self.logger = logging.getLogger(__name__)</p>
+    
+<p>    def _clean_window(self):</p>
+<p>        """古いエントリを削除"""</p>
+<p>        current_time = time.time()</p>
+<p>        cutoff_time = current_time - self.window_size</p>
+        
+<p>        with self.calls_lock:</p>
+<p>            while self.calls and self.calls[0][0] < cutoff_time:</p>
+<p>                self.calls.popleft()</p>
+    
+<p>    def _calculate_failure_rate(self):</p>
+<p>        """現在の失敗率を計算"""</p>
+<p>        self._clean_window()</p>
+        
+<p>        if len(self.calls) < self.min_calls_in_window:</p>
+<p>            return 0.0</p>
+        
+<p>        failures = sum(1 for _, success in self.calls if not success)</p>
+<p>        return failures / len(self.calls)</p>
+    
+<p>    def _should_attempt_reset(self):</p>
+<p>        """リセット試行のタイミングチェック"""</p>
+<p>        return (</p>
+<p>            self.state == CircuitState.OPEN and</p>
+<p>            self.last_failure_time and</p>
+<p>            time.time() - self.last_failure_time >= self.recovery_timeout</p>
+<p>        )</p>
+    
+<p>    def _record_call(self, success):</p>
+<p>        """呼び出し結果を記録"""</p>
+<p>        with self.calls_lock:</p>
+<p>            self.calls.append((time.time(), success))</p>
+        
+<p>        # メトリクス更新</p>
+<p>        self.metrics.total_calls += 1</p>
+<p>        if success:</p>
+<p>            self.metrics.success_calls += 1</p>
+<p>        else:</p>
+<p>            self.metrics.failed_calls += 1</p>
+    
+<p>    def _change_state(self, new_state):</p>
+<p>        """状態変更とログ記録"""</p>
+<p>        old_state = self.state</p>
+<p>        self.state = new_state</p>
+<p>        self.last_state_change = time.time()</p>
+        
+<p>        self.metrics.state_changes.append({</p>
+<p>            'timestamp': self.last_state_change,</p>
+<p>            'from': old_state.value,</p>
+<p>            'to': new_state.value</p>
+<p>        })</p>
+        
+<p>        self.logger.info(</p>
+<p>            f"Circuit breaker state changed: {old_state.value} -> {new_state.value}"</p>
+<p>        )</p>
+    
+<p>    async def call(self, func, <em>args, </em>*kwargs):</p>
+<p>        """サーキットブレーカー経由での関数呼び出し"""</p>
+        
+<p>        # 状態チェックと処理</p>
+<p>        with self.state_lock:</p>
+<p>            # OPEN状態のチェック</p>
+<p>            if self.state == CircuitState.OPEN:</p>
+<p>                if self._should_attempt_reset():</p>
+<p>                    self._change_state(CircuitState.HALF_OPEN)</p>
+<p>                    self.half_open_count = 0</p>
+<p>                    self.half_open_successes = 0</p>
+<p>                else:</p>
+<p>                    self.metrics.rejected_calls += 1</p>
+<p>                    raise Exception(</p>
+<p>                        f"Circuit breaker is OPEN. "</p>
+<p>                        f"Retry after {self.recovery_timeout}s"</p>
+<p>                    )</p>
+            
+<p>            # HALF_OPEN状態のチェック</p>
+<p>            elif self.state == CircuitState.HALF_OPEN:</p>
+<p>                if self.half_open_count >= self.half_open_requests:</p>
+<p>                    # 評価フェーズ</p>
+<p>                    if self.half_open_successes == self.half_open_requests:</p>
+<p>                        self._change_state(CircuitState.CLOSED)</p>
+<p>                    else:</p>
+<p>                        self._change_state(CircuitState.OPEN)</p>
+<p>                        self.last_failure_time = time.time()</p>
+<p>                        self.metrics.rejected_calls += 1</p>
+<p>                        raise Exception("Circuit breaker is OPEN after test")</p>
+                
+<p>                self.half_open_count += 1</p>
+        
+<p>        # 実際の関数呼び出し</p>
+<p>        try:</p>
+<p>            # 非同期関数の場合</p>
+<p>            if asyncio.iscoroutinefunction(func):</p>
+<p>                result = await func(<em>args, </em>*kwargs)</p>
+<p>            else:</p>
+<p>                # 同期関数の場合は別スレッドで実行</p>
+<p>                loop = asyncio.get_event_loop()</p>
+<p>                result = await loop.run_in_executor(</p>
+<p>                    None, func, <em>args, </em>*kwargs</p>
+<p>                )</p>
+            
+<p>            # 成功の記録</p>
+<p>            self._record_call(True)</p>
+            
+<p>            with self.state_lock:</p>
+<p>                if self.state == CircuitState.HALF_OPEN:</p>
+<p>                    self.half_open_successes += 1</p>
+            
+<p>            return result</p>
+            
+<p>        except Exception as e:</p>
+<p>            # 失敗の記録</p>
+<p>            self._record_call(False)</p>
+<p>            self.last_failure_time = time.time()</p>
+            
+<p>            with self.state_lock:</p>
+<p>                # CLOSED状態で失敗率チェック</p>
+<p>                if self.state == CircuitState.CLOSED:</p>
+<p>                    failure_rate = self._calculate_failure_rate()</p>
+<p>                    if failure_rate >= self.failure_rate_threshold:</p>
+<p>                        self._change_state(CircuitState.OPEN)</p>
+                
+<p>                # HALF_OPEN状態での失敗は即座にOPENへ</p>
+<p>                elif self.state == CircuitState.HALF_OPEN:</p>
+<p>                    self._change_state(CircuitState.OPEN)</p>
+            
+<p>            raise e</p>
+    
+<p>    def get_metrics(self):</p>
+<p>        """メトリクスの取得"""</p>
+<p>        self._clean_window()</p>
+        
+<p>        metrics = self.metrics.to_dict()</p>
+<p>        metrics.update({</p>
+<p>            'current_state': self.state.value,</p>
+<p>            'failure_rate': self._calculate_failure_rate(),</p>
+<p>            'calls_in_window': len(self.calls),</p>
+<p>            'time_since_last_change': time.time() - self.last_state_change</p>
+<p>        })</p>
+        
+<p>        return metrics</p>
+    
+<p>    def reset(self):</p>
+<p>        """手動リセット（テスト用）"""</p>
+<p>        with self.state_lock:</p>
+<p>            self._change_state(CircuitState.CLOSED)</p>
+<p>            self.calls.clear()</p>
+<p>            self.half_open_count = 0</p>
+<p>            self.half_open_successes = 0</p>
+<p>            self.last_failure_time = None</p><h1>使用例とテスト</h1>
+<p>async def test_circuit_breaker():</p>
+<p>    # 失敗する関数</p>
+<p>    call_count = 0</p>
+    
+<p>    async def flaky_service():</p>
+<p>        nonlocal call_count</p>
+<p>        call_count += 1</p>
+<p>        if call_count <= 6:  # 最初の6回は失敗</p>
+<p>            raise Exception("Service unavailable")</p>
+<p>        return "Success"</p>
+    
+<p>    cb = AdvancedCircuitBreaker(</p>
+<p>        failure_rate_threshold=0.5,</p>
+<p>        window_size=60,</p>
+<p>        half_open_requests=3,</p>
+<p>        min_calls_in_window=5</p>
+<p>    )</p>
+    
+<p>    # テスト実行</p>
+<p>    for i in range(15):</p>
+<p>        try:</p>
+<p>            result = await cb.call(flaky_service)</p>
+<p>            print(f"Call {i+1}: {result}")</p>
+<p>        except Exception as e:</p>
+<p>            print(f"Call {i+1}: Failed - {str(e)}")</p>
+        
+<p>        # メトリクス表示</p>
+<p>        if i % 5 == 4:</p>
+<p>            metrics = cb.get_metrics()</p>
+<p>            print(f"Metrics: {metrics}")</p>
+        
+<p>        await asyncio.sleep(0.1)</p>
+<p></code></pre></p><p>この実装の特徴：</p>
+<p>1. <strong>スレッドセーフ</strong>: Lockを使用した適切な同期</p>
+<p>2. <strong>効率的な統計計算</strong>: dequeを使用した時間窓管理</p>
+<p>3. <strong>段階的回復</strong>: 半開状態での慎重な回復プロセス</p>
+<p>4. <strong>包括的なメトリクス</strong>: 詳細な統計情報の提供</p>
+<p>5. <strong>非同期対応</strong>: async/awaitと同期関数の両方をサポート</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

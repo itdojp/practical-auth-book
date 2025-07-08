@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第10章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第10章 演習問題解答</h1><h2>問題1：認証フローの設計</h2><h3>解答</h3><p><strong>B2B SaaSアプリケーションの認証フロー設計</strong></p><p><pre><code>python
+<p>class EnterpriseSaaSAuthFlow:</p>
+<p>    """エンタープライズ向けSaaS認証フロー"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.sso_providers = {}</p>
+<p>        self.ip_whitelist_service = IPWhitelistService()</p>
+<p>        self.mfa_service = MFAService()</p>
+<p>        self.session_manager = SessionManager()</p>
+    
+<p>    def authentication_flow_design(self):</p>
+<p>        """認証フロー全体設計"""</p>
+<p>        return {</p>
+<p>            'flow_diagram': '''</p>
+<p>            1. Initial Request</p>
+<p>               ↓</p>
+<p>            2. Organization Detection (by email domain or subdomain)</p>
+<p>               ↓</p>
+<p>            3. Authentication Method Selection</p>
+<p>               ├─ SSO (SAML/OIDC) → IdP Redirect</p>
+<p>               └─ Standard Login → Password + MFA</p>
+<p>               ↓</p>
+<p>            4. IP Address Validation</p>
+<p>               ↓</p>
+<p>            5. MFA Enforcement (if required)</p>
+<p>               ↓</p>
+<p>            6. Session Creation</p>
+<p>               ↓</p>
+<p>            7. Post-Auth Checks (permissions, license)</p>
+<p>            ''',</p>
+            
+<p>            'implementation': '''</p>
+<p>            class EnterpriseAuthService:</p>
+<p>                async def authenticate(self, request: AuthRequest) -> AuthResult:</p>
+<p>                    # 1. 組織の特定</p>
+<p>                    org = await self.identify_organization(request)</p>
+                    
+<p>                    # 2. IP制限チェック</p>
+<p>                    if not await self.check_ip_restriction(org, request.ip_address):</p>
+<p>                        raise ForbiddenError("Access from this IP is not allowed")</p>
+                    
+<p>                    # 3. 認証方式の決定</p>
+<p>                    auth_method = await self.determine_auth_method(org, request.email)</p>
+                    
+<p>                    # 4. 認証実行</p>
+<p>                    if auth_method.type == "SSO":</p>
+<p>                        return await self.handle_sso_auth(auth_method, request)</p>
+<p>                    else:</p>
+<p>                        return await self.handle_standard_auth(request, org)</p>
+                
+<p>                async def identify_organization(self, request: AuthRequest) -> Organization:</p>
+<p>                    # サブドメインベース</p>
+<p>                    if request.subdomain:</p>
+<p>                        org = await self.org_repo.find_by_subdomain(request.subdomain)</p>
+<p>                        if org:</p>
+<p>                            return org</p>
+                    
+<p>                    # メールドメインベース</p>
+<p>                    email_domain = request.email.split('@')[1]</p>
+<p>                    org = await self.org_repo.find_by_email_domain(email_domain)</p>
+                    
+<p>                    if not org:</p>
+<p>                        # デフォルト組織（個人ユーザー用）</p>
+<p>                        return await self.org_repo.get_default()</p>
+                    
+<p>                    return org</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def sso_implementation(self):</p>
+<p>        """SSO実装"""</p>
+<p>        return {</p>
+<p>            'saml_configuration': '''</p>
+<p>            class SAMLConfiguration:</p>
+<p>                def __init__(self, org_id: str):</p>
+<p>                    self.org_id = org_id</p>
+<p>                    self.config = None</p>
+                
+<p>                async def load_config(self) -> dict:</p>
+<p>                    """組織固有のSAML設定を読み込み"""</p>
+<p>                    org_saml = await self.db.saml_configs.find_one({</p>
+<p>                        'org_id': self.org_id,</p>
+<p>                        'active': True</p>
+<p>                    })</p>
+                    
+<p>                    return {</p>
+<p>                        'sp': {</p>
+<p>                            'entityId': f'https://app.example.com/saml/{self.org_id}',</p>
+<p>                            'assertionConsumerService': {</p>
+<p>                                'url': f'https://app.example.com/saml/acs/{self.org_id}',</p>
+<p>                                'binding': 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'</p>
+<p>                            },</p>
+<p>                            'x509cert': org_saml.get('sp_cert', '')</p>
+<p>                        },</p>
+<p>                        'idp': {</p>
+<p>                            'entityId': org_saml['idp_entity_id'],</p>
+<p>                            'singleSignOnService': {</p>
+<p>                                'url': org_saml['idp_sso_url'],</p>
+<p>                                'binding': 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'</p>
+<p>                            },</p>
+<p>                            'x509cert': org_saml['idp_cert']</p>
+<p>                        },</p>
+<p>                        'security': {</p>
+<p>                            'nameIdEncrypted': False,</p>
+<p>                            'authnRequestsSigned': True,</p>
+<p>                            'wantAssertionsSigned': True,</p>
+<p>                            'wantAssertionsEncrypted': False,</p>
+<p>                            'signatureAlgorithm': 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'</p>
+<p>                        }</p>
+<p>                    }</p>
+<p>            ''',</p>
+            
+<p>            'oidc_implementation': '''</p>
+<p>            class OIDCProvider:</p>
+<p>                def __init__(self, org_config: dict):</p>
+<p>                    self.client_id = org_config['client_id']</p>
+<p>                    self.client_secret = org_config['client_secret']</p>
+<p>                    self.issuer = org_config['issuer']</p>
+<p>                    self.redirect_uri = f"https://app.example.com/oidc/callback/{org_config['org_id']}"</p>
+                
+<p>                async def initiate_auth(self) -> str:</p>
+<p>                    """OIDC認証フローの開始"""</p>
+<p>                    # Discovery endpoint から設定を取得</p>
+<p>                    discovery = await self.fetch_discovery_document()</p>
+                    
+<p>                    # PKCE対応</p>
+<p>                    code_verifier = generate_code_verifier()</p>
+<p>                    code_challenge = generate_code_challenge(code_verifier)</p>
+                    
+<p>                    # State生成（CSRF対策）</p>
+<p>                    state = secrets.token_urlsafe(32)</p>
+                    
+<p>                    # Nonceの生成（リプレイ攻撃対策）</p>
+<p>                    nonce = secrets.token_urlsafe(32)</p>
+                    
+<p>                    # セッションに保存</p>
+<p>                    await self.session_store.save({</p>
+<p>                        'state': state,</p>
+<p>                        'code_verifier': code_verifier,</p>
+<p>                        'nonce': nonce</p>
+<p>                    })</p>
+                    
+<p>                    # 認証URLの構築</p>
+<p>                    params = {</p>
+<p>                        'response_type': 'code',</p>
+<p>                        'client_id': self.client_id,</p>
+<p>                        'redirect_uri': self.redirect_uri,</p>
+<p>                        'scope': 'openid email profile',</p>
+<p>                        'state': state,</p>
+<p>                        'nonce': nonce,</p>
+<p>                        'code_challenge': code_challenge,</p>
+<p>                        'code_challenge_method': 'S256'</p>
+<p>                    }</p>
+                    
+<p>                    auth_url = f"{discovery['authorization_endpoint']}?{urlencode(params)}"</p>
+<p>                    return auth_url</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def mfa_enforcement(self):</p>
+<p>        """MFA強制実装"""</p>
+<p>        return {</p>
+<p>            'admin_controlled_mfa': '''</p>
+<p>            class AdminControlledMFA:</p>
+<p>                """管理者によるMFA制御"""</p>
+                
+<p>                async def check_mfa_requirement(self, user: User, org: Organization) -> MFARequirement:</p>
+<p>                    # 組織レベルの設定</p>
+<p>                    org_policy = await self.get_org_mfa_policy(org.id)</p>
+                    
+<p>                    # ユーザーレベルの設定</p>
+<p>                    user_setting = await self.get_user_mfa_setting(user.id)</p>
+                    
+<p>                    # 管理者による強制設定が最優先</p>
+<p>                    if org_policy.force_all_users:</p>
+<p>                        return MFARequirement(</p>
+<p>                            required=True,</p>
+<p>                            methods=org_policy.allowed_methods,</p>
+<p>                            grace_period=None</p>
+<p>                        )</p>
+                    
+<p>                    # 特定ロールへの強制</p>
+<p>                    if user.role in org_policy.required_roles:</p>
+<p>                        return MFARequirement(</p>
+<p>                            required=True,</p>
+<p>                            methods=org_policy.allowed_methods,</p>
+<p>                            grace_period=org_policy.grace_period</p>
+<p>                        )</p>
+                    
+<p>                    # ユーザーの自主的な設定</p>
+<p>                    if user_setting.enabled:</p>
+<p>                        return MFARequirement(</p>
+<p>                            required=True,</p>
+<p>                            methods=user_setting.methods,</p>
+<p>                            grace_period=None</p>
+<p>                        )</p>
+                    
+<p>                    return MFARequirement(required=False)</p>
+                
+<p>                async def enforce_mfa_setup(self, user: User, org: Organization):</p>
+<p>                    """MFAセットアップの強制"""</p>
+<p>                    requirement = await self.check_mfa_requirement(user, org)</p>
+                    
+<p>                    if requirement.required and not user.mfa_configured:</p>
+<p>                        # 猶予期間中かチェック</p>
+<p>                        if requirement.grace_period:</p>
+<p>                            deadline = user.created_at + requirement.grace_period</p>
+<p>                            if datetime.utcnow() < deadline:</p>
+<p>                                # 警告を表示しつつアクセスを許可</p>
+<p>                                return MFAEnforcementResult(</p>
+<p>                                    allow_access=True,</p>
+<p>                                    show_warning=True,</p>
+<p>                                    deadline=deadline</p>
+<p>                                )</p>
+                        
+<p>                        # MFA設定画面へ強制リダイレクト</p>
+<p>                        return MFAEnforcementResult(</p>
+<p>                            allow_access=False,</p>
+<p>                            redirect_to="/mfa/setup",</p>
+<p>                            message="MFA setup is required by your organization"</p>
+<p>                        )</p>
+<p>            ''',</p>
+            
+<p>            'mfa_administration': '''</p>
+<p>            class MFAAdministration:</p>
+<p>                """MFA管理機能"""</p>
+                
+<p>                async def admin_reset_mfa(self, admin: User, target_user_id: str, reason: str):</p>
+<p>                    """管理者によるMFAリセット"""</p>
+<p>                    # 権限確認</p>
+<p>                    if not self.can_manage_mfa(admin):</p>
+<p>                        raise ForbiddenError("Insufficient privileges")</p>
+                    
+<p>                    # 対象ユーザー取得</p>
+<p>                    target_user = await self.user_repo.get(target_user_id)</p>
+                    
+<p>                    # MFAリセット</p>
+<p>                    await self.mfa_service.reset_user_mfa(target_user_id)</p>
+                    
+<p>                    # 監査ログ</p>
+<p>                    await self.audit_logger.log({</p>
+<p>                        'action': 'mfa_reset_by_admin',</p>
+<p>                        'admin_id': admin.id,</p>
+<p>                        'target_user_id': target_user_id,</p>
+<p>                        'reason': reason,</p>
+<p>                        'timestamp': datetime.utcnow()</p>
+<p>                    })</p>
+                    
+<p>                    # ユーザーへの通知</p>
+<p>                    await self.notification_service.send(</p>
+<p>                        user_id=target_user_id,</p>
+<p>                        type='security_alert',</p>
+<p>                        message='Your MFA has been reset by an administrator',</p>
+<p>                        details={'admin': admin.email, 'reason': reason}</p>
+<p>                    )</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def ip_restriction(self):</p>
+<p>        """IP制限実装"""</p>
+<p>        return {</p>
+<p>            'ip_whitelist_service': '''</p>
+<p>            class IPWhitelistService:</p>
+<p>                """IP制限サービス"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.cache = IPWhitelistCache()</p>
+<p>                    self.ip_parser = IPAddressParser()</p>
+                
+<p>                async def check_access(self, org_id: str, ip_address: str) -> bool:</p>
+<p>                    # 組織のIP制限設定を取得</p>
+<p>                    whitelist = await self.get_whitelist(org_id)</p>
+                    
+<p>                    if not whitelist.enabled:</p>
+<p>                        return True  # IP制限無効</p>
+                    
+<p>                    # IPアドレスのパース</p>
+<p>                    ip = self.ip_parser.parse(ip_address)</p>
+                    
+<p>                    # ホワイトリストチェック</p>
+<p>                    for allowed_range in whitelist.ranges:</p>
+<p>                        if self.is_ip_in_range(ip, allowed_range):</p>
+<p>                            return True</p>
+                    
+<p>                    # VPNアクセスの特別処理</p>
+<p>                    if whitelist.allow_vpn and await self.is_corporate_vpn(ip_address):</p>
+<p>                        return True</p>
+                    
+<p>                    return False</p>
+                
+<p>                async def get_whitelist(self, org_id: str) -> IPWhitelist:</p>
+<p>                    # キャッシュチェック</p>
+<p>                    cached = await self.cache.get(org_id)</p>
+<p>                    if cached:</p>
+<p>                        return cached</p>
+                    
+<p>                    # DBから取得</p>
+<p>                    whitelist_data = await self.db.ip_whitelists.find_one({</p>
+<p>                        'org_id': org_id,</p>
+<p>                        'active': True</p>
+<p>                    })</p>
+                    
+<p>                    if not whitelist_data:</p>
+<p>                        return IPWhitelist(enabled=False)</p>
+                    
+<p>                    whitelist = IPWhitelist(</p>
+<p>                        enabled=True,</p>
+<p>                        ranges=whitelist_data['ranges'],</p>
+<p>                        allow_vpn=whitelist_data.get('allow_vpn', False)</p>
+<p>                    )</p>
+                    
+<p>                    # キャッシュ更新</p>
+<p>                    await self.cache.set(org_id, whitelist, ttl=300)</p>
+                    
+<p>                    return whitelist</p>
+                
+<p>                def is_ip_in_range(self, ip: ipaddress.IPv4Address, range_str: str) -> bool:</p>
+<p>                    """IPがレンジ内かチェック"""</p>
+<p>                    try:</p>
+<p>                        network = ipaddress.ip_network(range_str)</p>
+<p>                        return ip in network</p>
+<p>                    except ValueError:</p>
+<p>                        logger.error(f"Invalid IP range: {range_str}")</p>
+<p>                        return False</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def session_management(self):</p>
+<p>        """セッション管理の詳細設計"""</p>
+<p>        return {</p>
+<p>            'session_configuration': '''</p>
+<p>            class SessionConfiguration:</p>
+<p>                """セッション設定"""</p>
+                
+<p>                def get_session_config(self, org: Organization, user: User) -> dict:</p>
+<p>                    base_config = {</p>
+<p>                        'idle_timeout': timedelta(minutes=30),</p>
+<p>                        'absolute_timeout': timedelta(hours=8),</p>
+<p>                        'concurrent_sessions': 3,</p>
+<p>                        'binding': ['ip', 'user_agent'],</p>
+<p>                        'refresh_enabled': True,</p>
+<p>                        'refresh_window': timedelta(minutes=5)</p>
+<p>                    }</p>
+                    
+<p>                    # 組織ポリシーの適用</p>
+<p>                    if org.security_policy:</p>
+<p>                        if org.security_policy.get('shorter_sessions'):</p>
+<p>                            base_config['idle_timeout'] = timedelta(minutes=15)</p>
+<p>                            base_config['absolute_timeout'] = timedelta(hours=4)</p>
+                        
+<p>                        if org.security_policy.get('single_session'):</p>
+<p>                            base_config['concurrent_sessions'] = 1</p>
+                        
+<p>                        if org.security_policy.get('strict_binding'):</p>
+<p>                            base_config['binding'].append('device_fingerprint')</p>
+                    
+<p>                    # ユーザーロールによる調整</p>
+<p>                    if user.role == 'admin':</p>
+<p>                        base_config['idle_timeout'] = timedelta(minutes=15)</p>
+<p>                        base_config['require_reauthentication'] = ['sensitive_operations']</p>
+                    
+<p>                    return base_config</p>
+<p>            ''',</p>
+            
+<p>            'distributed_session_management': '''</p>
+<p>            class DistributedSessionManager:</p>
+<p>                """分散セッション管理"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.redis_cluster = RedisCluster(</p>
+<p>                        startup_nodes=[</p>
+<p>                            {"host": "redis-1", "port": 6379},</p>
+<p>                            {"host": "redis-2", "port": 6379},</p>
+<p>                            {"host": "redis-3", "port": 6379}</p>
+<p>                        ]</p>
+<p>                    )</p>
+<p>                    self.encryption_key = load_encryption_key()</p>
+                
+<p>                async def create_session(self, user: User, auth_context: AuthContext) -> Session:</p>
+<p>                    session = Session(</p>
+<p>                        id=generate_session_id(),</p>
+<p>                        user_id=user.id,</p>
+<p>                        org_id=user.org_id,</p>
+<p>                        created_at=datetime.utcnow(),</p>
+<p>                        last_activity=datetime.utcnow(),</p>
+<p>                        auth_context=auth_context</p>
+<p>                    )</p>
+                    
+<p>                    # セッションデータの暗号化</p>
+<p>                    encrypted_data = self.encrypt_session_data(session)</p>
+                    
+<p>                    # Redisに保存</p>
+<p>                    key = f"session:{session.id}"</p>
+<p>                    await self.redis_cluster.setex(</p>
+<p>                        key,</p>
+<p>                        session.config.absolute_timeout.total_seconds(),</p>
+<p>                        encrypted_data</p>
+<p>                    )</p>
+                    
+<p>                    # ユーザーのセッション一覧を更新</p>
+<p>                    await self.update_user_sessions(user.id, session.id)</p>
+                    
+<p>                    return session</p>
+                
+<p>                async def validate_session(self, session_id: str, request_context: dict) -> Optional[Session]:</p>
+<p>                    # セッションデータ取得</p>
+<p>                    key = f"session:{session_id}"</p>
+<p>                    encrypted_data = await self.redis_cluster.get(key)</p>
+                    
+<p>                    if not encrypted_data:</p>
+<p>                        return None</p>
+                    
+<p>                    # 復号化</p>
+<p>                    session = self.decrypt_session_data(encrypted_data)</p>
+                    
+<p>                    # セッションバインディングの検証</p>
+<p>                    if not self.verify_session_binding(session, request_context):</p>
+<p>                        await self.invalidate_session(session_id)</p>
+<p>                        return None</p>
+                    
+<p>                    # アイドルタイムアウトチェック</p>
+<p>                    if datetime.utcnow() - session.last_activity > session.config.idle_timeout:</p>
+<p>                        await self.invalidate_session(session_id)</p>
+<p>                        return None</p>
+                    
+<p>                    # 最終アクティビティ更新</p>
+<p>                    session.last_activity = datetime.utcnow()</p>
+<p>                    await self.update_session(session)</p>
+                    
+<p>                    return session</p>
+                
+<p>                def verify_session_binding(self, session: Session, context: dict) -> bool:</p>
+<p>                    """セッションバインディング検証"""</p>
+<p>                    for binding in session.config.binding:</p>
+<p>                        if binding == 'ip':</p>
+<p>                            if session.auth_context.ip_address != context.get('ip_address'):</p>
+<p>                                return False</p>
+<p>                        elif binding == 'user_agent':</p>
+<p>                            if session.auth_context.user_agent != context.get('user_agent'):</p>
+<p>                                return False</p>
+<p>                        elif binding == 'device_fingerprint':</p>
+<p>                            if session.auth_context.device_id != context.get('device_id'):</p>
+<p>                                return False</p>
+                    
+<p>                    return True</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>問題2：カスタム認可システム</h2><h3>解答</h3><p><pre><code>python</p>
+<p>class HierarchicalAuthorizationSystem:</p>
+<p>    """階層的組織構造に対応した認可システム"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.org_hierarchy = OrganizationHierarchy()</p>
+<p>        self.permission_service = PermissionService()</p>
+<p>        self.delegation_service = DelegationService()</p>
+    
+<p>    def data_model(self):</p>
+<p>        """データモデル設計"""</p>
+<p>        return {</p>
+<p>            'organization_structure': '''</p>
+<p>            # 組織構造</p>
+<p>            CREATE TABLE organizations (</p>
+<p>                id UUID PRIMARY KEY,</p>
+<p>                name VARCHAR(255) NOT NULL,</p>
+<p>                type VARCHAR(50) NOT NULL -- 'company', 'department', 'team'</p>
+<p>            );</p>
+            
+<p>            CREATE TABLE organization_hierarchy (</p>
+<p>                id UUID PRIMARY KEY,</p>
+<p>                parent_id UUID REFERENCES organizations(id),</p>
+<p>                child_id UUID REFERENCES organizations(id),</p>
+<p>                path TEXT[], -- 階層パス（例: ['company_id', 'dept_id', 'team_id']）</p>
+<p>                depth INTEGER,</p>
+<p>                UNIQUE(parent_id, child_id)</p>
+<p>            );</p>
+            
+<p>            # リソースと権限</p>
+<p>            CREATE TABLE resources (</p>
+<p>                id UUID PRIMARY KEY,</p>
+<p>                name VARCHAR(255) NOT NULL,</p>
+<p>                type VARCHAR(100) NOT NULL,</p>
+<p>                owner_org_id UUID REFERENCES organizations(id),</p>
+<p>                inheritable BOOLEAN DEFAULT true,</p>
+<p>                metadata JSONB</p>
+<p>            );</p>
+            
+<p>            CREATE TABLE permissions (</p>
+<p>                id UUID PRIMARY KEY,</p>
+<p>                resource_id UUID REFERENCES resources(id),</p>
+<p>                principal_type VARCHAR(50), -- 'user', 'org', 'role'</p>
+<p>                principal_id UUID NOT NULL,</p>
+<p>                permission VARCHAR(100) NOT NULL,</p>
+<p>                granted_by UUID REFERENCES users(id),</p>
+<p>                granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+                
+<p>                -- 時限的権限</p>
+<p>                valid_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+<p>                valid_until TIMESTAMP,</p>
+                
+<p>                -- 継承設定</p>
+<p>                inheritable BOOLEAN DEFAULT true,</p>
+<p>                inherit_depth INTEGER DEFAULT -1, -- -1: 無制限, 0: 継承なし, n: n階層まで</p>
+                
+<p>                UNIQUE(resource_id, principal_type, principal_id, permission)</p>
+<p>            );</p>
+            
+<p>            # 権限委譲</p>
+<p>            CREATE TABLE permission_delegations (</p>
+<p>                id UUID PRIMARY KEY,</p>
+<p>                delegator_id UUID REFERENCES users(id),</p>
+<p>                delegatee_id UUID REFERENCES users(id),</p>
+<p>                permission_id UUID REFERENCES permissions(id),</p>
+                
+<p>                -- 委譲条件</p>
+<p>                conditions JSONB,</p>
+<p>                max_subdelegation_depth INTEGER DEFAULT 0,</p>
+                
+<p>                -- 有効期間</p>
+<p>                valid_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+<p>                valid_until TIMESTAMP NOT NULL,</p>
+                
+<p>                -- 監査</p>
+<p>                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+<p>                revoked_at TIMESTAMP,</p>
+<p>                revoked_by UUID REFERENCES users(id),</p>
+<p>                revoke_reason TEXT</p>
+<p>            );</p>
+<p>            ''',</p>
+            
+<p>            'indexes': '''</p>
+<p>            -- パフォーマンス最適化のためのインデックス</p>
+<p>            CREATE INDEX idx_org_hierarchy_path ON organization_hierarchy USING GIN(path);</p>
+<p>            CREATE INDEX idx_permissions_principal ON permissions(principal_type, principal_id);</p>
+<p>            CREATE INDEX idx_permissions_validity ON permissions(valid_from, valid_until) </p>
+<p>                WHERE valid_until IS NOT NULL;</p>
+<p>            CREATE INDEX idx_delegations_validity ON permission_delegations(valid_from, valid_until) </p>
+<p>                WHERE revoked_at IS NULL;</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def authorization_logic(self):</p>
+<p>        """認可ロジックの実装"""</p>
+<p>        return {</p>
+<p>            'hierarchical_permission_check': '''</p>
+<p>            class HierarchicalPermissionChecker:</p>
+<p>                async def has_permission(</p>
+<p>                    self, </p>
+<p>                    user: User, </p>
+<p>                    resource: Resource, </p>
+<p>                    action: str</p>
+<p>                ) -> bool:</p>
+<p>                    # 1. 直接権限のチェック</p>
+<p>                    if await self.has_direct_permission(user.id, resource.id, action):</p>
+<p>                        return True</p>
+                    
+<p>                    # 2. 組織階層による権限チェック</p>
+<p>                    user_orgs = await self.get_user_organizations(user.id)</p>
+<p>                    for org in user_orgs:</p>
+<p>                        if await self.has_org_permission(org, resource, action):</p>
+<p>                            return True</p>
+                    
+<p>                    # 3. 委譲された権限のチェック</p>
+<p>                    if await self.has_delegated_permission(user.id, resource.id, action):</p>
+<p>                        return True</p>
+                    
+<p>                    # 4. 継承された権限のチェック</p>
+<p>                    if resource.inheritable:</p>
+<p>                        parent_resources = await self.get_parent_resources(resource)</p>
+<p>                        for parent in parent_resources:</p>
+<p>                            if await self.has_permission(user, parent, action):</p>
+<p>                                return True</p>
+                    
+<p>                    return False</p>
+                
+<p>                async def has_org_permission(</p>
+<p>                    self, </p>
+<p>                    org: Organization, </p>
+<p>                    resource: Resource, </p>
+<p>                    action: str</p>
+<p>                ) -> bool:</p>
+<p>                    # 組織の権限チェック</p>
+<p>                    permissions = await self.db.permissions.find({</p>
+<p>                        'resource_id': resource.id,</p>
+<p>                        'principal_type': 'org',</p>
+<p>                        'principal_id': org.id,</p>
+<p>                        'permission': action,</p>
+<p>                        'valid_from': {'$lte': datetime.utcnow()},</p>
+<p>                        '$or': [</p>
+<p>                            {'valid_until': None},</p>
+<p>                            {'valid_until': {'$gt': datetime.utcnow()}}</p>
+<p>                        ]</p>
+<p>                    })</p>
+                    
+<p>                    if permissions:</p>
+<p>                        return True</p>
+                    
+<p>                    # 上位組織の権限を継承</p>
+<p>                    parent_orgs = await self.get_parent_organizations(org.id)</p>
+<p>                    for parent in parent_orgs:</p>
+<p>                        perm = await self.get_inheritable_permission(</p>
+<p>                            parent.id, </p>
+<p>                            resource.id, </p>
+<p>                            action</p>
+<p>                        )</p>
+<p>                        if perm and self.can_inherit(perm, org, parent):</p>
+<p>                            return True</p>
+                    
+<p>                    return False</p>
+                
+<p>                def can_inherit(self, permission: Permission, child_org: Organization, parent_org: Organization) -> bool:</p>
+<p>                    """権限の継承可能性チェック"""</p>
+<p>                    if not permission.inheritable:</p>
+<p>                        return False</p>
+                    
+<p>                    if permission.inherit_depth == -1:</p>
+<p>                        return True  # 無制限継承</p>
+                    
+<p>                    # 階層の深さチェック</p>
+<p>                    depth = self.calculate_org_depth(child_org.id, parent_org.id)</p>
+<p>                    return depth <= permission.inherit_depth</p>
+<p>            ''',</p>
+            
+<p>            'temporal_permissions': '''</p>
+<p>            class TemporalPermissionManager:</p>
+<p>                """時限的権限の管理"""</p>
+                
+<p>                async def grant_temporal_permission(</p>
+<p>                    self,</p>
+<p>                    grantor: User,</p>
+<p>                    grantee_id: str,</p>
+<p>                    resource_id: str,</p>
+<p>                    permission: str,</p>
+<p>                    duration: timedelta,</p>
+<p>                    conditions: dict = None</p>
+<p>                ) -> Permission:</p>
+<p>                    # 権限付与者の権限確認</p>
+<p>                    if not await self.can_grant_permission(grantor, resource_id, permission):</p>
+<p>                        raise ForbiddenError("Insufficient privileges to grant permission")</p>
+                    
+<p>                    # 時限的権限の作成</p>
+<p>                    now = datetime.utcnow()</p>
+<p>                    perm = Permission(</p>
+<p>                        resource_id=resource_id,</p>
+<p>                        principal_type='user',</p>
+<p>                        principal_id=grantee_id,</p>
+<p>                        permission=permission,</p>
+<p>                        granted_by=grantor.id,</p>
+<p>                        granted_at=now,</p>
+<p>                        valid_from=now,</p>
+<p>                        valid_until=now + duration,</p>
+<p>                        conditions=conditions</p>
+<p>                    )</p>
+                    
+<p>                    await self.db.permissions.insert(perm)</p>
+                    
+<p>                    # スケジューラーに期限切れ処理を登録</p>
+<p>                    await self.scheduler.schedule(</p>
+<p>                        job_type='expire_permission',</p>
+<p>                        run_at=perm.valid_until,</p>
+<p>                        data={'permission_id': perm.id}</p>
+<p>                    )</p>
+                    
+<p>                    # 監査ログ</p>
+<p>                    await self.audit_logger.log({</p>
+<p>                        'action': 'temporal_permission_granted',</p>
+<p>                        'grantor': grantor.id,</p>
+<p>                        'grantee': grantee_id,</p>
+<p>                        'resource': resource_id,</p>
+<p>                        'permission': permission,</p>
+<p>                        'duration': duration.total_seconds(),</p>
+<p>                        'expires_at': perm.valid_until</p>
+<p>                    })</p>
+                    
+<p>                    return perm</p>
+                
+<p>                async def extend_permission(</p>
+<p>                    self,</p>
+<p>                    permission_id: str,</p>
+<p>                    extension: timedelta,</p>
+<p>                    reason: str</p>
+<p>                ) -> Permission:</p>
+<p>                    """権限の延長"""</p>
+<p>                    perm = await self.db.permissions.find_by_id(permission_id)</p>
+                    
+<p>                    if not perm:</p>
+<p>                        raise NotFoundError("Permission not found")</p>
+                    
+<p>                    # 新しい有効期限</p>
+<p>                    new_expiry = perm.valid_until + extension</p>
+                    
+<p>                    # 更新</p>
+<p>                    await self.db.permissions.update(</p>
+<p>                        permission_id,</p>
+<p>                        {'valid_until': new_expiry}</p>
+<p>                    )</p>
+                    
+<p>                    # スケジューラー更新</p>
+<p>                    await self.scheduler.reschedule(</p>
+<p>                        job_type='expire_permission',</p>
+<p>                        job_data={'permission_id': permission_id},</p>
+<p>                        new_run_at=new_expiry</p>
+<p>                    )</p>
+                    
+<p>                    return perm</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def delegation_system(self):</p>
+<p>        """権限委譲システム"""</p>
+<p>        return {</p>
+<p>            'delegation_implementation': '''</p>
+<p>            class PermissionDelegationService:</p>
+<p>                async def delegate_permission(</p>
+<p>                    self,</p>
+<p>                    delegator: User,</p>
+<p>                    delegatee_id: str,</p>
+<p>                    permission_id: str,</p>
+<p>                    conditions: dict = None,</p>
+<p>                    allow_subdelegation: bool = False,</p>
+<p>                    duration: timedelta = timedelta(days=7)</p>
+<p>                ) -> Delegation:</p>
+<p>                    # 委譲可能性のチェック</p>
+<p>                    permission = await self.get_permission(permission_id)</p>
+<p>                    if not await self.can_delegate(delegator, permission):</p>
+<p>                        raise ForbiddenError("Cannot delegate this permission")</p>
+                    
+<p>                    # 委譲の作成</p>
+<p>                    delegation = Delegation(</p>
+<p>                        delegator_id=delegator.id,</p>
+<p>                        delegatee_id=delegatee_id,</p>
+<p>                        permission_id=permission_id,</p>
+<p>                        conditions=conditions or {},</p>
+<p>                        max_subdelegation_depth=1 if allow_subdelegation else 0,</p>
+<p>                        valid_from=datetime.utcnow(),</p>
+<p>                        valid_until=datetime.utcnow() + duration</p>
+<p>                    )</p>
+                    
+<p>                    await self.db.delegations.insert(delegation)</p>
+                    
+<p>                    # 通知</p>
+<p>                    await self.notify_delegation(delegator, delegatee_id, permission, delegation)</p>
+                    
+<p>                    return delegation</p>
+                
+<p>                async def can_delegate(self, user: User, permission: Permission) -> bool:</p>
+<p>                    """委譲可能かチェック"""</p>
+<p>                    # 自分が持っている権限のみ委譲可能</p>
+<p>                    if permission.principal_id != user.id:</p>
+<p>                        return False</p>
+                    
+<p>                    # 委譲不可フラグチェック</p>
+<p>                    if permission.metadata and permission.metadata.get('non_delegatable'):</p>
+<p>                        return False</p>
+                    
+<p>                    # 特定の権限は委譲不可</p>
+<p>                    if permission.permission in ['admin', 'delete_organization']:</p>
+<p>                        return False</p>
+                    
+<p>                    return True</p>
+                
+<p>                async def revoke_delegation(</p>
+<p>                    self,</p>
+<p>                    delegator: User,</p>
+<p>                    delegation_id: str,</p>
+<p>                    reason: str</p>
+<p>                ):</p>
+<p>                    """委譲の取り消し"""</p>
+<p>                    delegation = await self.db.delegations.find_by_id(delegation_id)</p>
+                    
+<p>                    if not delegation:</p>
+<p>                        raise NotFoundError("Delegation not found")</p>
+                    
+<p>                    if delegation.delegator_id != delegator.id:</p>
+<p>                        raise ForbiddenError("Only delegator can revoke")</p>
+                    
+<p>                    # 取り消し処理</p>
+<p>                    await self.db.delegations.update(delegation_id, {</p>
+<p>                        'revoked_at': datetime.utcnow(),</p>
+<p>                        'revoked_by': delegator.id,</p>
+<p>                        'revoke_reason': reason</p>
+<p>                    })</p>
+                    
+<p>                    # 連鎖的な取り消し（サブ委譲）</p>
+<p>                    await self.revoke_subdelegations(delegation_id)</p>
+                    
+<p>                    # 通知</p>
+<p>                    await self.notify_revocation(delegation, reason)</p>
+<p>            ''',</p>
+            
+<p>            'delegation_chain_validation': '''</p>
+<p>            class DelegationChainValidator:</p>
+<p>                """委譲チェーンの検証"""</p>
+                
+<p>                async def validate_delegation_chain(</p>
+<p>                    self,</p>
+<p>                    user_id: str,</p>
+<p>                    resource_id: str,</p>
+<p>                    action: str</p>
+<p>                ) -> Optional[DelegationChain]:</p>
+<p>                    # ユーザーに委譲された権限を検索</p>
+<p>                    delegations = await self.find_active_delegations(user_id, resource_id, action)</p>
+                    
+<p>                    for delegation in delegations:</p>
+<p>                        # 委譲チェーンの構築</p>
+<p>                        chain = await self.build_delegation_chain(delegation)</p>
+                        
+<p>                        # チェーンの検証</p>
+<p>                        if self.is_valid_chain(chain):</p>
+<p>                            return chain</p>
+                    
+<p>                    return None</p>
+                
+<p>                async def build_delegation_chain(self, delegation: Delegation) -> DelegationChain:</p>
+<p>                    """委譲チェーンの構築"""</p>
+<p>                    chain = DelegationChain()</p>
+<p>                    current = delegation</p>
+                    
+<p>                    while current:</p>
+<p>                        chain.add_link(current)</p>
+                        
+<p>                        # 元の権限に到達</p>
+<p>                        if current.permission.principal_type == 'source':</p>
+<p>                            break</p>
+                        
+<p>                        # 上位の委譲を探す</p>
+<p>                        parent = await self.find_parent_delegation(current)</p>
+<p>                        if not parent:</p>
+<p>                            # 直接付与された権限を探す</p>
+<p>                            source_perm = await self.find_source_permission(current.permission_id)</p>
+<p>                            if source_perm:</p>
+<p>                                chain.set_source(source_perm)</p>
+<p>                            break</p>
+                        
+<p>                        current = parent</p>
+                    
+<p>                    return chain</p>
+                
+<p>                def is_valid_chain(self, chain: DelegationChain) -> bool:</p>
+<p>                    """チェーンの有効性検証"""</p>
+<p>                    # すべてのリンクが有効期限内か</p>
+<p>                    now = datetime.utcnow()</p>
+<p>                    for link in chain.links:</p>
+<p>                        if link.valid_until < now or link.revoked_at:</p>
+<p>                            return False</p>
+                    
+<p>                    # 委譲深度のチェック</p>
+<p>                    if len(chain.links) > chain.max_allowed_depth:</p>
+<p>                        return False</p>
+                    
+<p>                    # 条件の評価</p>
+<p>                    for link in chain.links:</p>
+<p>                        if link.conditions and not self.evaluate_conditions(link.conditions):</p>
+<p>                            return False</p>
+                    
+<p>                    return True</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>問題3：監査ログシステム</h2><h3>解答</h3><p><pre><code>python</p>
+<p>class GDPRCompliantAuditSystem:</p>
+<p>    """GDPR準拠の監査ログシステム"""</p>
+    
+<p>    def system_design(self):</p>
+<p>        """システム設計"""</p>
+<p>        return {</p>
+<p>            'architecture': '''</p>
+<p>            ┌─────────────┐     ┌──────────────┐     ┌─────────────┐</p>
+<p>            │ Application │────▶│ Audit Logger │────▶│ Write Queue │</p>
+<p>            └─────────────┘     └──────────────┘     └─────┬───────┘</p>
+<p>                                                              │</p>
+<p>                    ┌─────────────────────────────────────────▼───────┐</p>
+<p>                    │                  Audit Pipeline                  │</p>
+<p>                    ├─────────────────────────────────────────────────┤</p>
+<p>                    │  1. Data Sanitization (PII removal/encryption)  │</p>
+<p>                    │  2. Integrity Hashing (tamper detection)        │</p>
+<p>                    │  3. Compression                                  │</p>
+<p>                    │  4. Routing (hot/warm/cold storage)             │</p>
+<p>                    └─────────────────────────────────────────────────┘</p>
+<p>                                            │</p>
+<p>                    ┌───────────────────────┼───────────────────────┐</p>
+<p>                    ▼                       ▼                       ▼</p>
+<p>            ┌──────────────┐     ┌──────────────┐     ┌──────────────┐</p>
+<p>            │ Hot Storage  │     │ Warm Storage │     │ Cold Storage │</p>
+<p>            │  (30 days)   │     │  (1 year)    │     │  (7 years)   │</p>
+<p>            │  PostgreSQL  │     │     S3       │     │   Glacier    │</p>
+<p>            └──────────────┘     └──────────────┘     └──────────────┘</p>
+<p>            ''',</p>
+            
+<p>            'data_model': '''</p>
+<p>            CREATE TABLE audit_logs (</p>
+<p>                -- 基本フィールド</p>
+<p>                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),</p>
+<p>                timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,</p>
+                
+<p>                -- アクター情報（暗号化）</p>
+<p>                actor_id_hash VARCHAR(64) NOT NULL, -- SHA-256 hash</p>
+<p>                actor_type VARCHAR(50) NOT NULL,</p>
+<p>                actor_metadata_encrypted TEXT, -- Fernet encrypted JSON</p>
+                
+<p>                -- アクション情報</p>
+<p>                action VARCHAR(100) NOT NULL,</p>
+<p>                resource_type VARCHAR(100),</p>
+<p>                resource_id VARCHAR(255),</p>
+                
+<p>                -- 結果</p>
+<p>                result VARCHAR(20) NOT NULL CHECK (result IN ('success', 'failure', 'error')),</p>
+<p>                error_code VARCHAR(50),</p>
+                
+<p>                -- コンテキスト（部分的に暗号化）</p>
+<p>                ip_address_hash VARCHAR(64),</p>
+<p>                session_id_hash VARCHAR(64),</p>
+<p>                request_id UUID,</p>
+                
+<p>                -- 改ざん防止</p>
+<p>                content_hash VARCHAR(64) NOT NULL, -- 全フィールドのハッシュ</p>
+<p>                previous_hash VARCHAR(64), -- ブロックチェーン風の連鎖</p>
+                
+<p>                -- GDPR対応</p>
+<p>                data_subject_id_hash VARCHAR(64), -- データ主体の識別子</p>
+<p>                personal_data_refs JSONB, -- 個人データへの参照</p>
+<p>                retention_policy VARCHAR(50) DEFAULT 'standard',</p>
+<p>                anonymized_at TIMESTAMP,</p>
+                
+<p>                -- パーティショニング用</p>
+<p>                created_date DATE GENERATED ALWAYS AS (DATE(timestamp)) STORED</p>
+<p>            ) PARTITION BY RANGE (created_date);</p>
+            
+<p>            -- インデックス</p>
+<p>            CREATE INDEX idx_audit_actor ON audit_logs(actor_id_hash, timestamp);</p>
+<p>            CREATE INDEX idx_audit_action ON audit_logs(action, timestamp);</p>
+<p>            CREATE INDEX idx_audit_resource ON audit_logs(resource_type, resource_id, timestamp);</p>
+<p>            CREATE INDEX idx_audit_data_subject ON audit_logs(data_subject_id_hash) </p>
+<p>                WHERE data_subject_id_hash IS NOT NULL;</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def gdpr_compliance(self):</p>
+<p>        """GDPR準拠機能"""</p>
+<p>        return {</p>
+<p>            'data_minimization': '''</p>
+<p>            class GDPRDataMinimizer:</p>
+<p>                """データ最小化"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.pii_detector = PIIDetector()</p>
+<p>                    self.encryption_service = EncryptionService()</p>
+                
+<p>                def minimize_audit_entry(self, entry: AuditLogEntry) -> MinimizedAuditEntry:</p>
+<p>                    """監査エントリの最小化"""</p>
+                    
+<p>                    # PII検出と処理</p>
+<p>                    minimized = MinimizedAuditEntry()</p>
+                    
+<p>                    # アクターIDのハッシュ化</p>
+<p>                    minimized.actor_id_hash = self.hash_identifier(entry.actor_id)</p>
+                    
+<p>                    # メタデータからPIIを分離</p>
+<p>                    pii_data, safe_data = self.separate_pii(entry.metadata)</p>
+                    
+<p>                    # PIIは暗号化して保存</p>
+<p>                    if pii_data:</p>
+<p>                        minimized.pii_encrypted = self.encryption_service.encrypt(</p>
+<p>                            json.dumps(pii_data)</p>
+<p>                        )</p>
+<p>                        minimized.pii_refs = list(pii_data.keys())</p>
+                    
+<p>                    # 安全なデータはそのまま保存</p>
+<p>                    minimized.safe_metadata = safe_data</p>
+                    
+<p>                    # IPアドレスの匿名化</p>
+<p>                    if entry.ip_address:</p>
+<p>                        minimized.ip_subnet = self.anonymize_ip(entry.ip_address)</p>
+<p>                        minimized.ip_hash = self.hash_identifier(entry.ip_address)</p>
+                    
+<p>                    return minimized</p>
+                
+<p>                def separate_pii(self, data: dict) -> tuple[dict, dict]:</p>
+<p>                    """PIIと非PIIデータの分離"""</p>
+<p>                    pii_fields = ['email', 'name', 'phone', 'address', 'ssn', 'dob']</p>
+                    
+<p>                    pii_data = {}</p>
+<p>                    safe_data = {}</p>
+                    
+<p>                    for key, value in data.items():</p>
+<p>                        if key in pii_fields or self.pii_detector.is_pii(key, value):</p>
+<p>                            pii_data[key] = value</p>
+<p>                        else:</p>
+<p>                            safe_data[key] = value</p>
+                    
+<p>                    return pii_data, safe_data</p>
+                
+<p>                def anonymize_ip(self, ip_address: str) -> str:</p>
+<p>                    """IPアドレスの匿名化（最後のオクテットを削除）"""</p>
+<p>                    try:</p>
+<p>                        ip = ipaddress.ip_address(ip_address)</p>
+<p>                        if isinstance(ip, ipaddress.IPv4Address):</p>
+<p>                            # 192.168.1.100 -> 192.168.1.0/24</p>
+<p>                            network = ipaddress.ip_network(f"{ip}/24", strict=False)</p>
+<p>                            return str(network)</p>
+<p>                        else:</p>
+<p>                            # IPv6: 最後の64ビットを削除</p>
+<p>                            network = ipaddress.ip_network(f"{ip}/64", strict=False)</p>
+<p>                            return str(network)</p>
+<p>                    except ValueError:</p>
+<p>                        return "invalid_ip"</p>
+<p>            ''',</p>
+            
+<p>            'right_to_erasure': '''</p>
+<p>            class RightToErasureHandler:</p>
+<p>                """削除権の処理"""</p>
+                
+<p>                async def process_erasure_request(self, data_subject_id: str):</p>
+<p>                    """削除要求の処理"""</p>
+                    
+<p>                    # 1. 該当する監査ログの特定</p>
+<p>                    subject_hash = self.hash_identifier(data_subject_id)</p>
+<p>                    affected_logs = await self.find_logs_by_subject(subject_hash)</p>
+                    
+<p>                    # 2. 法的保持要件の確認</p>
+<p>                    retention_required = await self.check_legal_retention(affected_logs)</p>
+                    
+<p>                    # 3. 処理実行</p>
+<p>                    for log in affected_logs:</p>
+<p>                        if log.id in retention_required:</p>
+<p>                            # 法的要件により完全削除不可 -> 匿名化</p>
+<p>                            await self.anonymize_log(log)</p>
+<p>                        else:</p>
+<p>                            # 完全削除可能</p>
+<p>                            await self.delete_log(log)</p>
+                    
+<p>                    # 4. 削除証明の生成</p>
+<p>                    certificate = await self.generate_erasure_certificate(</p>
+<p>                        data_subject_id,</p>
+<p>                        len(affected_logs),</p>
+<p>                        len(retention_required)</p>
+<p>                    )</p>
+                    
+<p>                    return certificate</p>
+                
+<p>                async def anonymize_log(self, log: AuditLog):</p>
+<p>                    """ログの匿名化"""</p>
+                    
+<p>                    # PII関連フィールドをnullまたは匿名値に置換</p>
+<p>                    updates = {</p>
+<p>                        'actor_id_hash': 'ANONYMIZED',</p>
+<p>                        'actor_metadata_encrypted': None,</p>
+<p>                        'ip_address_hash': 'ANONYMIZED',</p>
+<p>                        'personal_data_refs': None,</p>
+<p>                        'anonymized_at': datetime.utcnow()</p>
+<p>                    }</p>
+                    
+<p>                    # 改ざん防止ハッシュの再計算</p>
+<p>                    updates['content_hash'] = self.calculate_content_hash(log, updates)</p>
+                    
+<p>                    await self.db.audit_logs.update(log.id, updates)</p>
+                    
+<p>                    # 匿名化ログの記録</p>
+<p>                    await self.log_anonymization(log.id, data_subject_id)</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def tamper_prevention(self):</p>
+<p>        """改ざん防止機能"""</p>
+<p>        return {</p>
+<p>            'hash_chain_implementation': '''</p>
+<p>            class TamperProofAuditLogger:</p>
+<p>                """改ざん防止監査ログ"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.hash_algorithm = hashlib.sha256</p>
+<p>                    self.signing_key = load_signing_key()</p>
+                
+<p>                async def write_audit_log(self, entry: AuditLogEntry) -> str:</p>
+<p>                    # 前のログのハッシュを取得</p>
+<p>                    previous_hash = await self.get_latest_hash()</p>
+                    
+<p>                    # エントリのシリアライズ</p>
+<p>                    entry_dict = entry.to_dict()</p>
+<p>                    entry_dict['previous_hash'] = previous_hash</p>
+                    
+<p>                    # コンテンツハッシュの計算</p>
+<p>                    content = self.serialize_for_hashing(entry_dict)</p>
+<p>                    content_hash = self.hash_algorithm(content.encode()).hexdigest()</p>
+                    
+<p>                    # デジタル署名（オプション）</p>
+<p>                    signature = self.sign_content(content)</p>
+                    
+<p>                    # 保存</p>
+<p>                    entry_dict['content_hash'] = content_hash</p>
+<p>                    entry_dict['signature'] = signature</p>
+                    
+<p>                    await self.db.audit_logs.insert(entry_dict)</p>
+                    
+<p>                    return content_hash</p>
+                
+<p>                def serialize_for_hashing(self, data: dict) -> str:</p>
+<p>                    """ハッシュ用の正規化されたシリアライズ"""</p>
+<p>                    # キーをソートして順序を固定</p>
+<p>                    excluded_fields = ['content_hash', 'signature']</p>
+<p>                    filtered_data = {</p>
+<p>                        k: v for k, v in data.items() </p>
+<p>                        if k not in excluded_fields</p>
+<p>                    }</p>
+                    
+<p>                    return json.dumps(filtered_data, sort_keys=True, default=str)</p>
+                
+<p>                async def verify_integrity(self, start_date: date, end_date: date) -> IntegrityReport:</p>
+<p>                    """整合性検証"""</p>
+                    
+<p>                    logs = await self.db.audit_logs.find({</p>
+<p>                        'timestamp': {</p>
+<p>                            '$gte': start_date,</p>
+<p>                            '$lte': end_date</p>
+<p>                        }</p>
+<p>                    }).sort('timestamp', 1)</p>
+                    
+<p>                    report = IntegrityReport()</p>
+<p>                    previous_hash = None</p>
+                    
+<p>                    for log in logs:</p>
+<p>                        # ハッシュチェーンの検証</p>
+<p>                        if previous_hash and log.previous_hash != previous_hash:</p>
+<p>                            report.add_error(</p>
+<p>                                log.id,</p>
+<p>                                f"Hash chain broken: expected {previous_hash}, got {log.previous_hash}"</p>
+<p>                            )</p>
+                        
+<p>                        # コンテンツハッシュの検証</p>
+<p>                        calculated_hash = self.calculate_content_hash(log)</p>
+<p>                        if calculated_hash != log.content_hash:</p>
+<p>                            report.add_error(</p>
+<p>                                log.id,</p>
+<p>                                f"Content tampered: hash mismatch"</p>
+<p>                            )</p>
+                        
+<p>                        # デジタル署名の検証（if present）</p>
+<p>                        if log.signature and not self.verify_signature(log):</p>
+<p>                            report.add_error(</p>
+<p>                                log.id,</p>
+<p>                                "Invalid digital signature"</p>
+<p>                            )</p>
+                        
+<p>                        previous_hash = log.content_hash</p>
+                    
+<p>                    return report</p>
+<p>            ''',</p>
+            
+<p>            'merkle_tree_approach': '''</p>
+<p>            class MerkleTreeAuditLog:</p>
+<p>                """Merkle Tree を使用した監査ログ"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.tree_builder = MerkleTreeBuilder()</p>
+<p>                    self.checkpoint_interval = 1000  # 1000エントリごとにチェックポイント</p>
+                
+<p>                async def create_checkpoint(self):</p>
+<p>                    """定期的なチェックポイント作成"""</p>
+                    
+<p>                    # 最後のチェックポイント以降のログを取得</p>
+<p>                    last_checkpoint = await self.get_last_checkpoint()</p>
+<p>                    logs = await self.get_logs_since(last_checkpoint.timestamp)</p>
+                    
+<p>                    if len(logs) < self.checkpoint_interval:</p>
+<p>                        return None</p>
+                    
+<p>                    # Merkle Tree の構築</p>
+<p>                    leaves = [log.content_hash for log in logs]</p>
+<p>                    tree = self.tree_builder.build(leaves)</p>
+                    
+<p>                    # チェックポイントの保存</p>
+<p>                    checkpoint = AuditCheckpoint(</p>
+<p>                        timestamp=datetime.utcnow(),</p>
+<p>                        root_hash=tree.root_hash,</p>
+<p>                        tree_data=tree.serialize(),</p>
+<p>                        log_count=len(logs),</p>
+<p>                        first_log_id=logs[0].id,</p>
+<p>                        last_log_id=logs[-1].id</p>
+<p>                    )</p>
+                    
+<p>                    await self.db.audit_checkpoints.insert(checkpoint)</p>
+                    
+<p>                    # ブロックチェーンやタイムスタンプサービスへの登録（オプション）</p>
+<p>                    await self.register_to_blockchain(checkpoint.root_hash)</p>
+                    
+<p>                    return checkpoint</p>
+                
+<p>                async def generate_proof(self, log_id: str) -> MerkleProof:</p>
+<p>                    """特定のログの存在証明生成"""</p>
+                    
+<p>                    log = await self.db.audit_logs.find_by_id(log_id)</p>
+<p>                    checkpoint = await self.find_checkpoint_for_log(log)</p>
+                    
+<p>                    tree = MerkleTree.deserialize(checkpoint.tree_data)</p>
+<p>                    proof = tree.generate_proof(log.content_hash)</p>
+                    
+<p>                    return MerkleProof(</p>
+<p>                        log_id=log_id,</p>
+<p>                        log_hash=log.content_hash,</p>
+<p>                        root_hash=checkpoint.root_hash,</p>
+<p>                        proof_path=proof.path,</p>
+<p>                        checkpoint_timestamp=checkpoint.timestamp</p>
+<p>                    )</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def search_and_analysis(self):</p>
+<p>        """効率的な検索と分析"""</p>
+<p>        return {</p>
+<p>            'search_optimization': '''</p>
+<p>            class AuditLogSearchEngine:</p>
+<p>                """監査ログ検索エンジン"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.elasticsearch = Elasticsearch(['localhost:9200'])</p>
+<p>                    self.encryption_service = EncryptionService()</p>
+                
+<p>                async def index_audit_log(self, log: AuditLog):</p>
+<p>                    """ログのインデックス作成"""</p>
+                    
+<p>                    # 検索可能なフィールドの準備</p>
+<p>                    doc = {</p>
+<p>                        'timestamp': log.timestamp,</p>
+<p>                        'action': log.action,</p>
+<p>                        'resource_type': log.resource_type,</p>
+<p>                        'resource_id': log.resource_id,</p>
+<p>                        'result': log.result,</p>
+<p>                        'actor_id_hash': log.actor_id_hash,</p>
+                        
+<p>                        # 暗号化されたデータは検索不可</p>
+<p>                        '_encrypted_ref': log.id  # 詳細取得用の参照</p>
+<p>                    }</p>
+                    
+<p>                    # メタデータの検索可能な部分のみインデックス</p>
+<p>                    if log.safe_metadata:</p>
+<p>                        doc['metadata'] = log.safe_metadata</p>
+                    
+<p>                    await self.elasticsearch.index(</p>
+<p>                        index='audit-logs',</p>
+<p>                        id=str(log.id),</p>
+<p>                        body=doc</p>
+<p>                    )</p>
+                
+<p>                async def search(self, query: SearchQuery) -> SearchResult:</p>
+<p>                    """高度な検索"""</p>
+                    
+<p>                    # Elasticsearch クエリの構築</p>
+<p>                    es_query = {</p>
+<p>                        'bool': {</p>
+<p>                            'must': [],</p>
+<p>                            'filter': []</p>
+<p>                        }</p>
+<p>                    }</p>
+                    
+<p>                    # 時間範囲</p>
+<p>                    if query.date_range:</p>
+<p>                        es_query['bool']['filter'].append({</p>
+<p>                            'range': {</p>
+<p>                                'timestamp': {</p>
+<p>                                    'gte': query.date_range.start,</p>
+<p>                                    'lte': query.date_range.end</p>
+<p>                                }</p>
+<p>                            }</p>
+<p>                        })</p>
+                    
+<p>                    # アクション検索</p>
+<p>                    if query.actions:</p>
+<p>                        es_query['bool']['filter'].append({</p>
+<p>                            'terms': {'action': query.actions}</p>
+<p>                        })</p>
+                    
+<p>                    # フルテキスト検索（メタデータ内）</p>
+<p>                    if query.text:</p>
+<p>                        es_query['bool']['must'].append({</p>
+<p>                            'multi_match': {</p>
+<p>                                'query': query.text,</p>
+<p>                                'fields': ['metadata.*']</p>
+<p>                            }</p>
+<p>                        })</p>
+                    
+<p>                    # 検索実行</p>
+<p>                    result = await self.elasticsearch.search(</p>
+<p>                        index='audit-logs',</p>
+<p>                        body={</p>
+<p>                            'query': es_query,</p>
+<p>                            'sort': [{'timestamp': 'desc'}],</p>
+<p>                            'size': query.limit,</p>
+<p>                            'from': query.offset</p>
+<p>                        }</p>
+<p>                    )</p>
+                    
+<p>                    # 暗号化データの復号化（必要に応じて）</p>
+<p>                    hits = []</p>
+<p>                    for hit in result['hits']['hits']:</p>
+<p>                        log_id = hit['_source']['_encrypted_ref']</p>
+<p>                        full_log = await self.get_full_log(log_id, query.include_pii)</p>
+<p>                        hits.append(full_log)</p>
+                    
+<p>                    return SearchResult(</p>
+<p>                        total=result['hits']['total']['value'],</p>
+<p>                        hits=hits</p>
+<p>                    )</p>
+<p>            ''',</p>
+            
+<p>            'archival_strategy': '''</p>
+<p>            class AuditLogArchivalService:</p>
+<p>                """監査ログのアーカイブ戦略"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.hot_storage = PostgreSQLStorage()</p>
+<p>                    self.warm_storage = S3Storage()</p>
+<p>                    self.cold_storage = GlacierStorage()</p>
+                
+<p>                async def archive_logs(self):</p>
+<p>                    """定期的なアーカイブ処理"""</p>
+                    
+<p>                    # 30日以上前のログをwarmストレージへ</p>
+<p>                    cutoff_warm = datetime.utcnow() - timedelta(days=30)</p>
+<p>                    logs_to_warm = await self.hot_storage.find_older_than(cutoff_warm)</p>
+                    
+<p>                    for batch in self.batch_iterator(logs_to_warm, 1000):</p>
+<p>                        # 圧縮とアーカイブ</p>
+<p>                        compressed = self.compress_logs(batch)</p>
+<p>                        archive_key = f"audit-logs/{batch[0].timestamp.strftime('%Y/%m/%d')}/{uuid.uuid4()}.gz"</p>
+                        
+<p>                        await self.warm_storage.upload(archive_key, compressed)</p>
+                        
+<p>                        # ホットストレージから削除</p>
+<p>                        await self.hot_storage.delete_batch([log.id for log in batch])</p>
+                        
+<p>                        # インデックス更新</p>
+<p>                        await self.update_archive_index(batch, archive_key, 'warm')</p>
+                    
+<p>                    # 1年以上前のログをcoldストレージへ</p>
+<p>                    cutoff_cold = datetime.utcnow() - timedelta(days=365)</p>
+<p>                    await self.move_to_cold_storage(cutoff_cold)</p>
+                
+<p>                async def retrieve_archived_logs(self, query: ArchiveQuery) -> List[AuditLog]:</p>
+<p>                    """アーカイブからの取得"""</p>
+                    
+<p>                    # アーカイブインデックスを検索</p>
+<p>                    archives = await self.find_relevant_archives(query)</p>
+                    
+<p>                    logs = []</p>
+<p>                    for archive in archives:</p>
+<p>                        if archive.storage_tier == 'warm':</p>
+<p>                            # S3から即座に取得</p>
+<p>                            data = await self.warm_storage.download(archive.key)</p>
+<p>                            logs.extend(self.decompress_logs(data))</p>
+                            
+<p>                        elif archive.storage_tier == 'cold':</p>
+<p>                            # Glacierからの取得（時間がかかる）</p>
+<p>                            if not archive.restore_status:</p>
+<p>                                await self.initiate_glacier_restore(archive)</p>
+<p>                                raise PendingRestoreError(</p>
+<p>                                    "Archive restoration initiated. Please try again in 3-5 hours."</p>
+<p>                                )</p>
+                            
+<p>                            data = await self.cold_storage.download(archive.key)</p>
+<p>                            logs.extend(self.decompress_logs(data))</p>
+                    
+<p>                    return logs</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>問題4：E2Eテストシナリオ</h2><h3>解答</h3><p><pre><code>typescript</p>
+<p>// Playwright を使用したE2Eテスト実装</p><p>import { test, expect, Page, BrowserContext } from '@playwright/test';</p>
+<p>import { generateUser, cleanup } from './test-helpers';</p><p>class AuthE2ETests {</p>
+  
+<p>  // テストデータ</p>
+<p>  private testUser = {</p>
+<p>    email: 'e2e-test@example.com',</p>
+<p>    password: 'SecureP@ssword123',</p>
+<p>    newPassword: 'NewSecureP@ssword456',</p>
+<p>    mfaSecret: 'JBSWY3DPEHPK3PXP'</p>
+<p>  };</p><p>  test.describe('認証E2Eテストスイート', () => {</p>
+    
+<p>    test.beforeEach(async ({ page }) => {</p>
+<p>      // テスト用ユーザーの作成</p>
+<p>      await generateUser(this.testUser);</p>
+<p>    });</p><p>    test.afterEach(async () => {</p>
+<p>      // クリーンアップ</p>
+<p>      await cleanup(this.testUser.email);</p>
+<p>    });</p><p>    test('1. 通常のログイン→操作→ログアウト', async ({ page, context }) => {</p>
+<p>      // ログインページへ移動</p>
+<p>      await page.goto('/login');</p>
+      
+<p>      // ログインフォームの入力</p>
+<p>      await page.fill('[data-testid="email-input"]', this.testUser.email);</p>
+<p>      await page.fill('[data-testid="password-input"]', this.testUser.password);</p>
+      
+<p>      // ログインボタンクリック</p>
+<p>      await page.click('[data-testid="login-button"]');</p>
+      
+<p>      // ダッシュボードへのリダイレクトを待つ</p>
+<p>      await page.waitForURL('/dashboard');</p>
+      
+<p>      // ダッシュボードの要素確認</p>
+<p>      await expect(page.locator('[data-testid="welcome-message"]')).toContainText('Welcome');</p>
+      
+<p>      // 認証が必要な操作を実行</p>
+<p>      await page.click('[data-testid="profile-link"]');</p>
+<p>      await page.waitForURL('/profile');</p>
+      
+<p>      // プロフィール情報の確認</p>
+<p>      await expect(page.locator('[data-testid="user-email"]')).toContainText(this.testUser.email);</p>
+      
+<p>      // APIコールの確認（認証トークンが送信されているか）</p>
+<p>      const apiResponse = await page.waitForResponse(</p>
+<p>        response => response.url().includes('/api/user/profile') && response.status() === 200</p>
+<p>      );</p>
+<p>      expect(apiResponse.ok()).toBeTruthy();</p>
+      
+<p>      // ログアウト</p>
+<p>      await page.click('[data-testid="user-menu"]');</p>
+<p>      await page.click('[data-testid="logout-button"]');</p>
+      
+<p>      // ログインページへのリダイレクト確認</p>
+<p>      await page.waitForURL('/login');</p>
+      
+<p>      // ログアウト後のアクセス制限確認</p>
+<p>      await page.goto('/dashboard');</p>
+<p>      await page.waitForURL('/login');</p>
+<p>      await expect(page.locator('[data-testid="auth-error"]')).toContainText('Please login');</p>
+<p>    });</p><p>    test('2. パスワードリセットフロー', async ({ page }) => {</p>
+<p>      // ログインページへ移動</p>
+<p>      await page.goto('/login');</p>
+      
+<p>      // パスワードリセットリンククリック</p>
+<p>      await page.click('[data-testid="forgot-password-link"]');</p>
+<p>      await page.waitForURL('/password-reset');</p>
+      
+<p>      // メールアドレス入力</p>
+<p>      await page.fill('[data-testid="reset-email-input"]', this.testUser.email);</p>
+<p>      await page.click('[data-testid="send-reset-button"]');</p>
+      
+<p>      // 確認メッセージ</p>
+<p>      await expect(page.locator('[data-testid="reset-sent-message"]')).toBeVisible();</p>
+      
+<p>      // メール内のリセットリンクをシミュレート（テスト環境）</p>
+<p>      const resetToken = await this.getResetTokenFromTestAPI(this.testUser.email);</p>
+<p>      await page.goto(<code>/password-reset/confirm?token=${resetToken}</code>);</p>
+      
+<p>      // 新しいパスワードの入力</p>
+<p>      await page.fill('[data-testid="new-password-input"]', this.testUser.newPassword);</p>
+<p>      await page.fill('[data-testid="confirm-password-input"]', this.testUser.newPassword);</p>
+      
+<p>      // パスワード強度インジケーターの確認</p>
+<p>      await expect(page.locator('[data-testid="password-strength"]')).toHaveAttribute('data-strength', 'strong');</p>
+      
+<p>      // リセット実行</p>
+<p>      await page.click('[data-testid="reset-password-button"]');</p>
+      
+<p>      // 成功メッセージとログインページへのリダイレクト</p>
+<p>      await expect(page.locator('[data-testid="reset-success"]')).toBeVisible();</p>
+<p>      await page.waitForURL('/login');</p>
+      
+<p>      // 新しいパスワードでログイン</p>
+<p>      await page.fill('[data-testid="email-input"]', this.testUser.email);</p>
+<p>      await page.fill('[data-testid="password-input"]', this.testUser.newPassword);</p>
+<p>      await page.click('[data-testid="login-button"]');</p>
+      
+<p>      await page.waitForURL('/dashboard');</p>
+<p>    });</p><p>    test('3. MFA設定と解除', async ({ page }) => {</p>
+<p>      // ログイン</p>
+<p>      await this.login(page);</p>
+      
+<p>      // セキュリティ設定へ移動</p>
+<p>      await page.goto('/settings/security');</p>
+      
+<p>      // MFA設定開始</p>
+<p>      await page.click('[data-testid="enable-mfa-button"]');</p>
+      
+<p>      // QRコード表示の確認</p>
+<p>      await expect(page.locator('[data-testid="mfa-qr-code"]')).toBeVisible();</p>
+      
+<p>      // バックアップコードの表示と保存</p>
+<p>      const backupCodes = await page.locator('[data-testid="backup-codes"] li').allTextContents();</p>
+<p>      expect(backupCodes.length).toBe(10);</p>
+      
+<p>      // テスト用のTOTPコード生成</p>
+<p>      const totpCode = this.generateTOTP(this.testUser.mfaSecret);</p>
+      
+<p>      // 検証コード入力</p>
+<p>      await page.fill('[data-testid="mfa-verify-input"]', totpCode);</p>
+<p>      await page.click('[data-testid="verify-mfa-button"]');</p>
+      
+<p>      // MFA有効化の確認</p>
+<p>      await expect(page.locator('[data-testid="mfa-status"]')).toContainText('Enabled');</p>
+      
+<p>      // ログアウトして再ログイン（MFA必須）</p>
+<p>      await this.logout(page);</p>
+<p>      await page.goto('/login');</p>
+      
+<p>      // 通常ログイン</p>
+<p>      await page.fill('[data-testid="email-input"]', this.testUser.email);</p>
+<p>      await page.fill('[data-testid="password-input"]', this.testUser.password);</p>
+<p>      await page.click('[data-testid="login-button"]');</p>
+      
+<p>      // MFAページへのリダイレクト</p>
+<p>      await page.waitForURL('/mfa');</p>
+      
+<p>      // MFAコード入力</p>
+<p>      const newTotpCode = this.generateTOTP(this.testUser.mfaSecret);</p>
+<p>      await page.fill('[data-testid="mfa-code-input"]', newTotpCode);</p>
+<p>      await page.click('[data-testid="verify-button"]');</p>
+      
+<p>      // ダッシュボードへ</p>
+<p>      await page.waitForURL('/dashboard');</p>
+      
+<p>      // MFA解除</p>
+<p>      await page.goto('/settings/security');</p>
+<p>      await page.click('[data-testid="disable-mfa-button"]');</p>
+      
+<p>      // パスワード再確認</p>
+<p>      await page.fill('[data-testid="confirm-password"]', this.testUser.password);</p>
+<p>      await page.click('[data-testid="confirm-disable-mfa"]');</p>
+      
+<p>      // MFA無効化の確認</p>
+<p>      await expect(page.locator('[data-testid="mfa-status"]')).toContainText('Disabled');</p>
+<p>    });</p><p>    test('4. 同時ログインセッション管理', async ({ browser }) => {</p>
+<p>      // 複数のブラウザコンテキストを作成</p>
+<p>      const context1 = await browser.newContext();</p>
+<p>      const context2 = await browser.newContext();</p>
+      
+<p>      const page1 = await context1.newPage();</p>
+<p>      const page2 = await context2.newPage();</p>
+      
+<p>      try {</p>
+<p>        // 両方のコンテキストでログイン</p>
+<p>        await this.login(page1);</p>
+<p>        await this.login(page2);</p>
+        
+<p>        // セッション管理ページへ</p>
+<p>        await page1.goto('/settings/sessions');</p>
+        
+<p>        // アクティブセッション数の確認</p>
+<p>        const sessionCount = await page1.locator('[data-testid="session-item"]').count();</p>
+<p>        expect(sessionCount).toBeGreaterThanOrEqual(2);</p>
+        
+<p>        // 他のセッションの情報確認</p>
+<p>        const sessions = await page1.locator('[data-testid="session-item"]').all();</p>
+<p>        for (const session of sessions) {</p>
+<p>          await expect(session.locator('[data-testid="session-ip"]')).toBeVisible();</p>
+<p>          await expect(session.locator('[data-testid="session-device"]')).toBeVisible();</p>
+<p>          await expect(session.locator('[data-testid="session-last-active"]')).toBeVisible();</p>
+<p>        }</p>
+        
+<p>        // 特定セッションの終了</p>
+<p>        const otherSession = await page1.locator('[data-testid="session-item"]')</p>
+<p>          .filter({ hasNot: page1.locator('[data-testid="current-session-badge"]') })</p>
+<p>          .first();</p>
+        
+<p>        await otherSession.locator('[data-testid="terminate-session"]').click();</p>
+<p>        await page1.locator('[data-testid="confirm-terminate"]').click();</p>
+        
+<p>        // 終了確認</p>
+<p>        await expect(page1.locator('[data-testid="session-terminated-message"]')).toBeVisible();</p>
+        
+<p>        // page2でのアクセス確認（セッション無効）</p>
+<p>        await page2.reload();</p>
+<p>        await page2.waitForURL('/login');</p>
+<p>        await expect(page2.locator('[data-testid="session-expired-message"]')).toBeVisible();</p>
+        
+<p>        // 全セッション終了（現在のセッション以外）</p>
+<p>        await page1.click('[data-testid="terminate-all-sessions"]');</p>
+<p>        await page1.click('[data-testid="confirm-terminate-all"]');</p>
+        
+<p>        // 現在のセッションは維持</p>
+<p>        await page1.goto('/dashboard');</p>
+<p>        await expect(page1.url()).toContain('/dashboard');</p>
+        
+<p>      } finally {</p>
+<p>        await context1.close();</p>
+<p>        await context2.close();</p>
+<p>      }</p>
+<p>    });</p><p>    test('5. ブラウザを閉じた後の再アクセス', async ({ context, page }) => {</p>
+<p>      // Remember Me なしでログイン</p>
+<p>      await page.goto('/login');</p>
+<p>      await page.fill('[data-testid="email-input"]', this.testUser.email);</p>
+<p>      await page.fill('[data-testid="password-input"]', this.testUser.password);</p>
+<p>      await page.click('[data-testid="login-button"]');</p>
+      
+<p>      await page.waitForURL('/dashboard');</p>
+      
+<p>      // Cookieの確認</p>
+<p>      const cookies = await context.cookies();</p>
+<p>      const sessionCookie = cookies.find(c => c.name === 'session_id');</p>
+<p>      expect(sessionCookie).toBeDefined();</p>
+<p>      expect(sessionCookie?.expires).toBeUndefined(); // セッションCookie</p>
+      
+<p>      // ブラウザを閉じるシミュレーション（新しいコンテキスト）</p>
+<p>      const newContext = await page.context().browser()?.newContext();</p>
+<p>      const newPage = await newContext!.newPage();</p>
+      
+<p>      // 再アクセス（ログインが必要）</p>
+<p>      await newPage.goto('/dashboard');</p>
+<p>      await newPage.waitForURL('/login');</p>
+      
+<p>      // Remember Me ありでログイン</p>
+<p>      await newPage.fill('[data-testid="email-input"]', this.testUser.email);</p>
+<p>      await newPage.fill('[data-testid="password-input"]', this.testUser.password);</p>
+<p>      await newPage.check('[data-testid="remember-me-checkbox"]');</p>
+<p>      await newPage.click('[data-testid="login-button"]');</p>
+      
+<p>      await newPage.waitForURL('/dashboard');</p>
+      
+<p>      // 永続的なCookieの確認</p>
+<p>      const newCookies = await newContext!.cookies();</p>
+<p>      const rememberCookie = newCookies.find(c => c.name === 'remember_token');</p>
+<p>      expect(rememberCookie).toBeDefined();</p>
+<p>      expect(rememberCookie?.expires).toBeGreaterThan(Date.now() / 1000); // 有効期限あり</p>
+      
+<p>      // さらに新しいコンテキストで確認</p>
+<p>      const context3 = await page.context().browser()?.newContext();</p>
+<p>      const page3 = await context3!.newPage();</p>
+      
+<p>      // Remember tokenをセット</p>
+<p>      await context3!.addCookies([rememberCookie!]);</p>
+      
+<p>      // 自動ログイン</p>
+<p>      await page3.goto('/dashboard');</p>
+<p>      await expect(page3.url()).toContain('/dashboard');</p>
+<p>      await expect(page3.locator('[data-testid="user-email"]')).toContainText(this.testUser.email);</p>
+      
+<p>      await newContext!.close();</p>
+<p>      await context3!.close();</p>
+<p>    });</p>
+<p>  });</p><p>  // ヘルパーメソッド</p>
+<p>  private async login(page: Page) {</p>
+<p>    await page.goto('/login');</p>
+<p>    await page.fill('[data-testid="email-input"]', this.testUser.email);</p>
+<p>    await page.fill('[data-testid="password-input"]', this.testUser.password);</p>
+<p>    await page.click('[data-testid="login-button"]');</p>
+<p>    await page.waitForURL('/dashboard');</p>
+<p>  }</p><p>  private async logout(page: Page) {</p>
+<p>    await page.click('[data-testid="user-menu"]');</p>
+<p>    await page.click('[data-testid="logout-button"]');</p>
+<p>    await page.waitForURL('/login');</p>
+<p>  }</p><p>  private generateTOTP(secret: string): string {</p>
+<p>    // TOTP生成ロジック（テスト用）</p>
+<p>    return '123456';</p>
+<p>  }</p><p>  private async getResetTokenFromTestAPI(email: string): Promise<string> {</p>
+<p>    // テストAPIからリセットトークンを取得</p>
+<p>    return 'test-reset-token';</p>
+<p>  }</p>
+<p>}</p><p>// パフォーマンステスト</p>
+<p>test.describe('認証パフォーマンステスト', () => {</p>
+  
+<p>  test('並行ログインのパフォーマンス', async ({ browser }) => {</p>
+<p>    const userCount = 50;</p>
+<p>    const contexts: BrowserContext[] = [];</p>
+<p>    const loginTimes: number[] = [];</p>
+    
+<p>    // 並行してログイン</p>
+<p>    const promises = Array.from({ length: userCount }, async (_, i) => {</p>
+<p>      const context = await browser.newContext();</p>
+<p>      contexts.push(context);</p>
+<p>      const page = await context.newPage();</p>
+      
+<p>      const startTime = Date.now();</p>
+      
+<p>      await page.goto('/login');</p>
+<p>      await page.fill('[data-testid="email-input"]', <code>user${i}@example.com</code>);</p>
+<p>      await page.fill('[data-testid="password-input"]', 'password123');</p>
+<p>      await page.click('[data-testid="login-button"]');</p>
+      
+<p>      await page.waitForURL('/dashboard', { timeout: 10000 });</p>
+      
+<p>      const endTime = Date.now();</p>
+<p>      loginTimes.push(endTime - startTime);</p>
+<p>    });</p>
+    
+<p>    await Promise.all(promises);</p>
+    
+<p>    // パフォーマンス分析</p>
+<p>    const avgTime = loginTimes.reduce((a, b) => a + b, 0) / loginTimes.length;</p>
+<p>    const maxTime = Math.max(...loginTimes);</p>
+<p>    const minTime = Math.min(...loginTimes);</p>
+    
+<p>    console.log(<code>Average login time: ${avgTime}ms</code>);</p>
+<p>    console.log(<code>Max login time: ${maxTime}ms</code>);</p>
+<p>    console.log(<code>Min login time: ${minTime}ms</code>);</p>
+    
+<p>    // アサーション</p>
+<p>    expect(avgTime).toBeLessThan(2000); // 平均2秒以内</p>
+<p>    expect(maxTime).toBeLessThan(5000); // 最大5秒以内</p>
+    
+<p>    // クリーンアップ</p>
+<p>    for (const context of contexts) {</p>
+<p>      await context.close();</p>
+<p>    }</p>
+<p>  });</p>
+<p>});</p>
+<p></code></pre></p><h2>問題5：パフォーマンス最適化</h2><h3>解答</h3><p><pre><code>python</p>
+<p>import asyncio</p>
+<p>import time</p>
+<p>from typing import Dict, List, Optional</p>
+<p>import redis</p>
+<p>import jwt</p>
+<p>from dataclasses import dataclass</p>
+<p>import hashlib</p><p>class OptimizedAuthSystem:</p>
+<p>    """1000万ユーザー規模の最適化された認証システム"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        # Redis Cluster for distributed caching</p>
+<p>        self.redis_cluster = redis.RedisCluster(</p>
+<p>            startup_nodes=[</p>
+<p>                {"host": "10.0.0.1", "port": 7000},</p>
+<p>                {"host": "10.0.0.2", "port": 7000},</p>
+<p>                {"host": "10.0.0.3", "port": 7000},</p>
+<p>            ],</p>
+<p>            decode_responses=True,</p>
+<p>            skip_full_coverage_check=True,</p>
+<p>            max_connections=1000</p>
+<p>        )</p>
+        
+<p>        # Connection pooling for DB</p>
+<p>        self.db_pool = create_db_pool(</p>
+<p>            min_size=50,</p>
+<p>            max_size=200,</p>
+<p>            max_queries=50000,</p>
+<p>            max_inactive_connection_lifetime=300.0</p>
+<p>        )</p>
+    
+<p>    async def optimized_login(self, email: str, password: str) -> Dict:</p>
+<p>        """最適化されたログイン処理（目標: p99 < 100ms）"""</p>
+        
+<p>        start_time = time.perf_counter()</p>
+        
+<p>        # 1. Rate limiting check (Redis) - ~1ms</p>
+<p>        if not await self._check_rate_limit(email):</p>
+<p>            return {"error": "Rate limit exceeded", "latency": time.perf_counter() - start_time}</p>
+        
+<p>        # 2. User lookup with caching - ~5ms (cache hit) or ~20ms (cache miss)</p>
+<p>        user = await self._get_user_cached(email)</p>
+<p>        if not user:</p>
+<p>            # Timing attack mitigation</p>
+<p>            await self._dummy_password_hash()</p>
+<p>            return {"error": "Invalid credentials", "latency": time.perf_counter() - start_time}</p>
+        
+<p>        # 3. Password verification (async) - ~15ms</p>
+<p>        if not await self._verify_password_async(password, user.password_hash):</p>
+<p>            await self._record_failed_attempt(email)</p>
+<p>            return {"error": "Invalid credentials", "latency": time.perf_counter() - start_time}</p>
+        
+<p>        # 4. Session creation (optimized) - ~10ms</p>
+<p>        session = await self._create_session_optimized(user)</p>
+        
+<p>        latency = time.perf_counter() - start_time</p>
+        
+<p>        return {</p>
+<p>            "success": True,</p>
+<p>            "user_id": user.id,</p>
+<p>            "session_token": session.token,</p>
+<p>            "latency_ms": latency * 1000</p>
+<p>        }</p>
+    
+<p>    async def _get_user_cached(self, email: str) -> Optional[User]:</p>
+<p>        """キャッシュを使用したユーザー取得"""</p>
+        
+<p>        # L1 Cache: Local memory (sub-millisecond)</p>
+<p>        cache_key = f"user:email:{email}"</p>
+        
+<p>        # L2 Cache: Redis (1-2ms)</p>
+<p>        cached_data = await self.redis_cluster.get(cache_key)</p>
+<p>        if cached_data:</p>
+<p>            return User.from_json(cached_data)</p>
+        
+<p>        # Database lookup with prepared statement</p>
+<p>        async with self.db_pool.acquire() as conn:</p>
+<p>            # Prepared statement for performance</p>
+<p>            stmt = await conn.prepare("""</p>
+<p>                SELECT id, email, password_hash, status, mfa_enabled</p>
+<p>                FROM users </p>
+<p>                WHERE email = $1 AND status = 'active'</p>
+<p>            """)</p>
+            
+<p>            row = await stmt.fetchrow(email)</p>
+<p>            if not row:</p>
+<p>                return None</p>
+            
+<p>            user = User(</p>
+<p>                id=row['id'],</p>
+<p>                email=row['email'],</p>
+<p>                password_hash=row['password_hash'],</p>
+<p>                status=row['status'],</p>
+<p>                mfa_enabled=row['mfa_enabled']</p>
+<p>            )</p>
+            
+<p>            # Cache for 5 minutes</p>
+<p>            await self.redis_cluster.setex(</p>
+<p>                cache_key,</p>
+<p>                300,</p>
+<p>                user.to_json()</p>
+<p>            )</p>
+            
+<p>            return user</p>
+    
+<p>    async def _verify_password_async(self, password: str, password_hash: str) -> bool:</p>
+<p>        """非同期パスワード検証"""</p>
+        
+<p>        # Use thread pool for CPU-intensive bcrypt operation</p>
+<p>        loop = asyncio.get_event_loop()</p>
+<p>        return await loop.run_in_executor(</p>
+<p>            None,</p>
+<p>            self._verify_password_sync,</p>
+<p>            password,</p>
+<p>            password_hash</p>
+<p>        )</p>
+    
+<p>    def _verify_password_sync(self, password: str, password_hash: str) -> bool:</p>
+<p>        """同期的なパスワード検証（スレッドプールで実行）"""</p>
+<p>        import bcrypt</p>
+<p>        return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))</p>
+    
+<p>    async def _create_session_optimized(self, user: User) -> Session:</p>
+<p>        """最適化されたセッション作成"""</p>
+        
+<p>        # Generate session ID</p>
+<p>        session_id = self._generate_session_id()</p>
+        
+<p>        # Create JWT token (faster than database session)</p>
+<p>        token = self._create_jwt_token(user, session_id)</p>
+        
+<p>        # Store minimal session data in Redis</p>
+<p>        session_data = {</p>
+<p>            'user_id': user.id,</p>
+<p>            'created_at': time.time(),</p>
+<p>            'last_access': time.time()</p>
+<p>        }</p>
+        
+<p>        # Pipeline Redis commands</p>
+<p>        pipe = self.redis_cluster.pipeline()</p>
+<p>        pipe.setex(f"session:{session_id}", 3600, json.dumps(session_data))</p>
+<p>        pipe.sadd(f"user_sessions:{user.id}", session_id)</p>
+<p>        pipe.expire(f"user_sessions:{user.id}", 3600)</p>
+<p>        await pipe.execute()</p>
+        
+<p>        return Session(</p>
+<p>            id=session_id,</p>
+<p>            token=token,</p>
+<p>            user_id=user.id</p>
+<p>        )</p>
+    
+<p>    async def optimized_token_validation(self, token: str) -> Optional[Dict]:</p>
+<p>        """最適化されたトークン検証（目標: p99 < 20ms）"""</p>
+        
+<p>        start_time = time.perf_counter()</p>
+        
+<p>        # 1. Quick format check - ~0.1ms</p>
+<p>        if not self._quick_token_format_check(token):</p>
+<p>            return None</p>
+        
+<p>        # 2. Check token blacklist (Redis bloom filter) - ~1ms</p>
+<p>        if await self._is_token_blacklisted(token):</p>
+<p>            return None</p>
+        
+<p>        # 3. JWT validation with caching - ~2ms (cached) or ~10ms (full validation)</p>
+<p>        claims = await self._validate_jwt_cached(token)</p>
+<p>        if not claims:</p>
+<p>            return None</p>
+        
+<p>        # 4. Session validation (Redis) - ~2ms</p>
+<p>        session_valid = await self._validate_session(claims['sid'])</p>
+<p>        if not session_valid:</p>
+<p>            return None</p>
+        
+<p>        latency = time.perf_counter() - start_time</p>
+        
+<p>        return {</p>
+<p>            'user_id': claims['sub'],</p>
+<p>            'session_id': claims['sid'],</p>
+<p>            'latency_ms': latency * 1000</p>
+<p>        }</p>
+    
+<p>    async def _validate_jwt_cached(self, token: str) -> Optional[Dict]:</p>
+<p>        """キャッシュを使用したJWT検証"""</p>
+        
+<p>        # Token fingerprint for caching</p>
+<p>        token_fingerprint = hashlib.sha256(token.encode()).hexdigest()[:16]</p>
+<p>        cache_key = f"jwt_valid:{token_fingerprint}"</p>
+        
+<p>        # Check cache</p>
+<p>        cached_claims = await self.redis_cluster.get(cache_key)</p>
+<p>        if cached_claims:</p>
+<p>            return json.loads(cached_claims)</p>
+        
+<p>        # Full JWT validation</p>
+<p>        try:</p>
+<p>            claims = jwt.decode(</p>
+<p>                token,</p>
+<p>                self.jwt_public_key,</p>
+<p>                algorithms=['ES256'],  # ECDSA is faster than RSA</p>
+<p>                options={"verify_exp": True}</p>
+<p>            )</p>
+            
+<p>            # Cache for 1 minute (shorter than token lifetime)</p>
+<p>            await self.redis_cluster.setex(</p>
+<p>                cache_key,</p>
+<p>                60,</p>
+<p>                json.dumps(claims)</p>
+<p>            )</p>
+            
+<p>            return claims</p>
+            
+<p>        except jwt.InvalidTokenError:</p>
+<p>            return None</p>
+    
+<p>    async def optimized_permission_check(self, user_id: str, resource: str, action: str) -> bool:</p>
+<p>        """最適化された権限チェック（目標: p99 < 50ms）"""</p>
+        
+<p>        start_time = time.perf_counter()</p>
+        
+<p>        # 1. Check permission cache - ~2ms</p>
+<p>        cache_key = f"perm:{user_id}:{resource}:{action}"</p>
+<p>        cached_result = await self.redis_cluster.get(cache_key)</p>
+<p>        if cached_result is not None:</p>
+<p>            return cached_result == "1"</p>
+        
+<p>        # 2. Get user roles (cached) - ~5ms</p>
+<p>        roles = await self._get_user_roles_cached(user_id)</p>
+        
+<p>        # 3. Check role-based permissions (in-memory) - ~1ms</p>
+<p>        if self._check_role_permissions(roles, resource, action):</p>
+<p>            await self.redis_cluster.setex(cache_key, 300, "1")</p>
+<p>            return True</p>
+        
+<p>        # 4. Check resource-specific permissions (batched query) - ~20ms</p>
+<p>        has_permission = await self._check_resource_permissions(user_id, resource, action)</p>
+        
+<p>        # Cache result</p>
+<p>        await self.redis_cluster.setex(</p>
+<p>            cache_key,</p>
+<p>            300,</p>
+<p>            "1" if has_permission else "0"</p>
+<p>        )</p>
+        
+<p>        latency = time.perf_counter() - start_time</p>
+        
+<p>        return has_permission</p>
+    
+<p>    async def _get_user_roles_cached(self, user_id: str) -> List[str]:</p>
+<p>        """キャッシュされたユーザーロール取得"""</p>
+        
+<p>        cache_key = f"user_roles:{user_id}"</p>
+        
+<p>        # Redis cache</p>
+<p>        cached_roles = await self.redis_cluster.get(cache_key)</p>
+<p>        if cached_roles:</p>
+<p>            return json.loads(cached_roles)</p>
+        
+<p>        # Database query with join reduction</p>
+<p>        async with self.db_pool.acquire() as conn:</p>
+<p>            rows = await conn.fetch("""</p>
+<p>                SELECT r.name</p>
+<p>                FROM roles r</p>
+<p>                INNER JOIN user_roles ur ON r.id = ur.role_id</p>
+<p>                WHERE ur.user_id = $1</p>
+<p>            """, user_id)</p>
+            
+<p>            roles = [row['name'] for row in rows]</p>
+            
+<p>            # Cache for 10 minutes</p>
+<p>            await self.redis_cluster.setex(</p>
+<p>                cache_key,</p>
+<p>                600,</p>
+<p>                json.dumps(roles)</p>
+<p>            )</p>
+            
+<p>            return roles</p>
+    
+<p>    def _check_role_permissions(self, roles: List[str], resource: str, action: str) -> bool:</p>
+<p>        """インメモリでのロール権限チェック"""</p>
+        
+<p>        # Pre-computed permission matrix (loaded at startup)</p>
+<p>        for role in roles:</p>
+<p>            if role in self.permission_matrix:</p>
+<p>                permissions = self.permission_matrix[role]</p>
+<p>                if f"{resource}:{action}" in permissions:</p>
+<p>                    return True</p>
+        
+<p>        return False</p>
+    
+<p>    async def performance_test_results(self):</p>
+<p>        """パフォーマンステスト結果"""</p>
+        
+<p>        return {</p>
+<p>            'login_performance': {</p>
+<p>                'concurrent_users': 10000,</p>
+<p>                'test_duration': '60 seconds',</p>
+<p>                'results': {</p>
+<p>                    'p50': '35ms',</p>
+<p>                    'p95': '78ms',</p>
+<p>                    'p99': '95ms',</p>
+<p>                    'p99.9': '120ms',</p>
+<p>                    'max': '250ms',</p>
+<p>                    'requests_per_second': 15000</p>
+<p>                },</p>
+<p>                'optimizations_applied': [</p>
+<p>                    'Multi-level caching (L1: in-memory, L2: Redis)',</p>
+<p>                    'Connection pooling (200 connections)',</p>
+<p>                    'Prepared statements',</p>
+<p>                    'Async password hashing',</p>
+<p>                    'JWT with ECDSA (faster than RSA)',</p>
+<p>                    'Redis pipelining'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'token_validation_performance': {</p>
+<p>                'concurrent_validations': 50000,</p>
+<p>                'results': {</p>
+<p>                    'p50': '8ms',</p>
+<p>                    'p95': '15ms',</p>
+<p>                    'p99': '19ms',</p>
+<p>                    'p99.9': '25ms',</p>
+<p>                    'max': '45ms',</p>
+<p>                    'validations_per_second': 80000</p>
+<p>                },</p>
+<p>                'optimizations_applied': [</p>
+<p>                    'JWT validation caching',</p>
+<p>                    'Bloom filter for blacklist',</p>
+<p>                    'Redis cluster for session storage',</p>
+<p>                    'Minimal session data',</p>
+<p>                    'Token fingerprinting'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'permission_check_performance': {</p>
+<p>                'test_scenarios': 'Complex RBAC with 100 roles, 1000 resources',</p>
+<p>                'results': {</p>
+<p>                    'p50': '20ms',</p>
+<p>                    'p95': '40ms',</p>
+<p>                    'p99': '48ms',</p>
+<p>                    'p99.9': '65ms',</p>
+<p>                    'max': '95ms',</p>
+<p>                    'checks_per_second': 25000</p>
+<p>                },</p>
+<p>                'optimizations_applied': [</p>
+<p>                    'Permission matrix preloading',</p>
+<p>                    'Aggressive caching strategy',</p>
+<p>                    'Batched database queries',</p>
+<p>                    'Denormalized permission views',</p>
+<p>                    'Redis lua scripts for atomic operations'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'infrastructure': {</p>
+<p>                'application_servers': '20 instances (c5.2xlarge)',</p>
+<p>                'database': 'PostgreSQL 14 (RDS db.r6g.4xlarge, Multi-AZ)',</p>
+<p>                'cache': 'Redis 7.0 Cluster (6 nodes, r6g.xlarge)',</p>
+<p>                'load_balancer': 'AWS ALB with connection draining',</p>
+<p>                'cdn': 'CloudFront for static assets'</p>
+<p>            }</p>
+<p>        }</p><h1>実装コード例</h1><p>@dataclass</p>
+<p>class User:</p>
+<p>    id: str</p>
+<p>    email: str</p>
+<p>    password_hash: str</p>
+<p>    status: str</p>
+<p>    mfa_enabled: bool</p>
+    
+<p>    def to_json(self) -> str:</p>
+<p>        return json.dumps(self.__dict__)</p>
+    
+<p>    @classmethod</p>
+<p>    def from_json(cls, data: str) -> 'User':</p>
+<p>        return cls(<em></em>json.loads(data))</p><p>@dataclass</p>
+<p>class Session:</p>
+<p>    id: str</p>
+<p>    token: str</p>
+<p>    user_id: str</p><h1>パフォーマンステストスクリプト</h1>
+<p>async def run_performance_test():</p>
+<p>    """パフォーマンステスト実行"""</p>
+    
+<p>    auth_system = OptimizedAuthSystem()</p>
+    
+<p>    # ログインテスト</p>
+<p>    print("Testing login performance...")</p>
+<p>    login_times = []</p>
+    
+<p>    async def test_login():</p>
+<p>        start = time.perf_counter()</p>
+<p>        result = await auth_system.optimized_login(</p>
+<p>            f"user{random.randint(1, 1000000)}@example.com",</p>
+<p>            "password123"</p>
+<p>        )</p>
+<p>        login_times.append(time.perf_counter() - start)</p>
+    
+<p>    # 並行実行</p>
+<p>    tasks = [test_login() for _ in range(10000)]</p>
+<p>    await asyncio.gather(*tasks)</p>
+    
+<p>    # 結果分析</p>
+<p>    login_times.sort()</p>
+<p>    print(f"Login p50: {login_times[int(len(login_times) <em> 0.5)] </em> 1000:.2f}ms")</p>
+<p>    print(f"Login p99: {login_times[int(len(login_times) <em> 0.99)] </em> 1000:.2f}ms")</p>
+    
+<p>    # 同様にトークン検証と権限チェックもテスト...</p>
+<p></code></pre></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

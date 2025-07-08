@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第9章 マイクロサービスでの認証認可 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第9章 マイクロサービスでの認証認可</h1><h2>なぜこの章が重要か</h2><p>マイクロサービスアーキテクチャの採用が進む中、認証認可の実装は格段に複雑になっています。モノリシックなアプリケーションでは単一のセッション管理で済んでいたものが、分散環境では各サービス間の信頼関係の確立、一貫性のある認可判断、パフォーマンスの維持など、多くの課題に直面します。この章では、マイクロサービス環境特有の認証認可の課題と、それらを解決する実践的なパターンを学びます。</p><h2>9.1 分散システムでの課題</h2><h3>9.1.1 マイクロサービスにおける認証認可の複雑性</h3><p><pre><code>python
+<p>class MicroservicesAuthChallenges:</p>
+<p>    """マイクロサービスでの認証認可の課題"""</p>
+    
+<p>    def illustrate_complexity(self):</p>
+<p>        """複雑性の図解"""</p>
+        
+<p>        return {</p>
+<p>            'monolithic_vs_microservices': {</p>
+<p>                'monolithic': {</p>
+<p>                    'auth_points': 1,</p>
+<p>                    'session_storage': 'Single database',</p>
+<p>                    'authorization': 'In-process function calls',</p>
+<p>                    'consistency': 'Guaranteed by transactions',</p>
+<p>                    'performance': 'Memory access',</p>
+<p>                    'security_boundary': 'Application perimeter'</p>
+<p>                },</p>
+                
+<p>                'microservices': {</p>
+<p>                    'auth_points': 'N services × M endpoints',</p>
+<p>                    'session_storage': 'Distributed cache/tokens',</p>
+<p>                    'authorization': 'Network calls',</p>
+<p>                    'consistency': 'Eventually consistent',</p>
+<p>                    'performance': 'Network latency',</p>
+<p>                    'security_boundary': 'Every service'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'key_challenges': {</p>
+<p>                'service_proliferation': {</p>
+<p>                    'problem': 'サービス数の増加に伴う管理複雑性',</p>
+<p>                    'example': '''</p>
+<p>                    10 services × 5 endpoints × 3 methods = 150 auth points</p>
+<p>                    各ポイントで：</p>
+<p>                    - 認証の検証</p>
+<p>                    - 認可の判断</p>
+<p>                    - 監査ログ</p>
+<p>                    ''',</p>
+<p>                    'impact': 'メンテナンスコストの指数的増加'</p>
+<p>                },</p>
+                
+<p>                'distributed_state': {</p>
+<p>                    'problem': 'セッション状態の分散管理',</p>
+<p>                    'example': '''</p>
+<p>                    User → API Gateway → Service A → Service B → Service C</p>
+<p>                           ↓              ↓           ↓           ↓</p>
+<p>                        Session?     Session?    Session?    Session?</p>
+<p>                    ''',</p>
+<p>                    'impact': 'パフォーマンス劣化、複雑性増大'</p>
+<p>                },</p>
+                
+<p>                'service_to_service': {</p>
+<p>                    'problem': 'サービス間の信頼関係確立',</p>
+<p>                    'example': '''</p>
+<p>                    Order Service が Inventory Service を呼ぶ際：</p>
+<p>                    - Order Service の正当性をどう証明？</p>
+<p>                    - ユーザーコンテキストをどう伝播？</p>
+<p>                    - 権限の委譲をどう制御？</p>
+<p>                    ''',</p>
+<p>                    'impact': 'セキュリティリスク、実装の複雑化'</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def security_implications(self):</p>
+<p>        """セキュリティへの影響"""</p>
+        
+<p>        return {</p>
+<p>            'attack_surface_expansion': {</p>
+<p>                'description': '攻撃対象面の拡大',</p>
+<p>                'factors': [</p>
+<p>                    'すべてのサービスが潜在的な侵入点',</p>
+<p>                    'サービス間通信の盗聴リスク',</p>
+<p>                    'トークンの漏洩ポイント増加'</p>
+<p>                ],</p>
+<p>                'mitigation': 'Zero Trust原則の適用'</p>
+<p>            },</p>
+            
+<p>            'cascading_vulnerabilities': {</p>
+<p>                'description': '脆弱性の連鎖',</p>
+<p>                'scenario': '''</p>
+<p>                1. Service A の認証バイパス脆弱性</p>
+<p>                2. Service A として Service B にアクセス</p>
+<p>                3. Service B の権限で Service C にアクセス</p>
+<p>                4. 権限昇格の連鎖</p>
+<p>                ''',</p>
+<p>                'mitigation': '最小権限原則、サービスメッシュ'</p>
+<p>            },</p>
+            
+<p>            'token_management_complexity': {</p>
+<p>                'description': 'トークン管理の複雑化',</p>
+<p>                'issues': [</p>
+<p>                    'トークンのライフサイクル管理',</p>
+<p>                    '無効化の即時反映',</p>
+<p>                    'トークンサイズとネットワーク負荷'</p>
+<p>                ],</p>
+<p>                'mitigation': '適切なトークン戦略の選択'</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>9.1.2 パフォーマンスとスケーラビリティの課題</h3><p><pre><code>python</p>
+<p>class PerformanceScalabilityChallenges:</p>
+<p>    """パフォーマンスとスケーラビリティの課題"""</p>
+    
+<p>    def latency_accumulation(self):</p>
+<p>        """レイテンシの蓄積問題"""</p>
+        
+<p>        return {</p>
+<p>            'latency_breakdown': {</p>
+<p>                'traditional_monolith': {</p>
+<p>                    'auth_check': '< 1ms (in-memory)',</p>
+<p>                    'total_request': '50ms'</p>
+<p>                },</p>
+                
+<p>                'naive_microservices': {</p>
+<p>                    'per_service_auth': '10-20ms',</p>
+<p>                    'service_chain_5_deep': '50-100ms just for auth',</p>
+<p>                    'total_request': '200-300ms'</p>
+<p>                },</p>
+                
+<p>                'optimized_microservices': {</p>
+<p>                    'edge_auth': '10ms',</p>
+<p>                    'service_trust': '< 1ms (JWT validation)',</p>
+<p>                    'total_request': '60-80ms'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'optimization_strategies': {</p>
+<p>                'caching': '''</p>
+<p>                class TokenCache:</p>
+<p>                    def __init__(self, ttl=300):</p>
+<p>                        self.cache = TTLCache(maxsize=10000, ttl=ttl)</p>
+<p>                        self.stats = CacheStats()</p>
+                    
+<p>                    def validate_token(self, token: str) -> Optional[Claims]:</p>
+<p>                        # キャッシュチェック</p>
+<p>                        if token in self.cache:</p>
+<p>                            self.stats.hits += 1</p>
+<p>                            return self.cache[token]</p>
+                        
+<p>                        # 検証とキャッシュ</p>
+<p>                        self.stats.misses += 1</p>
+<p>                        claims = self._validate_jwt(token)</p>
+<p>                        if claims:</p>
+<p>                            self.cache[token] = claims</p>
+<p>                        return claims</p>
+<p>                ''',</p>
+                
+<p>                'connection_pooling': '''</p>
+<p>                # 認証サービスへの接続プール</p>
+<p>                auth_client = AuthServiceClient(</p>
+<p>                    pool_size=20,</p>
+<p>                    max_overflow=10,</p>
+<p>                    timeout=1.0,</p>
+<p>                    retry_policy=ExponentialBackoff(max_retries=3)</p>
+<p>                )</p>
+<p>                ''',</p>
+                
+<p>                'circuit_breaking': '''</p>
+<p>                @circuit_breaker(</p>
+<p>                    failure_threshold=5,</p>
+<p>                    recovery_timeout=60,</p>
+<p>                    expected_exception=AuthServiceException</p>
+<p>                )</p>
+<p>                def check_authorization(self, token, resource, action):</p>
+<p>                    # 認可サービスが落ちても、デフォルト動作で継続</p>
+<p>                    return self.auth_service.authorize(token, resource, action)</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def scalability_patterns(self):</p>
+<p>        """スケーラビリティパターン"""</p>
+        
+<p>        return {</p>
+<p>            'horizontal_scaling': {</p>
+<p>                'auth_service_scaling': '''</p>
+<p>                apiVersion: autoscaling/v2</p>
+<p>                kind: HorizontalPodAutoscaler</p>
+<p>                metadata:</p>
+<p>                  name: auth-service-hpa</p>
+<p>                spec:</p>
+<p>                  scaleTargetRef:</p>
+<p>                    apiVersion: apps/v1</p>
+<p>                    kind: Deployment</p>
+<p>                    name: auth-service</p>
+<p>                  minReplicas: 3</p>
+<p>                  maxReplicas: 20</p>
+<p>                  metrics:</p>
+<p>                  - type: Resource</p>
+<p>                    resource:</p>
+<p>                      name: cpu</p>
+<p>                      target:</p>
+<p>                        type: Utilization</p>
+<p>                        averageUtilization: 70</p>
+<p>                  - type: Resource</p>
+<p>                    resource:</p>
+<p>                      name: memory</p>
+<p>                      target:</p>
+<p>                        type: Utilization</p>
+<p>                        averageUtilization: 80</p>
+<p>                ''',</p>
+                
+<p>                'cache_distribution': '''</p>
+<p>                # Redis Clusterによる分散キャッシュ</p>
+<p>                class DistributedSessionStore:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.redis = RedisCluster(</p>
+<p>                            startup_nodes=[</p>
+<p>                                {"host": "redis-1", "port": 6379},</p>
+<p>                                {"host": "redis-2", "port": 6379},</p>
+<p>                                {"host": "redis-3", "port": 6379}</p>
+<p>                            ],</p>
+<p>                            decode_responses=True,</p>
+<p>                            skip_full_coverage_check=True</p>
+<p>                        )</p>
+                    
+<p>                    def get_session(self, session_id: str) -> Optional[Session]:</p>
+<p>                        data = self.redis.get(f"session:{session_id}")</p>
+<p>                        return Session.from_json(data) if data else None</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'load_distribution': {</p>
+<p>                'sticky_sessions_avoided': '''</p>
+<p>                # JWTによるステートレス認証でスティッキーセッション不要</p>
+<p>                @app.before_request</p>
+<p>                def validate_request():</p>
+<p>                    token = extract_token_from_header()</p>
+<p>                    if not token:</p>
+<p>                        return jsonify({"error": "No token"}), 401</p>
+                    
+<p>                    # 任意のインスタンスで検証可能</p>
+<p>                    claims = validate_jwt(token)</p>
+<p>                    if not claims:</p>
+<p>                        return jsonify({"error": "Invalid token"}), 401</p>
+                    
+<p>                    g.user = claims</p>
+<p>                ''',</p>
+                
+<p>                'regional_deployment': '''</p>
+<p>                # マルチリージョン展開</p>
+<p>                regions = {</p>
+<p>                    'us-east': 'auth-us-east.example.com',</p>
+<p>                    'eu-west': 'auth-eu-west.example.com',</p>
+<p>                    'ap-northeast': 'auth-ap-northeast.example.com'</p>
+<p>                }</p>
+                
+<p>                # GeoDNSによる最適なリージョンへのルーティング</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>9.1.3 一貫性と状態管理の課題</h3><p><pre><code>python</p>
+<p>class ConsistencyStateManagement:</p>
+<p>    """一貫性と状態管理の課題"""</p>
+    
+<p>    def consistency_challenges(self):</p>
+<p>        """一貫性の課題"""</p>
+        
+<p>        return {</p>
+<p>            'types_of_inconsistency': {</p>
+<p>                'permission_propagation': {</p>
+<p>                    'scenario': 'ユーザーの権限変更が全サービスに反映されるまでのラグ',</p>
+<p>                    'example': '''</p>
+<p>                    T0: Admin が User の権限を revoke</p>
+<p>                    T1: Auth Service は更新を認識</p>
+<p>                    T2: Service A はまだ古い権限でリクエストを許可</p>
+<p>                    T3: Service B も古い権限で動作</p>
+<p>                    T4: 最終的に全サービスが新しい権限を認識</p>
+                    
+<p>                    問題：T1-T4 の間、不正なアクセスが可能</p>
+<p>                    ''',</p>
+<p>                    'solutions': [</p>
+<p>                        'イベント駆動の権限更新',</p>
+<p>                        '短いキャッシュTTL',</p>
+<p>                        '権限チェックの集約'</p>
+<p>                    ]</p>
+<p>                },</p>
+                
+<p>                'session_invalidation': {</p>
+<p>                    'scenario': 'ログアウトやセッション無効化の即時反映',</p>
+<p>                    'example': '''</p>
+<p>                    distributed_logout = {</p>
+<p>                        'challenge': 'すべてのサービスでセッションを無効化',</p>
+<p>                        'approaches': {</p>
+<p>                            'blacklist': 'トークンブラックリストの共有',</p>
+<p>                            'short_lived': '短命トークン + リフレッシュ',</p>
+<p>                            'revocation_events': 'イベントバスでの通知'</p>
+<p>                        }</p>
+<p>                    }</p>
+<p>                    '''</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'state_synchronization': {</p>
+<p>                'event_driven_approach': '''</p>
+<p>                class AuthEventPublisher:</p>
+<p>                    def __init__(self, event_bus):</p>
+<p>                        self.event_bus = event_bus</p>
+                    
+<p>                    async def publish_auth_event(self, event_type: str, data: dict):</p>
+<p>                        event = {</p>
+<p>                            'type': event_type,</p>
+<p>                            'timestamp': datetime.utcnow().isoformat(),</p>
+<p>                            'data': data,</p>
+<p>                            'version': '1.0'</p>
+<p>                        }</p>
+                        
+<p>                        await self.event_bus.publish('auth-events', event)</p>
+                    
+<p>                    async def user_logged_out(self, user_id: str, session_id: str):</p>
+<p>                        await self.publish_auth_event('USER_LOGGED_OUT', {</p>
+<p>                            'user_id': user_id,</p>
+<p>                            'session_id': session_id</p>
+<p>                        })</p>
+                    
+<p>                    async def permissions_changed(self, user_id: str, changes: dict):</p>
+<p>                        await self.publish_auth_event('PERMISSIONS_CHANGED', {</p>
+<p>                            'user_id': user_id,</p>
+<p>                            'changes': changes</p>
+<p>                        })</p>
+<p>                ''',</p>
+                
+<p>                'cache_invalidation': '''</p>
+<p>                class DistributedCacheInvalidation:</p>
+<p>                    def __init__(self, redis_client, pubsub_channel='cache-invalidation'):</p>
+<p>                        self.redis = redis_client</p>
+<p>                        self.channel = pubsub_channel</p>
+<p>                        self.local_cache = TTLCache(maxsize=1000, ttl=60)</p>
+                        
+<p>                        # 無効化イベントのサブスクライブ</p>
+<p>                        self.start_invalidation_listener()</p>
+                    
+<p>                    def invalidate(self, key: str):</p>
+<p>                        # ローカルキャッシュから削除</p>
+<p>                        self.local_cache.pop(key, None)</p>
+                        
+<p>                        # 他のインスタンスに通知</p>
+<p>                        self.redis.publish(self.channel, json.dumps({</p>
+<p>                            'action': 'invalidate',</p>
+<p>                            'key': key,</p>
+<p>                            'timestamp': time.time()</p>
+<p>                        }))</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>9.2 API Gatewayパターン</h2><h3>9.2.1 API Gatewayによる認証の集約</h3><p><pre><code>python</p>
+<p>class APIGatewayAuthentication:</p>
+<p>    """API Gatewayでの認証実装"""</p>
+    
+<p>    def gateway_architecture(self):</p>
+<p>        """ゲートウェイアーキテクチャ"""</p>
+        
+<p>        return {</p>
+<p>            'pattern_overview': '''</p>
+<p>            [Client] → [API Gateway] → [Service A]</p>
+<p>                             ↓      → [Service B]</p>
+<p>                      [Auth Service] → [Service C]</p>
+            
+<p>            利点:</p>
+<p>            1. 認証の単一ポイント</p>
+<p>            2. サービスは認証から解放</p>
+<p>            3. 統一されたセキュリティポリシー</p>
+<p>            ''',</p>
+            
+<p>            'implementation_example': '''</p>
+<p>            class APIGateway:</p>
+<p>                def __init__(self):</p>
+<p>                    self.auth_service = AuthService()</p>
+<p>                    self.router = ServiceRouter()</p>
+<p>                    self.rate_limiter = RateLimiter()</p>
+                
+<p>                async def handle_request(self, request: Request) -> Response:</p>
+<p>                    # 1. レート制限</p>
+<p>                    if not await self.rate_limiter.check(request.client_ip):</p>
+<p>                        return Response(status=429, body="Too Many Requests")</p>
+                    
+<p>                    # 2. 認証</p>
+<p>                    auth_result = await self.authenticate(request)</p>
+<p>                    if not auth_result.success:</p>
+<p>                        return Response(status=401, body="Unauthorized")</p>
+                    
+<p>                    # 3. リクエストエンリッチメント</p>
+<p>                    enriched_request = self.enrich_request(request, auth_result.user)</p>
+                    
+<p>                    # 4. ルーティング</p>
+<p>                    service = self.router.get_service(request.path)</p>
+                    
+<p>                    # 5. サービス呼び出し</p>
+<p>                    response = await service.call(enriched_request)</p>
+                    
+<p>                    # 6. レスポンス処理</p>
+<p>                    return self.process_response(response)</p>
+                
+<p>                def enrich_request(self, request: Request, user: User) -> Request:</p>
+<p>                    # 内部ヘッダーの追加</p>
+<p>                    request.headers['X-User-ID'] = user.id</p>
+<p>                    request.headers['X-User-Roles'] = ','.join(user.roles)</p>
+<p>                    request.headers['X-Request-ID'] = generate_request_id()</p>
+                    
+<p>                    # JWTの付与（サービス間通信用）</p>
+<p>                    internal_token = self.generate_internal_token(user)</p>
+<p>                    request.headers['X-Internal-Token'] = internal_token</p>
+                    
+<p>                    return request</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def token_translation(self):</p>
+<p>        """トークン変換パターン"""</p>
+        
+<p>        return {</p>
+<p>            'external_to_internal': '''</p>
+<p>            class TokenTranslator:</p>
+<p>                """外部トークンから内部トークンへの変換"""</p>
+                
+<p>                def __init__(self, signing_key: str):</p>
+<p>                    self.signing_key = signing_key</p>
+<p>                    self.token_cache = TTLCache(maxsize=1000, ttl=300)</p>
+                
+<p>                def translate_token(self, external_token: str) -> str:</p>
+<p>                    # キャッシュチェック</p>
+<p>                    if external_token in self.token_cache:</p>
+<p>                        return self.token_cache[external_token]</p>
+                    
+<p>                    # 外部トークンの検証</p>
+<p>                    user_info = self.validate_external_token(external_token)</p>
+                    
+<p>                    # 内部用の簡潔なトークン生成</p>
+<p>                    internal_claims = {</p>
+<p>                        'sub': user_info['user_id'],</p>
+<p>                        'roles': user_info['roles'],</p>
+<p>                        'iat': datetime.utcnow(),</p>
+<p>                        'exp': datetime.utcnow() + timedelta(minutes=5),</p>
+<p>                        'jti': str(uuid.uuid4())</p>
+<p>                    }</p>
+                    
+<p>                    internal_token = jwt.encode(</p>
+<p>                        internal_claims,</p>
+<p>                        self.signing_key,</p>
+<p>                        algorithm='HS256'</p>
+<p>                    )</p>
+                    
+<p>                    # キャッシュ</p>
+<p>                    self.token_cache[external_token] = internal_token</p>
+                    
+<p>                    return internal_token</p>
+<p>            ''',</p>
+            
+<p>            'token_types': {</p>
+<p>                'reference_token': {</p>
+<p>                    'description': '外部クライアント向け',</p>
+<p>                    'example': 'opaque_token_abc123',</p>
+<p>                    'validation': 'Auth serviceへの問い合わせ必要',</p>
+<p>                    'size': '小さい'</p>
+<p>                },</p>
+                
+<p>                'self_contained_token': {</p>
+<p>                    'description': '内部サービス向け',</p>
+<p>                    'example': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',</p>
+<p>                    'validation': '署名検証のみ',</p>
+<p>                    'size': '大きい（クレーム含む）'</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def gateway_patterns(self):</p>
+<p>        """ゲートウェイパターンの実装"""</p>
+        
+<p>        return {</p>
+<p>            'bff_pattern': '''</p>
+<p>            # Backend for Frontend パターン</p>
+<p>            class MobileBFF(APIGateway):</p>
+<p>                """モバイルアプリ専用のゲートウェイ"""</p>
+                
+<p>                def aggregate_response(self, user_id: str) -> dict:</p>
+<p>                    # 複数のサービスから必要なデータを収集</p>
+<p>                    user_data = self.user_service.get_user(user_id)</p>
+<p>                    notifications = self.notification_service.get_unread(user_id)</p>
+<p>                    preferences = self.preference_service.get_all(user_id)</p>
+                    
+<p>                    # モバイル用に最適化された形式で返す</p>
+<p>                    return {</p>
+<p>                        'user': {</p>
+<p>                            'id': user_data['id'],</p>
+<p>                            'name': user_data['name'],</p>
+<p>                            'avatar': user_data['avatar_url']</p>
+<p>                        },</p>
+<p>                        'unread_count': len(notifications),</p>
+<p>                        'theme': preferences.get('theme', 'light')</p>
+<p>                    }</p>
+<p>            ''',</p>
+            
+<p>            'graphql_gateway': '''</p>
+<p>            # GraphQL Gatewayでの認証</p>
+<p>            class GraphQLGateway:</p>
+<p>                def __init__(self):</p>
+<p>                    self.schema = build_schema()</p>
+<p>                    self.auth = AuthMiddleware()</p>
+                
+<p>                async def execute_query(self, query: str, token: str):</p>
+<p>                    # 認証</p>
+<p>                    user = await self.auth.validate_token(token)</p>
+                    
+<p>                    # コンテキストに認証情報を注入</p>
+<p>                    context = {</p>
+<p>                        'user': user,</p>
+<p>                        'permissions': user.permissions,</p>
+<p>                        'request_id': generate_request_id()</p>
+<p>                    }</p>
+                    
+<p>                    # GraphQLクエリの実行</p>
+<p>                    result = await graphql(</p>
+<p>                        self.schema,</p>
+<p>                        query,</p>
+<p>                        context=context,</p>
+<p>                        middleware=[</p>
+<p>                            PermissionMiddleware(),</p>
+<p>                            RateLimitMiddleware(),</p>
+<p>                            LoggingMiddleware()</p>
+<p>                        ]</p>
+<p>                    )</p>
+                    
+<p>                    return result</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h3>9.2.2 API Gatewayの実装パターン</h3><p><pre><code>python</p>
+<p>class APIGatewayImplementation:</p>
+<p>    """API Gateway実装パターン"""</p>
+    
+<p>    def implementation_options(self):</p>
+<p>        """実装オプションの比較"""</p>
+        
+<p>        return {</p>
+<p>            'commercial_solutions': {</p>
+<p>                'aws_api_gateway': {</p>
+<p>                    'pros': [</p>
+<p>                        'フルマネージド',</p>
+<p>                        'AWS Cognitoとの統合',</p>
+<p>                        'Lambda認証との連携'</p>
+<p>                    ],</p>
+<p>                    'cons': [</p>
+<p>                        'ベンダーロックイン',</p>
+<p>                        'カスタマイズの制限',</p>
+<p>                        'コスト'</p>
+<p>                    ],</p>
+<p>                    'use_case': 'AWSエコシステム利用時'</p>
+<p>                },</p>
+                
+<p>                'kong': {</p>
+<p>                    'pros': [</p>
+<p>                        'プラグイン機能豊富',</p>
+<p>                        'オンプレミス可能',</p>
+<p>                        'パフォーマンス'</p>
+<p>                    ],</p>
+<p>                    'cons': [</p>
+<p>                        '学習曲線',</p>
+<p>                        'エンタープライズ機能は有料'</p>
+<p>                    ],</p>
+<p>                    'use_case': 'フレキシブルな認証要件'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'custom_implementation': '''</p>
+<p>            # FastAPIによるカスタムゲートウェイ</p>
+<p>            from fastapi import FastAPI, Request, HTTPException</p>
+<p>            from fastapi.middleware.cors import CORSMiddleware</p>
+<p>            import httpx</p>
+            
+<p>            app = FastAPI()</p>
+            
+<p>            # CORS設定</p>
+<p>            app.add_middleware(</p>
+<p>                CORSMiddleware,</p>
+<p>                allow_origins=["https://app.example.com"],</p>
+<p>                allow_credentials=True,</p>
+<p>                allow_methods=["*"],</p>
+<p>                allow_headers=["*"],</p>
+<p>            )</p>
+            
+<p>            # サービスレジストリ</p>
+<p>            services = {</p>
+<p>                'users': 'http://user-service:8080',</p>
+<p>                'orders': 'http://order-service:8080',</p>
+<p>                'inventory': 'http://inventory-service:8080'</p>
+<p>            }</p>
+            
+<p>            @app.middleware("http")</p>
+<p>            async def auth_middleware(request: Request, call_next):</p>
+<p>                # 認証不要のパス</p>
+<p>                public_paths = ['/health', '/metrics', '/docs']</p>
+<p>                if request.url.path in public_paths:</p>
+<p>                    return await call_next(request)</p>
+                
+<p>                # トークン検証</p>
+<p>                token = request.headers.get('Authorization', '').replace('Bearer ', '')</p>
+<p>                if not token:</p>
+<p>                    raise HTTPException(status_code=401, detail="Missing token")</p>
+                
+<p>                try:</p>
+<p>                    # トークン検証とユーザー情報取得</p>
+<p>                    user = verify_token(token)</p>
+<p>                    request.state.user = user</p>
+<p>                except InvalidTokenError:</p>
+<p>                    raise HTTPException(status_code=401, detail="Invalid token")</p>
+                
+<p>                # リクエストにユーザー情報を追加</p>
+<p>                response = await call_next(request)</p>
+<p>                return response</p>
+            
+<p>            @app.api_route("/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])</p>
+<p>            async def proxy(service: str, path: str, request: Request):</p>
+<p>                if service not in services:</p>
+<p>                    raise HTTPException(status_code=404, detail="Service not found")</p>
+                
+<p>                # 内部トークンの生成</p>
+<p>                internal_token = generate_internal_token(request.state.user)</p>
+                
+<p>                # ヘッダーの準備</p>
+<p>                headers = dict(request.headers)</p>
+<p>                headers['X-Internal-Token'] = internal_token</p>
+<p>                headers['X-User-ID'] = str(request.state.user.id)</p>
+<p>                headers['X-Request-ID'] = generate_request_id()</p>
+                
+<p>                # プロキシリクエスト</p>
+<p>                async with httpx.AsyncClient() as client:</p>
+<p>                    response = await client.request(</p>
+<p>                        method=request.method,</p>
+<p>                        url=f"{services[service]}/{path}",</p>
+<p>                        headers=headers,</p>
+<p>                        content=await request.body(),</p>
+<p>                        params=request.query_params</p>
+<p>                    )</p>
+                
+<p>                return Response(</p>
+<p>                    content=response.content,</p>
+<p>                    status_code=response.status_code,</p>
+<p>                    headers=dict(response.headers)</p>
+<p>                )</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def security_hardening(self):</p>
+<p>        """セキュリティ強化"""</p>
+        
+<p>        return {</p>
+<p>            'rate_limiting': '''</p>
+<p>            from slowapi import Limiter, _rate_limit_exceeded_handler</p>
+<p>            from slowapi.util import get_remote_address</p>
+            
+<p>            limiter = Limiter(</p>
+<p>                key_func=get_remote_address,</p>
+<p>                default_limits=["1000 per hour"],</p>
+<p>                storage_uri="redis://localhost:6379"</p>
+<p>            )</p>
+            
+<p>            app.state.limiter = limiter</p>
+<p>            app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)</p>
+            
+<p>            @app.post("/api/auth/login")</p>
+<p>            @limiter.limit("5 per minute")</p>
+<p>            async def login(credentials: LoginCredentials):</p>
+<p>                # ログイン処理</p>
+<p>                pass</p>
+<p>            ''',</p>
+            
+<p>            'request_validation': '''</p>
+<p>            class SecurityMiddleware:</p>
+<p>                def __init__(self, app):</p>
+<p>                    self.app = app</p>
+                
+<p>                async def __call__(self, scope, receive, send):</p>
+<p>                    if scope["type"] == "http":</p>
+<p>                        # ヘッダーサイズチェック</p>
+<p>                        headers = dict(scope["headers"])</p>
+<p>                        if any(len(v) > 8192 for v in headers.values()):</p>
+<p>                            response = Response(status_code=431)</p>
+<p>                            await response(scope, receive, send)</p>
+<p>                            return</p>
+                        
+<p>                        # SQLインジェクション対策</p>
+<p>                        path = scope["path"]</p>
+<p>                        if self.contains_sql_injection(path):</p>
+<p>                            response = Response(status_code=400)</p>
+<p>                            await response(scope, receive, send)</p>
+<p>                            return</p>
+                    
+<p>                    await self.app(scope, receive, send)</p>
+                
+<p>                def contains_sql_injection(self, value: str) -> bool:</p>
+<p>                    patterns = [</p>
+<p>                        r"(\bUNION\b.*\bSELECT\b)",</p>
+<p>                        r"(\bDROP\b.*\bTABLE\b)",</p>
+<p>                        r"(\bINSERT\b.*\bINTO\b)",</p>
+<p>                        r"(\bDELETE\b.*\bFROM\b)"</p>
+<p>                    ]</p>
+<p>                    return any(re.search(p, value, re.IGNORECASE) for p in patterns)</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>9.3 サービス間認証</h2><h3>9.3.1 サービスメッシュとmTLS</h3><p><pre><code>python</p>
+<p>class ServiceMeshAuthentication:</p>
+<p>    """サービスメッシュでの認証"""</p>
+    
+<p>    def mtls_implementation(self):</p>
+<p>        """mTLS実装"""</p>
+        
+<p>        return {</p>
+<p>            'istio_configuration': '''</p>
+<p>            # Istio でのmTLS設定</p>
+<p>            apiVersion: security.istio.io/v1beta1</p>
+<p>            kind: PeerAuthentication</p>
+<p>            metadata:</p>
+<p>              name: default</p>
+<p>              namespace: production</p>
+<p>            spec:</p>
+<p>              mtls:</p>
+<p>                mode: STRICT  # すべての通信でmTLS必須</p>
+            
+<p>            ---</p>
+<p>            apiVersion: security.istio.io/v1beta1</p>
+<p>            kind: AuthorizationPolicy</p>
+<p>            metadata:</p>
+<p>              name: require-jwt</p>
+<p>              namespace: production</p>
+<p>            spec:</p>
+<p>              selector:</p>
+<p>                matchLabels:</p>
+<p>                  app: api-gateway</p>
+<p>              action: ALLOW</p>
+<p>              rules:</p>
+<p>              - from:</p>
+<p>                - source:</p>
+<p>                    requestPrincipals: ["*"]</p>
+<p>                when:</p>
+<p>                - key: request.auth.claims[iss]</p>
+<p>                  values: ["https://auth.example.com"]</p>
+<p>            ''',</p>
+            
+<p>            'certificate_management': '''</p>
+<p>            class CertificateManager:</p>
+<p>                """証明書の自動管理"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.cert_authority = CertificateAuthority()</p>
+<p>                    self.renewal_threshold = timedelta(days=30)</p>
+                
+<p>                async def rotate_certificates(self):</p>
+<p>                    """証明書の自動ローテーション"""</p>
+<p>                    services = await self.get_all_services()</p>
+                    
+<p>                    for service in services:</p>
+<p>                        cert = await self.get_certificate(service.name)</p>
+                        
+<p>                        if self.needs_renewal(cert):</p>
+<p>                            # 新しい証明書の生成</p>
+<p>                            new_cert = await self.cert_authority.issue_certificate(</p>
+<p>                                subject=service.name,</p>
+<p>                                validity_days=90</p>
+<p>                            )</p>
+                            
+<p>                            # 証明書の更新</p>
+<p>                            await self.update_certificate(service, new_cert)</p>
+                            
+<p>                            # 古い証明書の無効化</p>
+<p>                            await self.cert_authority.revoke_certificate(cert)</p>
+                            
+<p>                            logger.info(f"Rotated certificate for {service.name}")</p>
+                
+<p>                def needs_renewal(self, cert: Certificate) -> bool:</p>
+<p>                    expiry = cert.not_valid_after</p>
+<p>                    return expiry - datetime.now() < self.renewal_threshold</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def service_identity(self):</p>
+<p>        """サービスアイデンティティ"""</p>
+        
+<p>        return {</p>
+<p>            'spiffe_implementation': '''</p>
+<p>            # SPIFFE/SPIRE によるサービスID</p>
+<p>            class SPIFFEIdentity:</p>
+<p>                """SPIFFE準拠のサービスアイデンティティ"""</p>
+                
+<p>                def __init__(self, trust_domain: str):</p>
+<p>                    self.trust_domain = trust_domain</p>
+<p>                    self.workload_api = WorkloadAPI()</p>
+                
+<p>                def get_service_identity(self) -> str:</p>
+<p>                    """サービスのSPIFFE IDを取得"""</p>
+<p>                    # spiffe://trust-domain/path/to/service</p>
+<p>                    return f"spiffe://{self.trust_domain}/ns/{self.namespace}/sa/{self.service_account}"</p>
+                
+<p>                async def get_svid(self) -> SVID:</p>
+<p>                    """SPIFFE Verifiable Identity Document の取得"""</p>
+<p>                    svid = await self.workload_api.fetch_svid()</p>
+<p>                    return svid</p>
+                
+<p>                async def validate_peer(self, peer_cert: Certificate) -> bool:</p>
+<p>                    """ピアサービスの検証"""</p>
+<p>                    # SPIFFE IDの抽出</p>
+<p>                    spiffe_id = self.extract_spiffe_id(peer_cert)</p>
+                    
+<p>                    # 信頼するサービスのリスト</p>
+<p>                    trusted_services = await self.get_trusted_services()</p>
+                    
+<p>                    return spiffe_id in trusted_services</p>
+<p>            ''',</p>
+            
+<p>            'service_authentication_flow': '''</p>
+<p>            class ServiceAuthenticator:</p>
+<p>                """サービス間認証フロー"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.token_issuer = TokenIssuer()</p>
+<p>                    self.identity_provider = ServiceIdentityProvider()</p>
+                
+<p>                async def authenticate_service(self, client_cert: Certificate) -> ServiceToken:</p>
+<p>                    # 1. クライアント証明書の検証</p>
+<p>                    if not self.verify_certificate(client_cert):</p>
+<p>                        raise AuthenticationError("Invalid certificate")</p>
+                    
+<p>                    # 2. サービスIDの抽出</p>
+<p>                    service_id = self.extract_service_id(client_cert)</p>
+                    
+<p>                    # 3. サービスの権限取得</p>
+<p>                    permissions = await self.get_service_permissions(service_id)</p>
+                    
+<p>                    # 4. サービストークンの発行</p>
+<p>                    token = self.token_issuer.issue_service_token(</p>
+<p>                        service_id=service_id,</p>
+<p>                        permissions=permissions,</p>
+<p>                        validity=timedelta(minutes=5)  # 短命トークン</p>
+<p>                    )</p>
+                    
+<p>                    return token</p>
+                
+<p>                def verify_certificate(self, cert: Certificate) -> bool:</p>
+<p>                    # CA証明書での検証</p>
+<p>                    # 有効期限チェック</p>
+<p>                    # 失効リストチェック</p>
+<p>                    return True  # 簡略化</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h3>9.3.2 APIキーとサービストークン</h3><p><pre><code>python</p>
+<p>class ServiceTokenManagement:</p>
+<p>    """サービストークン管理"""</p>
+    
+<p>    def api_key_patterns(self):</p>
+<p>        """APIキーパターン"""</p>
+        
+<p>        return {</p>
+<p>            'api_key_management': '''</p>
+<p>            class APIKeyManager:</p>
+<p>                """APIキーの管理"""</p>
+                
+<p>                def __init__(self, db, encryption_key):</p>
+<p>                    self.db = db</p>
+<p>                    self.cipher = Fernet(encryption_key)</p>
+                
+<p>                async def create_api_key(self, service_name: str, permissions: List[str]) -> APIKey:</p>
+<p>                    # APIキーの生成</p>
+<p>                    key_id = f"sk_{generate_random_string(8)}"</p>
+<p>                    secret = f"{generate_random_string(32)}"</p>
+<p>                    api_key = f"{key_id}.{secret}"</p>
+                    
+<p>                    # ハッシュ化して保存</p>
+<p>                    hashed_secret = hashlib.sha256(secret.encode()).hexdigest()</p>
+                    
+<p>                    await self.db.api_keys.insert({</p>
+<p>                        'key_id': key_id,</p>
+<p>                        'secret_hash': hashed_secret,</p>
+<p>                        'service_name': service_name,</p>
+<p>                        'permissions': permissions,</p>
+<p>                        'created_at': datetime.utcnow(),</p>
+<p>                        'last_used_at': None,</p>
+<p>                        'expires_at': datetime.utcnow() + timedelta(days=365),</p>
+<p>                        'is_active': True</p>
+<p>                    })</p>
+                    
+<p>                    return APIKey(</p>
+<p>                        key=api_key,</p>
+<p>                        key_id=key_id,</p>
+<p>                        service_name=service_name</p>
+<p>                    )</p>
+                
+<p>                async def validate_api_key(self, api_key: str) -> Optional[Service]:</p>
+<p>                    try:</p>
+<p>                        key_id, secret = api_key.split('.')</p>
+<p>                    except ValueError:</p>
+<p>                        return None</p>
+                    
+<p>                    # データベースから取得</p>
+<p>                    key_record = await self.db.api_keys.find_one({'key_id': key_id})</p>
+<p>                    if not key_record or not key_record['is_active']:</p>
+<p>                        return None</p>
+                    
+<p>                    # 有効期限チェック</p>
+<p>                    if key_record['expires_at'] < datetime.utcnow():</p>
+<p>                        return None</p>
+                    
+<p>                    # シークレットの検証</p>
+<p>                    if not self.verify_secret(secret, key_record['secret_hash']):</p>
+<p>                        return None</p>
+                    
+<p>                    # 使用履歴の更新</p>
+<p>                    await self.db.api_keys.update_one(</p>
+<p>                        {'key_id': key_id},</p>
+<p>                        {'$set': {'last_used_at': datetime.utcnow()}}</p>
+<p>                    )</p>
+                    
+<p>                    return Service(</p>
+<p>                        name=key_record['service_name'],</p>
+<p>                        permissions=key_record['permissions']</p>
+<p>                    )</p>
+<p>            ''',</p>
+            
+<p>            'rotation_strategy': '''</p>
+<p>            class APIKeyRotation:</p>
+<p>                """APIキーのローテーション戦略"""</p>
+                
+<p>                def __init__(self, key_manager: APIKeyManager):</p>
+<p>                    self.key_manager = key_manager</p>
+<p>                    self.rotation_period = timedelta(days=90)</p>
+<p>                    self.overlap_period = timedelta(days=7)</p>
+                
+<p>                async def rotate_keys(self):</p>
+<p>                    """定期的なキーローテーション"""</p>
+                    
+<p>                    # ローテーション対象のキーを取得</p>
+<p>                    keys_to_rotate = await self.get_keys_for_rotation()</p>
+                    
+<p>                    for key in keys_to_rotate:</p>
+<p>                        # 新しいキーの生成</p>
+<p>                        new_key = await self.key_manager.create_api_key(</p>
+<p>                            service_name=key.service_name,</p>
+<p>                            permissions=key.permissions</p>
+<p>                        )</p>
+                        
+<p>                        # 通知</p>
+<p>                        await self.notify_service(key.service_name, {</p>
+<p>                            'action': 'key_rotation',</p>
+<p>                            'old_key_id': key.key_id,</p>
+<p>                            'new_key_id': new_key.key_id,</p>
+<p>                            'overlap_end': datetime.utcnow() + self.overlap_period</p>
+<p>                        })</p>
+                        
+<p>                        # 古いキーの有効期限設定</p>
+<p>                        await self.schedule_key_deactivation(</p>
+<p>                            key.key_id,</p>
+<p>                            datetime.utcnow() + self.overlap_period</p>
+<p>                        )</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def service_to_service_tokens(self):</p>
+<p>        """サービス間トークン"""</p>
+        
+<p>        return {</p>
+<p>            'token_exchange': '''</p>
+<p>            class TokenExchangeService:</p>
+<p>                """トークン交換サービス（RFC 8693準拠）"""</p>
+                
+<p>                async def exchange_token(self, request: TokenExchangeRequest) -> TokenExchangeResponse:</p>
+<p>                    # 1. 元のトークンの検証</p>
+<p>                    subject_token_claims = self.validate_token(request.subject_token)</p>
+                    
+<p>                    # 2. アクターの検証（呼び出し元サービス）</p>
+<p>                    actor_claims = self.validate_token(request.actor_token)</p>
+                    
+<p>                    # 3. 委任可能性のチェック</p>
+<p>                    if not self.can_delegate(actor_claims, request.resource):</p>
+<p>                        raise ForbiddenError("Delegation not allowed")</p>
+                    
+<p>                    # 4. 新しいトークンの生成</p>
+<p>                    delegated_token = self.issue_delegated_token(</p>
+<p>                        original_subject=subject_token_claims['sub'],</p>
+<p>                        actor=actor_claims['sub'],</p>
+<p>                        audience=request.audience,</p>
+<p>                        scope=self.compute_delegated_scope(</p>
+<p>                            subject_token_claims['scope'],</p>
+<p>                            request.requested_scope</p>
+<p>                        ),</p>
+<p>                        validity=timedelta(minutes=5)  # 短命</p>
+<p>                    )</p>
+                    
+<p>                    return TokenExchangeResponse(</p>
+<p>                        access_token=delegated_token,</p>
+<p>                        token_type="Bearer",</p>
+<p>                        expires_in=300</p>
+<p>                    )</p>
+<p>            ''',</p>
+            
+<p>            'service_token_types': {</p>
+<p>                'client_credentials': '''</p>
+<p>                # サービス自身の権限でのアクセス</p>
+<p>                async def get_service_token():</p>
+<p>                    response = await auth_client.token(</p>
+<p>                        grant_type="client_credentials",</p>
+<p>                        client_id=SERVICE_ID,</p>
+<p>                        client_secret=SERVICE_SECRET,</p>
+<p>                        scope="service.read service.write"</p>
+<p>                    )</p>
+<p>                    return response.access_token</p>
+<p>                ''',</p>
+                
+<p>                'delegated_token': '''</p>
+<p>                # ユーザーの代理でのアクセス</p>
+<p>                async def get_delegated_token(user_token: str):</p>
+<p>                    response = await auth_client.exchange(</p>
+<p>                        subject_token=user_token,</p>
+<p>                        subject_token_type="access_token",</p>
+<p>                        actor_token=await get_service_token(),</p>
+<p>                        actor_token_type="access_token",</p>
+<p>                        resource="https://api.example.com/orders",</p>
+<p>                        audience="order-service"</p>
+<p>                    )</p>
+<p>                    return response.access_token</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>9.4 Zero Trust Architecture</h2><h3>9.4.1 Zero Trustの原則</h3><p><pre><code>python</p>
+<p>class ZeroTrustPrinciples:</p>
+<p>    """Zero Trust原則の実装"""</p>
+    
+<p>    def core_principles(self):</p>
+<p>        """中核となる原則"""</p>
+        
+<p>        return {</p>
+<p>            'never_trust_always_verify': {</p>
+<p>                'concept': '決して信頼せず、常に検証する',</p>
+<p>                'implementation': '''</p>
+<p>                class ZeroTrustGateway:</p>
+<p>                    """すべてのリクエストを検証"""</p>
+                    
+<p>                    async def process_request(self, request: Request) -> Response:</p>
+<p>                        # 1. デバイスの検証</p>
+<p>                        device_trust = await self.verify_device(request)</p>
+<p>                        if not device_trust.is_trusted:</p>
+<p>                            return Response(status=403, body="Untrusted device")</p>
+                        
+<p>                        # 2. ユーザーの認証</p>
+<p>                        user = await self.authenticate_user(request)</p>
+<p>                        if not user:</p>
+<p>                            return Response(status=401, body="Authentication required")</p>
+                        
+<p>                        # 3. コンテキストの評価</p>
+<p>                        risk_score = await self.evaluate_context(request, user, device_trust)</p>
+                        
+<p>                        # 4. 動的なアクセス判断</p>
+<p>                        if risk_score > 70:</p>
+<p>                            # 高リスクの場合は追加認証</p>
+<p>                            if not await self.require_mfa(user):</p>
+<p>                                return Response(status=401, body="MFA required")</p>
+                        
+<p>                        # 5. 最小権限でのアクセス許可</p>
+<p>                        scoped_token = self.issue_scoped_token(user, request.resource)</p>
+                        
+<p>                        # 6. 継続的な監視</p>
+<p>                        self.monitor_session(user.id, request.session_id)</p>
+                        
+<p>                        return await self.forward_request(request, scoped_token)</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'least_privilege_access': {</p>
+<p>                'concept': '最小権限の原則',</p>
+<p>                'implementation': '''</p>
+<p>                class LeastPrivilegeEnforcer:</p>
+<p>                    """最小権限の実施"""</p>
+                    
+<p>                    def compute_permissions(self, user: User, resource: Resource, context: Context) -> Permissions:</p>
+<p>                        # ベース権限</p>
+<p>                        base_permissions = self.get_role_permissions(user.role)</p>
+                        
+<p>                        # リソース固有の権限</p>
+<p>                        resource_permissions = self.get_resource_permissions(resource)</p>
+                        
+<p>                        # コンテキストによる制限</p>
+<p>                        if context.is_external_network:</p>
+<p>                            base_permissions = self.restrict_for_external(base_permissions)</p>
+                        
+<p>                        if context.time_of_day not in user.allowed_hours:</p>
+<p>                            base_permissions = self.restrict_for_time(base_permissions)</p>
+                        
+<p>                        # 交差を取る（最小権限）</p>
+<p>                        return base_permissions.intersection(resource_permissions)</p>
+                    
+<p>                    def issue_scoped_token(self, user: User, resource: Resource) -> str:</p>
+<p>                        permissions = self.compute_permissions(user, resource, get_context())</p>
+                        
+<p>                        claims = {</p>
+<p>                            'sub': user.id,</p>
+<p>                            'aud': resource.service,</p>
+<p>                            'scope': permissions.to_scope_string(),</p>
+<p>                            'exp': datetime.utcnow() + timedelta(minutes=5),  # 短命</p>
+<p>                            'context': {</p>
+<p>                                'ip': get_client_ip(),</p>
+<p>                                'device_id': get_device_id()</p>
+<p>                            }</p>
+<p>                        }</p>
+                        
+<p>                        return jwt.encode(claims, self.signing_key)</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'verify_explicitly': {</p>
+<p>                'concept': '明示的な検証',</p>
+<p>                'implementation': '''</p>
+<p>                class ExplicitVerification:</p>
+<p>                    """すべてのアクセスを明示的に検証"""</p>
+                    
+<p>                    async def verify_access(self, subject: str, action: str, resource: str) -> bool:</p>
+<p>                        # デフォルトは拒否</p>
+<p>                        decision = False</p>
+                        
+<p>                        # ポリシーエンジンでの評価</p>
+<p>                        policies = await self.get_applicable_policies(subject, resource)</p>
+                        
+<p>                        for policy in policies:</p>
+<p>                            result = self.evaluate_policy(policy, {</p>
+<p>                                'subject': subject,</p>
+<p>                                'action': action,</p>
+<p>                                'resource': resource,</p>
+<p>                                'environment': self.get_environment_attributes()</p>
+<p>                            })</p>
+                            
+<p>                            if result == 'DENY':</p>
+<p>                                # 明示的な拒否は最優先</p>
+<p>                                return False</p>
+<p>                            elif result == 'ALLOW':</p>
+<p>                                decision = True</p>
+                        
+<p>                        # 監査ログ</p>
+<p>                        await self.audit_access_decision(subject, action, resource, decision)</p>
+                        
+<p>                        return decision</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def microsegmentation(self):</p>
+<p>        """マイクロセグメンテーション"""</p>
+        
+<p>        return {</p>
+<p>            'network_policies': '''</p>
+<p>            # Kubernetes NetworkPolicy</p>
+<p>            apiVersion: networking.k8s.io/v1</p>
+<p>            kind: NetworkPolicy</p>
+<p>            metadata:</p>
+<p>              name: api-gateway-policy</p>
+<p>            spec:</p>
+<p>              podSelector:</p>
+<p>                matchLabels:</p>
+<p>                  app: api-gateway</p>
+<p>              policyTypes:</p>
+<p>              - Ingress</p>
+<p>              - Egress</p>
+<p>              ingress:</p>
+<p>              - from:</p>
+<p>                - namespaceSelector:</p>
+<p>                    matchLabels:</p>
+<p>                      name: dmz</p>
+<p>                ports:</p>
+<p>                - protocol: TCP</p>
+<p>                  port: 443</p>
+<p>              egress:</p>
+<p>              - to:</p>
+<p>                - namespaceSelector:</p>
+<p>                    matchLabels:</p>
+<p>                      name: services</p>
+<p>                ports:</p>
+<p>                - protocol: TCP</p>
+<p>                  port: 8080</p>
+<p>              - to:</p>
+<p>                - namespaceSelector:</p>
+<p>                    matchLabels:</p>
+<p>                      name: auth</p>
+<p>                ports:</p>
+<p>                - protocol: TCP</p>
+<p>                  port: 9000</p>
+<p>            ''',</p>
+            
+<p>            'service_mesh_policies': '''</p>
+<p>            # Istio AuthorizationPolicy</p>
+<p>            apiVersion: security.istio.io/v1beta1</p>
+<p>            kind: AuthorizationPolicy</p>
+<p>            metadata:</p>
+<p>              name: order-service-policy</p>
+<p>            spec:</p>
+<p>              selector:</p>
+<p>                matchLabels:</p>
+<p>                  app: order-service</p>
+<p>              action: ALLOW</p>
+<p>              rules:</p>
+<p>              - from:</p>
+<p>                - source:</p>
+<p>                    principals: ["cluster.local/ns/default/sa/api-gateway"]</p>
+<p>                to:</p>
+<p>                - operation:</p>
+<p>                    methods: ["GET", "POST"]</p>
+<p>                    paths: ["/api/orders/*"]</p>
+<p>                when:</p>
+<p>                - key: request.auth.claims[scope]</p>
+<p>                  values: ["orders.read", "orders.write"]</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h3>9.4.2 継続的な検証とリスク評価</h3><p><pre><code>python</p>
+<p>class ContinuousVerification:</p>
+<p>    """継続的な検証の実装"""</p>
+    
+<p>    def risk_based_authentication(self):</p>
+<p>        """リスクベース認証"""</p>
+        
+<p>        return {</p>
+<p>            'risk_engine': '''</p>
+<p>            class RiskEngine:</p>
+<p>                """リスク評価エンジン"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.ml_model = load_model('risk_assessment_model.pkl')</p>
+<p>                    self.rules_engine = RulesEngine()</p>
+                
+<p>                async def calculate_risk_score(self, request: Request, user: User) -> RiskScore:</p>
+<p>                    # 特徴量の抽出</p>
+<p>                    features = {</p>
+<p>                        # デバイス関連</p>
+<p>                        'is_known_device': await self.is_known_device(user.id, request.device_id),</p>
+<p>                        'device_trust_score': await self.get_device_trust_score(request.device_id),</p>
+                        
+<p>                        # 位置情報関連</p>
+<p>                        'location_anomaly': await self.check_location_anomaly(user.id, request.ip),</p>
+<p>                        'impossible_travel': await self.check_impossible_travel(user.id, request.ip),</p>
+                        
+<p>                        # 行動パターン</p>
+<p>                        'unusual_time': self.is_unusual_access_time(user.id, request.timestamp),</p>
+<p>                        'access_frequency': await self.get_access_frequency(user.id),</p>
+                        
+<p>                        # リソース関連</p>
+<p>                        'resource_sensitivity': self.get_resource_sensitivity(request.resource),</p>
+<p>                        'unusual_resource': await self.is_unusual_resource(user.id, request.resource)</p>
+<p>                    }</p>
+                    
+<p>                    # MLモデルでのスコア計算</p>
+<p>                    ml_score = self.ml_model.predict_proba([features])[0][1] * 100</p>
+                    
+<p>                    # ルールベースのスコア</p>
+<p>                    rule_score = self.rules_engine.evaluate(features)</p>
+                    
+<p>                    # 統合スコア</p>
+<p>                    final_score = (ml_score <em> 0.7 + rule_score </em> 0.3)</p>
+                    
+<p>                    return RiskScore(</p>
+<p>                        score=final_score,</p>
+<p>                        factors=features,</p>
+<p>                        required_action=self.determine_action(final_score)</p>
+<p>                    )</p>
+                
+<p>                def determine_action(self, score: float) -> str:</p>
+<p>                    if score < 30:</p>
+<p>                        return "allow"</p>
+<p>                    elif score < 60:</p>
+<p>                        return "challenge"  # 追加認証</p>
+<p>                    elif score < 80:</p>
+<p>                        return "mfa_required"</p>
+<p>                    else:</p>
+<p>                        return "deny"</p>
+<p>            ''',</p>
+            
+<p>            'adaptive_policies': '''</p>
+<p>            class AdaptivePolicyEngine:</p>
+<p>                """適応型ポリシーエンジン"""</p>
+                
+<p>                async def enforce_policy(self, user: User, resource: Resource, risk_score: float):</p>
+<p>                    # リスクレベルに応じたポリシー選択</p>
+<p>                    if risk_score < 30:</p>
+<p>                        # 低リスク：標準的なアクセス</p>
+<p>                        return StandardPolicy(</p>
+<p>                            session_timeout=timedelta(hours=8),</p>
+<p>                            concurrent_sessions=5</p>
+<p>                        )</p>
+                    
+<p>                    elif risk_score < 60:</p>
+<p>                        # 中リスク：制限付きアクセス</p>
+<p>                        return RestrictedPolicy(</p>
+<p>                            session_timeout=timedelta(hours=2),</p>
+<p>                            concurrent_sessions=2,</p>
+<p>                            require_reauthentication_for_sensitive=True</p>
+<p>                        )</p>
+                    
+<p>                    else:</p>
+<p>                        # 高リスク：厳格なアクセス</p>
+<p>                        return StrictPolicy(</p>
+<p>                            session_timeout=timedelta(minutes=30),</p>
+<p>                            concurrent_sessions=1,</p>
+<p>                            require_mfa_for_all=True,</p>
+<p>                            audit_all_actions=True</p>
+<p>                        )</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def continuous_monitoring(self):</p>
+<p>        """継続的監視"""</p>
+        
+<p>        return {</p>
+<p>            'session_monitoring': '''</p>
+<p>            class SessionMonitor:</p>
+<p>                """セッション監視"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.anomaly_detector = AnomalyDetector()</p>
+<p>                    self.alert_service = AlertService()</p>
+                
+<p>                async def monitor_session(self, session_id: str):</p>
+<p>                    """セッションの継続的監視"""</p>
+                    
+<p>                    while True:</p>
+<p>                        session = await self.get_session(session_id)</p>
+<p>                        if not session or session.expired:</p>
+<p>                            break</p>
+                        
+<p>                        # アクティビティの収集</p>
+<p>                        activities = await self.collect_activities(session_id, last_5_minutes)</p>
+                        
+<p>                        # 異常検知</p>
+<p>                        anomalies = self.anomaly_detector.detect(activities)</p>
+                        
+<p>                        if anomalies:</p>
+<p>                            # リスクスコアの再計算</p>
+<p>                            new_risk_score = await self.recalculate_risk(session, anomalies)</p>
+                            
+<p>                            if new_risk_score > session.risk_score + 20:</p>
+<p>                                # 大幅なリスク上昇</p>
+<p>                                await self.handle_risk_elevation(session, new_risk_score)</p>
+                        
+<p>                        # 定期的なヘルスチェック</p>
+<p>                        if not await self.verify_session_health(session):</p>
+<p>                            await self.terminate_session(session_id, "Health check failed")</p>
+<p>                            break</p>
+                        
+<p>                        await asyncio.sleep(30)  # 30秒ごとにチェック</p>
+                
+<p>                async def handle_risk_elevation(self, session: Session, new_risk_score: float):</p>
+<p>                    if new_risk_score > 80:</p>
+<p>                        # 即座にセッション終了</p>
+<p>                        await self.terminate_session(session.id, "Risk threshold exceeded")</p>
+<p>                        await self.alert_service.send_security_alert(</p>
+<p>                            f"High risk session terminated: {session.id}"</p>
+<p>                        )</p>
+<p>                    elif new_risk_score > 60:</p>
+<p>                        # 再認証を要求</p>
+<p>                        await self.require_reauthentication(session.id)</p>
+<p>                        await self.notify_user(session.user_id, "Unusual activity detected")</p>
+<p>            ''',</p>
+            
+<p>            'behavioral_analytics': '''</p>
+<p>            class BehavioralAnalytics:</p>
+<p>                """行動分析"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.ml_pipeline = self.build_ml_pipeline()</p>
+<p>                    self.baseline_db = BaselineDatabase()</p>
+                
+<p>                def build_ml_pipeline(self):</p>
+<p>                    return Pipeline([</p>
+<p>                        ('feature_extraction', FeatureExtractor()),</p>
+<p>                        ('scaler', StandardScaler()),</p>
+<p>                        ('anomaly_detector', IsolationForest(contamination=0.1))</p>
+<p>                    ])</p>
+                
+<p>                async def analyze_user_behavior(self, user_id: str, activities: List[Activity]):</p>
+<p>                    # ユーザーのベースライン取得</p>
+<p>                    baseline = await self.baseline_db.get_baseline(user_id)</p>
+                    
+<p>                    # 特徴量の計算</p>
+<p>                    features = self.extract_features(activities)</p>
+                    
+<p>                    # ベースラインとの比較</p>
+<p>                    deviations = self.calculate_deviations(features, baseline)</p>
+                    
+<p>                    # 異常スコアの計算</p>
+<p>                    anomaly_scores = self.ml_pipeline.predict(features)</p>
+                    
+<p>                    # 詳細な分析結果</p>
+<p>                    return BehaviorAnalysis(</p>
+<p>                        user_id=user_id,</p>
+<p>                        anomaly_score=float(anomaly_scores.mean()),</p>
+<p>                        deviations=deviations,</p>
+<p>                        suspicious_patterns=self.identify_patterns(activities),</p>
+<p>                        recommendation=self.get_recommendation(anomaly_scores.mean())</p>
+<p>                    )</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>まとめ</h2><p>この章では、マイクロサービス環境における認証認可の実装について学びました：</p><p>1. <strong>分散システムの課題</strong></p>
+<p>   - サービス増加による複雑性</p>
+<p>   - パフォーマンスとセキュリティのトレードオフ</p>
+<p>   - 一貫性と状態管理の難しさ</p><p>2. <strong>API Gatewayパターン</strong></p>
+<p>   - 認証の単一化</p>
+<p>   - トークン変換戦略</p>
+<p>   - セキュリティ強化の実装</p><p>3. <strong>サービス間認証</strong></p>
+<p>   - mTLSによる相互認証</p>
+<p>   - APIキーとトークン管理</p>
+<p>   - サービスアイデンティティの確立</p><p>4. <strong>Zero Trust Architecture</strong></p>
+<p>   - 常に検証する原則</p>
+<p>   - 最小権限の徹底</p>
+<p>   - 継続的なリスク評価</p><p>次章では、実装パターンとベストプラクティスについて、より具体的な実装例を通じて学びます。</p><h2>演習問題</h2><h3>問題1：マイクロサービス認証設計</h3>
+<p>10個のマイクロサービスからなるEコマースシステムの認証アーキテクチャを設計しなさい。以下を含めること：</p>
+<p>- サービス一覧と役割</p>
+<p>- 認証フロー図</p>
+<p>- トークン戦略</p>
+<p>- エラー処理</p><h3>問題2：API Gateway実装</h3>
+<p>FastAPIを使用して、以下の機能を持つAPI Gatewayを実装しなさい：</p>
+<p>- JWT検証</p>
+<p>- レート制限（ユーザーごと）</p>
+<p>- サービスへのプロキシ</p>
+<p>- 監査ログ</p><h3>問題3：Zero Trust設計</h3>
+<p>金融システムにZero Trust原則を適用した設計を作成しなさい：</p>
+<p>- リスク評価の要素（最低10個）</p>
+<p>- 動的アクセス制御のルール</p>
+<p>- 継続的検証の実装方法</p>
+<p>- インシデント対応フロー</p><h3>問題4：サービスメッシュ設定</h3>
+<p>Istioを使用したマイクロサービス環境で、以下のセキュリティポリシーを実装しなさい：</p>
+<p>- すべてのサービス間でmTLS必須</p>
+<p>- 特定のサービスのみがデータベースサービスにアクセス可能</p>
+<p>- 外部からのトラフィックはAPI Gateway経由のみ</p>
+<p>- サービスごとのレート制限</p><h3>問題5：パフォーマンス最適化</h3>
+<p>認証処理がボトルネックになっているマイクロサービスシステムの最適化計画を立てなさい：</p>
+<p>- 現状分析（レイテンシ測定）</p>
+<p>- 最適化案（最低5つ）</p>
+<p>- 実装優先順位</p>
+<p>- 期待される改善効果</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

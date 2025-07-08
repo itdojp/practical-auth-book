@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第10章 実装パターンとベストプラクティス - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第10章 実装パターンとベストプラクティス</h1><h2>なぜこの章が重要か</h2><p>認証認可の理論を理解しても、実装段階で多くの落とし穴があります。セキュリティホール、パフォーマンス問題、保守性の低下など、実装の品質がシステム全体の成否を左右します。この章では、実戦で培われたパターンとベストプラクティスを学び、堅牢で保守性の高い認証認可システムを実装する方法を習得します。</p><h2>10.1 認証フローのパターン</h2><h3>10.1.1 基本的な認証フローパターン</h3><p><pre><code>python
+<p>class AuthenticationFlowPatterns:</p>
+<p>    """認証フローのパターン集"""</p>
+    
+<p>    def traditional_flow(self):</p>
+<p>        """従来型の認証フロー"""</p>
+        
+<p>        return {</p>
+<p>            'simple_password_flow': {</p>
+<p>                'description': '最も基本的なパスワード認証',</p>
+<p>                'use_case': '内部システム、低リスクアプリケーション',</p>
+<p>                'implementation': '''</p>
+<p>                class SimplePasswordAuth:</p>
+<p>                    def __init__(self, user_repository, password_hasher):</p>
+<p>                        self.user_repo = user_repository</p>
+<p>                        self.hasher = password_hasher</p>
+                    
+<p>                    async def authenticate(self, username: str, password: str) -> AuthResult:</p>
+<p>                        # 1. ユーザー検索</p>
+<p>                        user = await self.user_repo.find_by_username(username)</p>
+<p>                        if not user:</p>
+<p>                            # タイミング攻撃対策：常に同じ時間かかるようにする</p>
+<p>                            await self.hasher.dummy_verify()</p>
+<p>                            return AuthResult(success=False, error="Invalid credentials")</p>
+                        
+<p>                        # 2. パスワード検証</p>
+<p>                        if not await self.hasher.verify(password, user.password_hash):</p>
+<p>                            # ログイン失敗の記録</p>
+<p>                            await self.record_failed_attempt(user.id)</p>
+<p>                            return AuthResult(success=False, error="Invalid credentials")</p>
+                        
+<p>                        # 3. アカウント状態確認</p>
+<p>                        if not user.is_active:</p>
+<p>                            return AuthResult(success=False, error="Account is disabled")</p>
+                        
+<p>                        # 4. セッション作成</p>
+<p>                        session = await self.create_session(user)</p>
+                        
+<p>                        return AuthResult(</p>
+<p>                            success=True,</p>
+<p>                            user=user,</p>
+<p>                            session=session</p>
+<p>                        )</p>
+<p>                ''',</p>
+<p>                'security_considerations': [</p>
+<p>                    'タイミング攻撃への対策',</p>
+<p>                    'ブルートフォース対策',</p>
+<p>                    'パスワードの安全な保存'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'remember_me_flow': {</p>
+<p>                'description': '「記憶する」機能付き認証',</p>
+<p>                'implementation': '''</p>
+<p>                class RememberMeAuth:</p>
+<p>                    def __init__(self, token_generator, token_store):</p>
+<p>                        self.token_gen = token_generator</p>
+<p>                        self.token_store = token_store</p>
+                    
+<p>                    async def create_remember_token(self, user_id: str) -> str:</p>
+<p>                        # セキュアなトークン生成</p>
+<p>                        token = self.token_gen.generate_secure_token()</p>
+                        
+<p>                        # トークンの保存（ハッシュ化して保存）</p>
+<p>                        token_hash = hashlib.sha256(token.encode()).hexdigest()</p>
+<p>                        await self.token_store.save(</p>
+<p>                            user_id=user_id,</p>
+<p>                            token_hash=token_hash,</p>
+<p>                            expires_at=datetime.utcnow() + timedelta(days=30)</p>
+<p>                        )</p>
+                        
+<p>                        return token</p>
+                    
+<p>                    async def authenticate_with_token(self, token: str) -> Optional[User]:</p>
+<p>                        # トークンのハッシュ化</p>
+<p>                        token_hash = hashlib.sha256(token.encode()).hexdigest()</p>
+                        
+<p>                        # トークン情報の取得</p>
+<p>                        token_info = await self.token_store.find_by_hash(token_hash)</p>
+<p>                        if not token_info or token_info.is_expired():</p>
+<p>                            return None</p>
+                        
+<p>                        # トークンのローテーション（セキュリティ向上）</p>
+<p>                        await self.token_store.delete(token_hash)</p>
+<p>                        new_token = await self.create_remember_token(token_info.user_id)</p>
+                        
+<p>                        # ユーザー情報の取得</p>
+<p>                        return await self.user_repo.find_by_id(token_info.user_id)</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def multi_step_authentication(self):</p>
+<p>        """多段階認証フロー"""</p>
+        
+<p>        return {</p>
+<p>            'progressive_authentication': {</p>
+<p>                'description': '段階的な認証強度の上昇',</p>
+<p>                'flow': '''</p>
+<p>                class ProgressiveAuth:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.auth_levels = {</p>
+<p>                            1: 'password',</p>
+<p>                            2: 'mfa',</p>
+<p>                            3: 'biometric',</p>
+<p>                            4: 'hardware_key'</p>
+<p>                        }</p>
+                    
+<p>                    async def authenticate_progressively(self, request: AuthRequest) -> AuthResult:</p>
+<p>                        current_level = 0</p>
+<p>                        user = None</p>
+                        
+<p>                        # レベル1: パスワード認証</p>
+<p>                        if request.password:</p>
+<p>                            user = await self.verify_password(request.username, request.password)</p>
+<p>                            if user:</p>
+<p>                                current_level = 1</p>
+                        
+<p>                        # 要求される認証レベルの確認</p>
+<p>                        required_level = self.get_required_level(request.resource)</p>
+                        
+<p>                        # 必要に応じて追加認証</p>
+<p>                        while current_level < required_level:</p>
+<p>                            next_method = self.auth_levels[current_level + 1]</p>
+                            
+<p>                            if next_method == 'mfa':</p>
+<p>                                if not await self.verify_mfa(user, request.mfa_code):</p>
+<p>                                    return AuthResult(</p>
+<p>                                        success=False,</p>
+<p>                                        error="MFA verification failed",</p>
+<p>                                        required_level=required_level</p>
+<p>                                    )</p>
+<p>                                current_level = 2</p>
+                            
+<p>                            elif next_method == 'biometric':</p>
+<p>                                if not await self.verify_biometric(user, request.biometric_data):</p>
+<p>                                    return AuthResult(</p>
+<p>                                        success=False,</p>
+<p>                                        error="Biometric verification failed"</p>
+<p>                                    )</p>
+<p>                                current_level = 3</p>
+                        
+<p>                        return AuthResult(</p>
+<p>                            success=True,</p>
+<p>                            user=user,</p>
+<p>                            auth_level=current_level</p>
+<p>                        )</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'step_up_authentication': {</p>
+<p>                'description': '必要に応じた認証レベルの引き上げ',</p>
+<p>                'implementation': '''</p>
+<p>                class StepUpAuthMiddleware:</p>
+<p>                    async def __call__(self, request: Request, call_next):</p>
+<p>                        # 現在の認証レベル確認</p>
+<p>                        current_auth = request.state.auth</p>
+<p>                        required_level = self.get_required_auth_level(request.path)</p>
+                        
+<p>                        if current_auth.level < required_level:</p>
+<p>                            # ステップアップが必要</p>
+<p>                            return JSONResponse(</p>
+<p>                                status_code=403,</p>
+<p>                                content={</p>
+<p>                                    "error": "step_up_required",</p>
+<p>                                    "current_level": current_auth.level,</p>
+<p>                                    "required_level": required_level,</p>
+<p>                                    "step_up_url": f"/auth/step-up?level={required_level}"</p>
+<p>                                }</p>
+<p>                            )</p>
+                        
+<p>                        # 認証レベルが十分な場合は続行</p>
+<p>                        response = await call_next(request)</p>
+<p>                        return response</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def delegated_authentication(self):</p>
+<p>        """委譲認証パターン"""</p>
+        
+<p>        return {</p>
+<p>            'oauth_flow': {</p>
+<p>                'description': 'OAuth 2.0による外部認証',</p>
+<p>                'implementation': '''</p>
+<p>                class OAuthFlowHandler:</p>
+<p>                    def __init__(self, oauth_config):</p>
+<p>                        self.config = oauth_config</p>
+<p>                        self.state_store = StateStore()</p>
+                    
+<p>                    async def initiate_oauth_flow(self, provider: str) -> str:</p>
+<p>                        # CSRF対策のstate生成</p>
+<p>                        state = secrets.token_urlsafe(32)</p>
+<p>                        await self.state_store.save(state, ttl=600)  # 10分有効</p>
+                        
+<p>                        # PKCE対応</p>
+<p>                        code_verifier = secrets.token_urlsafe(32)</p>
+<p>                        code_challenge = self.generate_code_challenge(code_verifier)</p>
+                        
+<p>                        # 認証URLの構築</p>
+<p>                        auth_url = self.build_auth_url(</p>
+<p>                            provider=provider,</p>
+<p>                            state=state,</p>
+<p>                            code_challenge=code_challenge</p>
+<p>                        )</p>
+                        
+<p>                        return auth_url</p>
+                    
+<p>                    async def handle_callback(self, code: str, state: str) -> AuthResult:</p>
+<p>                        # State検証</p>
+<p>                        if not await self.state_store.verify(state):</p>
+<p>                            raise SecurityError("Invalid state parameter")</p>
+                        
+<p>                        # トークン交換</p>
+<p>                        tokens = await self.exchange_code_for_tokens(code)</p>
+                        
+<p>                        # ユーザー情報取得</p>
+<p>                        user_info = await self.get_user_info(tokens.access_token)</p>
+                        
+<p>                        # ローカルユーザーとの紐付け</p>
+<p>                        local_user = await self.link_or_create_user(user_info)</p>
+                        
+<p>                        return AuthResult(</p>
+<p>                            success=True,</p>
+<p>                            user=local_user,</p>
+<p>                            external_tokens=tokens</p>
+<p>                        )</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'saml_flow': {</p>
+<p>                'description': 'SAML 2.0によるエンタープライズSSO',</p>
+<p>                'implementation': '''</p>
+<p>                class SAMLFlowHandler:</p>
+<p>                    def __init__(self, saml_config):</p>
+<p>                        self.config = saml_config</p>
+<p>                        self.saml = OneLogin_Saml2_Auth(saml_config)</p>
+                    
+<p>                    def initiate_saml_sso(self, return_url: str) -> str:</p>
+<p>                        # SAML Request生成</p>
+<p>                        saml_request = self.saml.login(return_to=return_url)</p>
+<p>                        return saml_request</p>
+                    
+<p>                    async def process_saml_response(self, saml_response: str) -> AuthResult:</p>
+<p>                        # SAML Response検証</p>
+<p>                        self.saml.process_response()</p>
+                        
+<p>                        if not self.saml.is_authenticated():</p>
+<p>                            errors = self.saml.get_errors()</p>
+<p>                            raise AuthError(f"SAML authentication failed: {errors}")</p>
+                        
+<p>                        # 属性取得</p>
+<p>                        attributes = self.saml.get_attributes()</p>
+                        
+<p>                        # ユーザー情報のマッピング</p>
+<p>                        user_info = {</p>
+<p>                            'email': attributes.get('email')[0],</p>
+<p>                            'name': attributes.get('displayName')[0],</p>
+<p>                            'groups': attributes.get('memberOf', [])</p>
+<p>                        }</p>
+                        
+<p>                        # ローカルユーザー作成/更新</p>
+<p>                        local_user = await self.sync_user(user_info)</p>
+                        
+<p>                        return AuthResult(</p>
+<p>                            success=True,</p>
+<p>                            user=local_user,</p>
+<p>                            saml_attributes=attributes</p>
+<p>                        )</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>10.1.2 モダンな認証フローパターン</h3><p><pre><code>python</p>
+<p>class ModernAuthenticationFlows:</p>
+<p>    """モダンな認証フローパターン"""</p>
+    
+<p>    def passwordless_flows(self):</p>
+<p>        """パスワードレス認証フロー"""</p>
+        
+<p>        return {</p>
+<p>            'magic_link_flow': {</p>
+<p>                'description': 'メールによるマジックリンク認証',</p>
+<p>                'implementation': '''</p>
+<p>                class MagicLinkAuth:</p>
+<p>                    def __init__(self, token_service, email_service):</p>
+<p>                        self.token_service = token_service</p>
+<p>                        self.email_service = email_service</p>
+                    
+<p>                    async def send_magic_link(self, email: str) -> None:</p>
+<p>                        # ユーザー確認</p>
+<p>                        user = await self.user_repo.find_by_email(email)</p>
+                        
+<p>                        # トークン生成（短命: 15分）</p>
+<p>                        token = await self.token_service.create_magic_token(</p>
+<p>                            user_id=user.id if user else None,</p>
+<p>                            email=email,</p>
+<p>                            expires_in=timedelta(minutes=15)</p>
+<p>                        )</p>
+                        
+<p>                        # マジックリンク生成</p>
+<p>                        magic_link = f"{self.base_url}/auth/magic/{token}"</p>
+                        
+<p>                        # メール送信</p>
+<p>                        await self.email_service.send_magic_link(</p>
+<p>                            to=email,</p>
+<p>                            link=magic_link,</p>
+<p>                            user_exists=user is not None</p>
+<p>                        )</p>
+                    
+<p>                    async def verify_magic_link(self, token: str) -> AuthResult:</p>
+<p>                        # トークン検証</p>
+<p>                        token_data = await self.token_service.verify_magic_token(token)</p>
+<p>                        if not token_data:</p>
+<p>                            return AuthResult(success=False, error="Invalid or expired link")</p>
+                        
+<p>                        # ユーザー取得または作成</p>
+<p>                        if token_data.user_id:</p>
+<p>                            user = await self.user_repo.find_by_id(token_data.user_id)</p>
+<p>                        else:</p>
+<p>                            # 新規ユーザー作成</p>
+<p>                            user = await self.user_repo.create(email=token_data.email)</p>
+                        
+<p>                        # トークンの無効化（一度のみ使用可能）</p>
+<p>                        await self.token_service.invalidate_token(token)</p>
+                        
+<p>                        return AuthResult(success=True, user=user)</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'webauthn_flow': {</p>
+<p>                'description': 'WebAuthn/FIDO2による生体認証',</p>
+<p>                'implementation': '''</p>
+<p>                class WebAuthnFlow:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.rp = PublicKeyCredentialRpEntity(</p>
+<p>                            name="My App",</p>
+<p>                            id="example.com"</p>
+<p>                        )</p>
+                    
+<p>                    async def registration_begin(self, user: User) -> dict:</p>
+<p>                        # チャレンジ生成</p>
+<p>                        challenge = secrets.token_bytes(32)</p>
+                        
+<p>                        # 登録オプション作成</p>
+<p>                        options = generate_registration_options(</p>
+<p>                            rp_id=self.rp.id,</p>
+<p>                            rp_name=self.rp.name,</p>
+<p>                            user_id=user.id.encode(),</p>
+<p>                            user_name=user.email,</p>
+<p>                            user_display_name=user.name,</p>
+<p>                            challenge=challenge,</p>
+<p>                            attestation="direct",</p>
+<p>                            authenticator_selection=AuthenticatorSelectionCriteria(</p>
+<p>                                authenticator_attachment="platform",</p>
+<p>                                user_verification="required"</p>
+<p>                            )</p>
+<p>                        )</p>
+                        
+<p>                        # チャレンジを保存</p>
+<p>                        await self.store_challenge(user.id, challenge)</p>
+                        
+<p>                        return options</p>
+                    
+<p>                    async def registration_complete(self, user: User, credential: dict) -> bool:</p>
+<p>                        # チャレンジ検証</p>
+<p>                        expected_challenge = await self.get_challenge(user.id)</p>
+                        
+<p>                        # 認証情報の検証</p>
+<p>                        verification = verify_registration_response(</p>
+<p>                            credential=credential,</p>
+<p>                            expected_challenge=expected_challenge,</p>
+<p>                            expected_origin=self.expected_origin,</p>
+<p>                            expected_rp_id=self.rp.id</p>
+<p>                        )</p>
+                        
+<p>                        if verification.verified:</p>
+<p>                            # 認証情報の保存</p>
+<p>                            await self.save_credential(</p>
+<p>                                user_id=user.id,</p>
+<p>                                credential_id=verification.credential_id,</p>
+<p>                                public_key=verification.credential_public_key,</p>
+<p>                                sign_count=verification.sign_count</p>
+<p>                            )</p>
+<p>                            return True</p>
+                        
+<p>                        return False</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def adaptive_authentication(self):</p>
+<p>        """適応型認証フロー"""</p>
+        
+<p>        return {</p>
+<p>            'risk_based_flow': {</p>
+<p>                'description': 'リスクベースの動的認証',</p>
+<p>                'implementation': '''</p>
+<p>                class AdaptiveAuthFlow:</p>
+<p>                    def __init__(self, risk_engine, auth_methods):</p>
+<p>                        self.risk_engine = risk_engine</p>
+<p>                        self.auth_methods = auth_methods</p>
+                    
+<p>                    async def authenticate(self, request: AuthRequest) -> AuthResult:</p>
+<p>                        # リスク評価</p>
+<p>                        risk_score = await self.risk_engine.evaluate(request)</p>
+                        
+<p>                        # リスクレベルに基づく認証方法の選択</p>
+<p>                        required_methods = self.determine_auth_methods(risk_score)</p>
+                        
+<p>                        # 段階的な認証実行</p>
+<p>                        auth_results = []</p>
+<p>                        for method in required_methods:</p>
+<p>                            handler = self.auth_methods[method]</p>
+<p>                            result = await handler.authenticate(request)</p>
+                            
+<p>                            if not result.success:</p>
+<p>                                return AuthResult(</p>
+<p>                                    success=False,</p>
+<p>                                    error=f"{method} authentication failed",</p>
+<p>                                    completed_methods=auth_results</p>
+<p>                                )</p>
+                            
+<p>                            auth_results.append(method)</p>
+                        
+<p>                        # 最終的な認証結果</p>
+<p>                        return AuthResult(</p>
+<p>                            success=True,</p>
+<p>                            user=request.user,</p>
+<p>                            auth_methods=auth_results,</p>
+<p>                            risk_score=risk_score</p>
+<p>                        )</p>
+                    
+<p>                    def determine_auth_methods(self, risk_score: float) -> List[str]:</p>
+<p>                        if risk_score < 30:</p>
+<p>                            return ['password']</p>
+<p>                        elif risk_score < 60:</p>
+<p>                            return ['password', 'totp']</p>
+<p>                        elif risk_score < 80:</p>
+<p>                            return ['password', 'totp', 'security_questions']</p>
+<p>                        else:</p>
+<p>                            return ['password', 'totp', 'biometric', 'admin_approval']</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>10.2 権限チェックの実装方法</h2><h3>10.2.1 権限チェックのパターン</h3><p><pre><code>python</p>
+<p>class AuthorizationPatterns:</p>
+<p>    """権限チェックの実装パターン"""</p>
+    
+<p>    def basic_patterns(self):</p>
+<p>        """基本的な権限チェックパターン"""</p>
+        
+<p>        return {</p>
+<p>            'imperative_check': {</p>
+<p>                'description': '命令的な権限チェック',</p>
+<p>                'pros': 'シンプル、直感的',</p>
+<p>                'cons': 'コードの重複、チェック漏れのリスク',</p>
+<p>                'implementation': '''</p>
+<p>                class OrderService:</p>
+<p>                    def __init__(self, auth_service):</p>
+<p>                        self.auth = auth_service</p>
+                    
+<p>                    async def get_order(self, user: User, order_id: str) -> Order:</p>
+<p>                        # 命令的なチェック</p>
+<p>                        order = await self.order_repo.find_by_id(order_id)</p>
+                        
+<p>                        if not order:</p>
+<p>                            raise NotFoundError("Order not found")</p>
+                        
+<p>                        # 権限チェック</p>
+<p>                        if not self.can_read_order(user, order):</p>
+<p>                            raise ForbiddenError("Access denied")</p>
+                        
+<p>                        return order</p>
+                    
+<p>                    def can_read_order(self, user: User, order: Order) -> bool:</p>
+<p>                        # オーナーチェック</p>
+<p>                        if order.user_id == user.id:</p>
+<p>                            return True</p>
+                        
+<p>                        # 管理者チェック</p>
+<p>                        if 'admin' in user.roles:</p>
+<p>                            return True</p>
+                        
+<p>                        # サポートスタッフチェック</p>
+<p>                        if 'support' in user.roles and order.status != 'draft':</p>
+<p>                            return True</p>
+                        
+<p>                        return False</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'declarative_check': {</p>
+<p>                'description': '宣言的な権限チェック',</p>
+<p>                'pros': 'DRY原則、一貫性',</p>
+<p>                'cons': '初期実装が複雑',</p>
+<p>                'implementation': '''</p>
+<p>                from functools import wraps</p>
+                
+<p>                class Permissions:</p>
+<p>                    """権限デコレータ"""</p>
+                    
+<p>                    @staticmethod</p>
+<p>                    def require(*permissions):</p>
+<p>                        def decorator(func):</p>
+<p>                            @wraps(func)</p>
+<p>                            async def wrapper(self, user: User, <em>args, </em>*kwargs):</p>
+<p>                                # 権限チェック</p>
+<p>                                if not all(perm in user.permissions for perm in permissions):</p>
+<p>                                    raise ForbiddenError(</p>
+<p>                                        f"Required permissions: {permissions}"</p>
+<p>                                    )</p>
+<p>                                return await func(self, user, <em>args, </em>*kwargs)</p>
+<p>                            return wrapper</p>
+<p>                        return decorator</p>
+                    
+<p>                    @staticmethod</p>
+<p>                    def require_any(*permissions):</p>
+<p>                        def decorator(func):</p>
+<p>                            @wraps(func)</p>
+<p>                            async def wrapper(self, user: User, <em>args, </em>*kwargs):</p>
+<p>                                if not any(perm in user.permissions for perm in permissions):</p>
+<p>                                    raise ForbiddenError(</p>
+<p>                                        f"Required any of: {permissions}"</p>
+<p>                                    )</p>
+<p>                                return await func(self, user, <em>args, </em>*kwargs)</p>
+<p>                            return wrapper</p>
+<p>                        return decorator</p>
+                
+<p>                class OrderService:</p>
+<p>                    @Permissions.require('orders.read')</p>
+<p>                    async def list_orders(self, user: User) -> List[Order]:</p>
+<p>                        return await self.order_repo.find_by_user(user.id)</p>
+                    
+<p>                    @Permissions.require('orders.create')</p>
+<p>                    async def create_order(self, user: User, data: OrderData) -> Order:</p>
+<p>                        return await self.order_repo.create(user_id=user.id, <em></em>data)</p>
+                    
+<p>                    @Permissions.require_any('orders.admin', 'orders.support')</p>
+<p>                    async def list_all_orders(self, user: User) -> List[Order]:</p>
+<p>                        return await self.order_repo.find_all()</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def advanced_patterns(self):</p>
+<p>        """高度な権限チェックパターン"""</p>
+        
+<p>        return {</p>
+<p>            'policy_based_authorization': {</p>
+<p>                'description': 'ポリシーベースの権限管理',</p>
+<p>                'implementation': '''</p>
+<p>                class PolicyEngine:</p>
+<p>                    """ポリシーエンジン"""</p>
+                    
+<p>                    def __init__(self):</p>
+<p>                        self.policies = {}</p>
+                    
+<p>                    def register_policy(self, name: str, policy: Policy):</p>
+<p>                        self.policies[name] = policy</p>
+                    
+<p>                    async def authorize(self, user: User, action: str, resource: Any) -> bool:</p>
+<p>                        context = AuthContext(</p>
+<p>                            user=user,</p>
+<p>                            action=action,</p>
+<p>                            resource=resource,</p>
+<p>                            environment=self.get_environment()</p>
+<p>                        )</p>
+                        
+<p>                        # 適用可能なポリシーを取得</p>
+<p>                        applicable_policies = self.get_applicable_policies(context)</p>
+                        
+<p>                        # ポリシー評価</p>
+<p>                        for policy in applicable_policies:</p>
+<p>                            result = await policy.evaluate(context)</p>
+                            
+<p>                            if result == PolicyResult.DENY:</p>
+<p>                                return False  # 明示的な拒否は最優先</p>
+                            
+<p>                        # 少なくとも1つのポリシーが許可していれば OK</p>
+<p>                        return any(</p>
+<p>                            await p.evaluate(context) == PolicyResult.ALLOW </p>
+<p>                            for p in applicable_policies</p>
+<p>                        )</p>
+                
+<p>                # ポリシー定義例</p>
+<p>                class OrderOwnerPolicy(Policy):</p>
+<p>                    async def evaluate(self, context: AuthContext) -> PolicyResult:</p>
+<p>                        if context.action.startswith('order.'):</p>
+<p>                            order = context.resource</p>
+<p>                            if order.user_id == context.user.id:</p>
+<p>                                return PolicyResult.ALLOW</p>
+<p>                        return PolicyResult.NOT_APPLICABLE</p>
+                
+<p>                class AdminPolicy(Policy):</p>
+<p>                    async def evaluate(self, context: AuthContext) -> PolicyResult:</p>
+<p>                        if 'admin' in context.user.roles:</p>
+<p>                            return PolicyResult.ALLOW</p>
+<p>                        return PolicyResult.NOT_APPLICABLE</p>
+                
+<p>                # 使用例</p>
+<p>                policy_engine = PolicyEngine()</p>
+<p>                policy_engine.register_policy('order_owner', OrderOwnerPolicy())</p>
+<p>                policy_engine.register_policy('admin', AdminPolicy())</p>
+                
+<p>                # サービスでの利用</p>
+<p>                class OrderService:</p>
+<p>                    def __init__(self, policy_engine):</p>
+<p>                        self.policy_engine = policy_engine</p>
+                    
+<p>                    async def update_order(self, user: User, order_id: str, data: dict) -> Order:</p>
+<p>                        order = await self.get_order(order_id)</p>
+                        
+<p>                        if not await self.policy_engine.authorize(user, 'order.update', order):</p>
+<p>                            raise ForbiddenError("Access denied")</p>
+                        
+<p>                        return await self.order_repo.update(order_id, data)</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'attribute_based_access_control': {</p>
+<p>                'description': '属性ベースアクセス制御（ABAC）',</p>
+<p>                'implementation': '''</p>
+<p>                class ABACEngine:</p>
+<p>                    """ABAC実装"""</p>
+                    
+<p>                    def __init__(self):</p>
+<p>                        self.attribute_resolvers = {}</p>
+<p>                        self.policy_store = PolicyStore()</p>
+                    
+<p>                    async def check_access(self, request: AccessRequest) -> bool:</p>
+<p>                        # 属性の収集</p>
+<p>                        attributes = await self.collect_attributes(request)</p>
+                        
+<p>                        # ポリシーの評価</p>
+<p>                        policies = await self.policy_store.find_applicable(attributes)</p>
+                        
+<p>                        for policy in policies:</p>
+<p>                            if not self.evaluate_policy(policy, attributes):</p>
+<p>                                return False</p>
+                        
+<p>                        return True</p>
+                    
+<p>                    async def collect_attributes(self, request: AccessRequest) -> dict:</p>
+<p>                        attributes = {</p>
+<p>                            'subject': await self.get_subject_attributes(request.user),</p>
+<p>                            'resource': await self.get_resource_attributes(request.resource),</p>
+<p>                            'action': request.action,</p>
+<p>                            'environment': await self.get_environment_attributes()</p>
+<p>                        }</p>
+<p>                        return attributes</p>
+                    
+<p>                    def evaluate_policy(self, policy: Policy, attributes: dict) -> bool:</p>
+<p>                        # ポリシールールの評価</p>
+<p>                        for rule in policy.rules:</p>
+<p>                            if not self.evaluate_rule(rule, attributes):</p>
+<p>                                return False</p>
+<p>                        return True</p>
+                    
+<p>                    def evaluate_rule(self, rule: Rule, attributes: dict) -> bool:</p>
+<p>                        # 属性値の取得</p>
+<p>                        value = self.get_attribute_value(attributes, rule.attribute_path)</p>
+                        
+<p>                        # 条件評価</p>
+<p>                        if rule.operator == 'equals':</p>
+<p>                            return value == rule.expected_value</p>
+<p>                        elif rule.operator == 'contains':</p>
+<p>                            return rule.expected_value in value</p>
+<p>                        elif rule.operator == 'greater_than':</p>
+<p>                            return value > rule.expected_value</p>
+<p>                        # ... 他の演算子</p>
+                
+<p>                # ポリシー例</p>
+<p>                sensitive_data_policy = {</p>
+<p>                    "name": "sensitive_data_access",</p>
+<p>                    "rules": [</p>
+<p>                        {</p>
+<p>                            "attribute_path": "subject.clearance_level",</p>
+<p>                            "operator": "greater_than_or_equal",</p>
+<p>                            "expected_value": 3</p>
+<p>                        },</p>
+<p>                        {</p>
+<p>                            "attribute_path": "resource.classification",</p>
+<p>                            "operator": "equals",</p>
+<p>                            "expected_value": "sensitive"</p>
+<p>                        },</p>
+<p>                        {</p>
+<p>                            "attribute_path": "environment.time_of_day",</p>
+<p>                            "operator": "between",</p>
+<p>                            "expected_value": [9, 17]</p>
+<p>                        }</p>
+<p>                    ]</p>
+<p>                }</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def performance_optimized_patterns(self):</p>
+<p>        """パフォーマンス最適化パターン"""</p>
+        
+<p>        return {</p>
+<p>            'permission_caching': {</p>
+<p>                'description': '権限情報のキャッシング',</p>
+<p>                'implementation': '''</p>
+<p>                class CachedPermissionChecker:</p>
+<p>                    def __init__(self, cache, permission_service):</p>
+<p>                        self.cache = cache</p>
+<p>                        self.permission_service = permission_service</p>
+                    
+<p>                    async def has_permission(self, user_id: str, permission: str) -> bool:</p>
+<p>                        # キャッシュキー</p>
+<p>                        cache_key = f"perm:{user_id}:{permission}"</p>
+                        
+<p>                        # キャッシュチェック</p>
+<p>                        cached = await self.cache.get(cache_key)</p>
+<p>                        if cached is not None:</p>
+<p>                            return cached == "1"</p>
+                        
+<p>                        # 権限チェック</p>
+<p>                        has_perm = await self.permission_service.check(user_id, permission)</p>
+                        
+<p>                        # キャッシュに保存（5分間）</p>
+<p>                        await self.cache.set(</p>
+<p>                            cache_key, </p>
+<p>                            "1" if has_perm else "0",</p>
+<p>                            expire=300</p>
+<p>                        )</p>
+                        
+<p>                        return has_perm</p>
+                    
+<p>                    async def invalidate_user_permissions(self, user_id: str):</p>
+<p>                        """ユーザーの権限キャッシュを無効化"""</p>
+<p>                        pattern = f"perm:{user_id}:*"</p>
+<p>                        await self.cache.delete_pattern(pattern)</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'batch_permission_check': {</p>
+<p>                'description': 'バッチでの権限チェック',</p>
+<p>                'implementation': '''</p>
+<p>                class BatchPermissionChecker:</p>
+<p>                    async def check_permissions_batch(</p>
+<p>                        self, </p>
+<p>                        user: User, </p>
+<p>                        resources: List[Resource]</p>
+<p>                    ) -> Dict[str, bool]:</p>
+<p>                        """複数リソースの権限を一括チェック"""</p>
+                        
+<p>                        # 権限マトリクスの構築</p>
+<p>                        permission_matrix = {}</p>
+                        
+<p>                        # ユーザーの全権限を一度に取得</p>
+<p>                        user_permissions = await self.get_all_user_permissions(user)</p>
+                        
+<p>                        # 各リソースに対する権限チェック</p>
+<p>                        for resource in resources:</p>
+<p>                            # リソース固有のルール適用</p>
+<p>                            can_access = self.evaluate_resource_access(</p>
+<p>                                user_permissions, </p>
+<p>                                resource</p>
+<p>                            )</p>
+<p>                            permission_matrix[resource.id] = can_access</p>
+                        
+<p>                        return permission_matrix</p>
+                    
+<p>                    def evaluate_resource_access(</p>
+<p>                        self, </p>
+<p>                        user_permissions: Set[str], </p>
+<p>                        resource: Resource</p>
+<p>                    ) -> bool:</p>
+<p>                        # 必要な権限の確認</p>
+<p>                        required_permissions = resource.get_required_permissions()</p>
+                        
+<p>                        # 権限チェック</p>
+<p>                        return all(</p>
+<p>                            perm in user_permissions </p>
+<p>                            for perm in required_permissions</p>
+<p>                        )</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>10.3 監査ログの設計</h2><h3>10.3.1 監査ログの基本設計</h3><p><pre><code>python</p>
+<p>class AuditLogDesign:</p>
+<p>    """監査ログの設計パターン"""</p>
+    
+<p>    def audit_log_requirements(self):</p>
+<p>        """監査ログの要件"""</p>
+        
+<p>        return {</p>
+<p>            'essential_fields': {</p>
+<p>                'who': 'ユーザー識別情報',</p>
+<p>                'what': '実行されたアクション',</p>
+<p>                'when': 'タイムスタンプ',</p>
+<p>                'where': 'アクセス元情報',</p>
+<p>                'why': 'アクションの文脈',</p>
+<p>                'result': '成功/失敗'</p>
+<p>            },</p>
+            
+<p>            'implementation': '''</p>
+<p>            @dataclass</p>
+<p>            class AuditLogEntry:</p>
+<p>                # Who</p>
+<p>                user_id: str</p>
+<p>                user_email: str</p>
+<p>                user_roles: List[str]</p>
+                
+<p>                # What</p>
+<p>                action: str</p>
+<p>                resource_type: str</p>
+<p>                resource_id: str</p>
+<p>                changes: Optional[Dict[str, Any]] = None</p>
+                
+<p>                # When</p>
+<p>                timestamp: datetime</p>
+                
+<p>                # Where</p>
+<p>                ip_address: str</p>
+<p>                user_agent: str</p>
+<p>                session_id: str</p>
+                
+<p>                # Why</p>
+<p>                reason: Optional[str] = None</p>
+<p>                request_id: str = field(default_factory=lambda: str(uuid.uuid4()))</p>
+                
+<p>                # Result</p>
+<p>                success: bool</p>
+<p>                error_code: Optional[str] = None</p>
+<p>                error_message: Optional[str] = None</p>
+                
+<p>                # Metadata</p>
+<p>                application_version: str = None</p>
+<p>                additional_context: Dict[str, Any] = field(default_factory=dict)</p>
+            
+<p>            class AuditLogger:</p>
+<p>                def __init__(self, storage_backend):</p>
+<p>                    self.storage = storage_backend</p>
+<p>                    self.queue = asyncio.Queue(maxsize=10000)</p>
+<p>                    self.batch_size = 100</p>
+<p>                    self.flush_interval = 1.0</p>
+                
+<p>                async def log(self, entry: AuditLogEntry):</p>
+<p>                    """非同期でログエントリを記録"""</p>
+<p>                    try:</p>
+<p>                        await self.queue.put(entry)</p>
+<p>                    except asyncio.QueueFull:</p>
+<p>                        # フォールバック: 同期的に書き込み</p>
+<p>                        await self.storage.write([entry])</p>
+                
+<p>                async def start_background_writer(self):</p>
+<p>                    """バックグラウンドでのバッチ書き込み"""</p>
+<p>                    while True:</p>
+<p>                        batch = []</p>
+<p>                        deadline = time.time() + self.flush_interval</p>
+                        
+<p>                        while len(batch) < self.batch_size and time.time() < deadline:</p>
+<p>                            try:</p>
+<p>                                timeout = deadline - time.time()</p>
+<p>                                entry = await asyncio.wait_for(</p>
+<p>                                    self.queue.get(), </p>
+<p>                                    timeout=max(0.1, timeout)</p>
+<p>                                )</p>
+<p>                                batch.append(entry)</p>
+<p>                            except asyncio.TimeoutError:</p>
+<p>                                break</p>
+                        
+<p>                        if batch:</p>
+<p>                            await self.storage.write(batch)</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def sensitive_data_handling(self):</p>
+<p>        """機密データの取り扱い"""</p>
+        
+<p>        return {</p>
+<p>            'data_masking': '''</p>
+<p>            class SensitiveDataMasker:</p>
+<p>                """機密データのマスキング"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.patterns = {</p>
+<p>                        'email': (r'[^@]+@', lambda m: '<em></em>*@'),</p>
+<p>                        'credit_card': (r'\d{12}', lambda m: '<strong></strong>' * 3),</p>
+<p>                        'ssn': (r'\d{3}-\d{2}-', lambda m: '<strong>*-</strong>-'),</p>
+<p>                        'phone': (r'\d{3}-\d{3}-', lambda m: '<strong><em>-</strong></em>-')</p>
+<p>                    }</p>
+                
+<p>                def mask_dict(self, data: dict, fields_to_mask: List[str]) -> dict:</p>
+<p>                    """辞書内の機密フィールドをマスク"""</p>
+<p>                    masked = data.copy()</p>
+                    
+<p>                    for field in fields_to_mask:</p>
+<p>                        if field in masked and masked[field]:</p>
+<p>                            masked[field] = self.mask_value(field, masked[field])</p>
+                    
+<p>                    return masked</p>
+                
+<p>                def mask_value(self, field_type: str, value: str) -> str:</p>
+<p>                    """値のマスキング"""</p>
+<p>                    if field_type in self.patterns:</p>
+<p>                        pattern, replacer = self.patterns[field_type]</p>
+<p>                        return re.sub(pattern, replacer, str(value))</p>
+                    
+<p>                    # デフォルト: 最初と最後の文字以外をマスク</p>
+<p>                    if len(str(value)) > 2:</p>
+<p>                        return value[0] + '<em>' </em> (len(value) - 2) + value[-1]</p>
+<p>                    return '<em>' </em> len(str(value))</p>
+            
+<p>            # 使用例</p>
+<p>            class SecureAuditLogger(AuditLogger):</p>
+<p>                def __init__(self, storage_backend):</p>
+<p>                    super().__init__(storage_backend)</p>
+<p>                    self.masker = SensitiveDataMasker()</p>
+                
+<p>                async def log_with_masking(self, entry: AuditLogEntry):</p>
+<p>                    # 機密データのマスキング</p>
+<p>                    if entry.changes:</p>
+<p>                        entry.changes = self.masker.mask_dict(</p>
+<p>                            entry.changes,</p>
+<p>                            fields_to_mask=['password', 'credit_card', 'ssn']</p>
+<p>                        )</p>
+                    
+<p>                    await self.log(entry)</p>
+<p>            ''',</p>
+            
+<p>            'encryption_at_rest': '''</p>
+<p>            class EncryptedAuditStorage:</p>
+<p>                """保存時の暗号化"""</p>
+                
+<p>                def __init__(self, encryption_key: bytes):</p>
+<p>                    self.cipher = Fernet(encryption_key)</p>
+                
+<p>                async def write(self, entries: List[AuditLogEntry]):</p>
+<p>                    encrypted_entries = []</p>
+                    
+<p>                    for entry in entries:</p>
+<p>                        # JSON形式に変換</p>
+<p>                        json_data = json.dumps(asdict(entry), default=str)</p>
+                        
+<p>                        # 暗号化</p>
+<p>                        encrypted = self.cipher.encrypt(json_data.encode())</p>
+                        
+<p>                        encrypted_entries.append({</p>
+<p>                            'id': entry.request_id,</p>
+<p>                            'timestamp': entry.timestamp,</p>
+<p>                            'user_id': entry.user_id,  # 検索用に平文保存</p>
+<p>                            'action': entry.action,     # 検索用に平文保存</p>
+<p>                            'encrypted_data': encrypted.decode()</p>
+<p>                        })</p>
+                    
+<p>                    # データベースに保存</p>
+<p>                    await self.db.audit_logs.insert_many(encrypted_entries)</p>
+                
+<p>                async def read(self, filters: dict) -> List[AuditLogEntry]:</p>
+<p>                    # 暗号化されたエントリを取得</p>
+<p>                    encrypted_entries = await self.db.audit_logs.find(filters)</p>
+                    
+<p>                    entries = []</p>
+<p>                    for enc_entry in encrypted_entries:</p>
+<p>                        # 復号化</p>
+<p>                        decrypted = self.cipher.decrypt(</p>
+<p>                            enc_entry['encrypted_data'].encode()</p>
+<p>                        )</p>
+                        
+<p>                        # AuditLogEntryに変換</p>
+<p>                        data = json.loads(decrypted)</p>
+<p>                        entries.append(AuditLogEntry(<em></em>data))</p>
+                    
+<p>                    return entries</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def audit_log_analysis(self):</p>
+<p>        """監査ログの分析"""</p>
+        
+<p>        return {</p>
+<p>            'anomaly_detection': '''</p>
+<p>            class AuditLogAnalyzer:</p>
+<p>                """監査ログの異常検知"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.ml_model = self.load_anomaly_model()</p>
+<p>                    self.alert_service = AlertService()</p>
+                
+<p>                async def analyze_user_behavior(self, user_id: str):</p>
+<p>                    """ユーザー行動の分析"""</p>
+<p>                    # 直近の行動履歴取得</p>
+<p>                    recent_logs = await self.get_recent_logs(user_id, hours=24)</p>
+                    
+<p>                    # 特徴量抽出</p>
+<p>                    features = self.extract_features(recent_logs)</p>
+                    
+<p>                    # 異常スコア計算</p>
+<p>                    anomaly_score = self.ml_model.predict([features])[0]</p>
+                    
+<p>                    if anomaly_score > 0.8:</p>
+<p>                        await self.handle_anomaly(user_id, recent_logs, anomaly_score)</p>
+                
+<p>                def extract_features(self, logs: List[AuditLogEntry]) -> dict:</p>
+<p>                    """行動特徴の抽出"""</p>
+<p>                    return {</p>
+<p>                        'action_count': len(logs),</p>
+<p>                        'unique_ips': len(set(log.ip_address for log in logs)),</p>
+<p>                        'failed_attempts': sum(1 for log in logs if not log.success),</p>
+<p>                        'unusual_hours': sum(</p>
+<p>                            1 for log in logs </p>
+<p>                            if log.timestamp.hour < 6 or log.timestamp.hour > 22</p>
+<p>                        ),</p>
+<p>                        'sensitive_actions': sum(</p>
+<p>                            1 for log in logs </p>
+<p>                            if log.action in ['delete', 'export', 'admin_access']</p>
+<p>                        )</p>
+<p>                    }</p>
+                
+<p>                async def handle_anomaly(self, user_id: str, logs: List[AuditLogEntry], score: float):</p>
+<p>                    """異常の処理"""</p>
+<p>                    # アラート送信</p>
+<p>                    await self.alert_service.send_alert(</p>
+<p>                        level=AlertLevel.HIGH,</p>
+<p>                        title=f"Anomalous behavior detected for user {user_id}",</p>
+<p>                        details={</p>
+<p>                            'anomaly_score': score,</p>
+<p>                            'recent_actions': [</p>
+<p>                                {</p>
+<p>                                    'action': log.action,</p>
+<p>                                    'timestamp': log.timestamp,</p>
+<p>                                    'ip': log.ip_address</p>
+<p>                                }</p>
+<p>                                for log in logs[-10:]  # 最新10件</p>
+<p>                            ]</p>
+<p>                        }</p>
+<p>                    )</p>
+                    
+<p>                    # 自動対応</p>
+<p>                    if score > 0.95:</p>
+<p>                        await self.security_response.lock_account(user_id)</p>
+<p>            ''',</p>
+            
+<p>            'compliance_reporting': '''</p>
+<p>            class ComplianceReporter:</p>
+<p>                """コンプライアンスレポート生成"""</p>
+                
+<p>                async def generate_access_report(self, resource_id: str, date_range: DateRange):</p>
+<p>                    """リソースへのアクセスレポート"""</p>
+                    
+<p>                    # アクセスログの取得</p>
+<p>                    access_logs = await self.get_resource_access_logs(resource_id, date_range)</p>
+                    
+<p>                    # レポート生成</p>
+<p>                    report = {</p>
+<p>                        'resource_id': resource_id,</p>
+<p>                        'period': {</p>
+<p>                            'start': date_range.start,</p>
+<p>                            'end': date_range.end</p>
+<p>                        },</p>
+<p>                        'summary': {</p>
+<p>                            'total_accesses': len(access_logs),</p>
+<p>                            'unique_users': len(set(log.user_id for log in access_logs)),</p>
+<p>                            'success_rate': self.calculate_success_rate(access_logs)</p>
+<p>                        },</p>
+<p>                        'access_by_user': self.group_by_user(access_logs),</p>
+<p>                        'access_by_action': self.group_by_action(access_logs),</p>
+<p>                        'anomalies': await self.detect_anomalies(access_logs)</p>
+<p>                    }</p>
+                    
+<p>                    return report</p>
+                
+<p>                async def generate_gdpr_report(self, user_id: str):</p>
+<p>                    """GDPR用の個人データアクセスレポート"""</p>
+                    
+<p>                    # すべてのアクセスログ取得</p>
+<p>                    all_logs = await self.get_user_related_logs(user_id)</p>
+                    
+<p>                    return {</p>
+<p>                        'user_id': user_id,</p>
+<p>                        'data_collected': self.extract_collected_data(all_logs),</p>
+<p>                        'data_shared': self.extract_data_sharing(all_logs),</p>
+<p>                        'data_processing': self.extract_processing_activities(all_logs),</p>
+<p>                        'third_party_access': self.extract_third_party_access(all_logs)</p>
+<p>                    }</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>10.4 テスト戦略</h2><h3>10.4.1 認証認可のテスト戦略</h3><p><pre><code>python</p>
+<p>class AuthTestingStrategy:</p>
+<p>    """認証認可のテスト戦略"""</p>
+    
+<p>    def unit_testing_patterns(self):</p>
+<p>        """ユニットテストパターン"""</p>
+        
+<p>        return {</p>
+<p>            'authentication_tests': '''</p>
+<p>            import pytest</p>
+<p>            from unittest.mock import Mock, AsyncMock</p>
+            
+<p>            class TestPasswordAuthentication:</p>
+<p>                """パスワード認証のテスト"""</p>
+                
+<p>                @pytest.fixture</p>
+<p>                def auth_service(self):</p>
+<p>                    return PasswordAuthService(</p>
+<p>                        user_repo=Mock(),</p>
+<p>                        password_hasher=Mock()</p>
+<p>                    )</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_successful_authentication(self, auth_service):</p>
+<p>                    # Setup</p>
+<p>                    auth_service.user_repo.find_by_email = AsyncMock(</p>
+<p>                        return_value=User(</p>
+<p>                            id="123",</p>
+<p>                            email="test@example.com",</p>
+<p>                            password_hash="hashed",</p>
+<p>                            is_active=True</p>
+<p>                        )</p>
+<p>                    )</p>
+<p>                    auth_service.password_hasher.verify = AsyncMock(return_value=True)</p>
+                    
+<p>                    # Execute</p>
+<p>                    result = await auth_service.authenticate(</p>
+<p>                        "test@example.com",</p>
+<p>                        "password123"</p>
+<p>                    )</p>
+                    
+<p>                    # Assert</p>
+<p>                    assert result.success is True</p>
+<p>                    assert result.user.email == "test@example.com"</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_invalid_password(self, auth_service):</p>
+<p>                    # Setup</p>
+<p>                    auth_service.user_repo.find_by_email = AsyncMock(</p>
+<p>                        return_value=User(</p>
+<p>                            id="123",</p>
+<p>                            email="test@example.com",</p>
+<p>                            password_hash="hashed",</p>
+<p>                            is_active=True</p>
+<p>                        )</p>
+<p>                    )</p>
+<p>                    auth_service.password_hasher.verify = AsyncMock(return_value=False)</p>
+                    
+<p>                    # Execute</p>
+<p>                    result = await auth_service.authenticate(</p>
+<p>                        "test@example.com",</p>
+<p>                        "wrong_password"</p>
+<p>                    )</p>
+                    
+<p>                    # Assert</p>
+<p>                    assert result.success is False</p>
+<p>                    assert result.error == "Invalid credentials"</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_timing_attack_protection(self, auth_service):</p>
+<p>                    """タイミング攻撃対策のテスト"""</p>
+<p>                    # Setup</p>
+<p>                    auth_service.user_repo.find_by_email = AsyncMock(return_value=None)</p>
+                    
+<p>                    # Execute - 存在しないユーザー</p>
+<p>                    start = time.time()</p>
+<p>                    await auth_service.authenticate("nonexistent@example.com", "password")</p>
+<p>                    duration_nonexistent = time.time() - start</p>
+                    
+<p>                    # Execute - 存在するユーザー（パスワード違い）</p>
+<p>                    auth_service.user_repo.find_by_email = AsyncMock(</p>
+<p>                        return_value=User(id="123", password_hash="hash")</p>
+<p>                    )</p>
+<p>                    auth_service.password_hasher.verify = AsyncMock(return_value=False)</p>
+                    
+<p>                    start = time.time()</p>
+<p>                    await auth_service.authenticate("existing@example.com", "wrong")</p>
+<p>                    duration_existing = time.time() - start</p>
+                    
+<p>                    # Assert - 実行時間がほぼ同じ</p>
+<p>                    assert abs(duration_nonexistent - duration_existing) < 0.05</p>
+<p>            ''',</p>
+            
+<p>            'authorization_tests': '''</p>
+<p>            class TestAuthorizationService:</p>
+<p>                """認可サービスのテスト"""</p>
+                
+<p>                def test_rbac_authorization(self):</p>
+<p>                    """RBACのテスト"""</p>
+<p>                    # Setup</p>
+<p>                    user = User(</p>
+<p>                        id="123",</p>
+<p>                        roles=["editor", "viewer"]</p>
+<p>                    )</p>
+                    
+<p>                    rbac = RBACService()</p>
+<p>                    rbac.define_role("editor", ["create", "update", "read"])</p>
+<p>                    rbac.define_role("viewer", ["read"])</p>
+                    
+<p>                    # Test - エディターの権限</p>
+<p>                    assert rbac.has_permission(user, "create") is True</p>
+<p>                    assert rbac.has_permission(user, "update") is True</p>
+<p>                    assert rbac.has_permission(user, "delete") is False</p>
+                
+<p>                def test_resource_based_authorization(self):</p>
+<p>                    """リソースベース認可のテスト"""</p>
+<p>                    # Setup</p>
+<p>                    owner = User(id="owner123")</p>
+<p>                    other_user = User(id="other456")</p>
+<p>                    admin = User(id="admin789", roles=["admin"])</p>
+                    
+<p>                    resource = Document(</p>
+<p>                        id="doc123",</p>
+<p>                        owner_id="owner123",</p>
+<p>                        permissions={</p>
+<p>                            "owner123": ["read", "write", "delete"],</p>
+<p>                            "other456": ["read"]</p>
+<p>                        }</p>
+<p>                    )</p>
+                    
+<p>                    authz = ResourceAuthorizationService()</p>
+                    
+<p>                    # Test - オーナーの権限</p>
+<p>                    assert authz.can_access(owner, resource, "write") is True</p>
+<p>                    assert authz.can_access(owner, resource, "delete") is True</p>
+                    
+<p>                    # Test - 他のユーザーの権限</p>
+<p>                    assert authz.can_access(other_user, resource, "read") is True</p>
+<p>                    assert authz.can_access(other_user, resource, "write") is False</p>
+                    
+<p>                    # Test - 管理者の権限</p>
+<p>                    assert authz.can_access(admin, resource, "delete") is True</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def integration_testing(self):</p>
+<p>        """統合テスト"""</p>
+        
+<p>        return {</p>
+<p>            'api_integration_tests': '''</p>
+<p>            class TestAuthAPI:</p>
+<p>                """認証APIの統合テスト"""</p>
+                
+<p>                @pytest.fixture</p>
+<p>                async def client(self):</p>
+<p>                    async with AsyncClient(app=app, base_url="http://test") as client:</p>
+<p>                        yield client</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_login_flow(self, client):</p>
+<p>                    """完全なログインフローのテスト"""</p>
+                    
+<p>                    # 1. ログイン</p>
+<p>                    response = await client.post("/auth/login", json={</p>
+<p>                        "email": "test@example.com",</p>
+<p>                        "password": "secure_password"</p>
+<p>                    })</p>
+                    
+<p>                    assert response.status_code == 200</p>
+<p>                    data = response.json()</p>
+<p>                    assert "access_token" in data</p>
+<p>                    assert "refresh_token" in data</p>
+                    
+<p>                    access_token = data["access_token"]</p>
+                    
+<p>                    # 2. 認証が必要なエンドポイントへのアクセス</p>
+<p>                    response = await client.get(</p>
+<p>                        "/api/profile",</p>
+<p>                        headers={"Authorization": f"Bearer {access_token}"}</p>
+<p>                    )</p>
+                    
+<p>                    assert response.status_code == 200</p>
+<p>                    profile = response.json()</p>
+<p>                    assert profile["email"] == "test@example.com"</p>
+                    
+<p>                    # 3. トークンリフレッシュ</p>
+<p>                    response = await client.post("/auth/refresh", json={</p>
+<p>                        "refresh_token": data["refresh_token"]</p>
+<p>                    })</p>
+                    
+<p>                    assert response.status_code == 200</p>
+<p>                    new_tokens = response.json()</p>
+<p>                    assert new_tokens["access_token"] != access_token</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_mfa_flow(self, client):</p>
+<p>                    """MFA認証フローのテスト"""</p>
+                    
+<p>                    # 1. 初回ログイン（MFAが必要）</p>
+<p>                    response = await client.post("/auth/login", json={</p>
+<p>                        "email": "mfa_user@example.com",</p>
+<p>                        "password": "password"</p>
+<p>                    })</p>
+                    
+<p>                    assert response.status_code == 200</p>
+<p>                    data = response.json()</p>
+<p>                    assert data["mfa_required"] is True</p>
+<p>                    assert "mfa_token" in data</p>
+                    
+<p>                    # 2. MFA検証</p>
+<p>                    response = await client.post("/auth/mfa/verify", json={</p>
+<p>                        "mfa_token": data["mfa_token"],</p>
+<p>                        "code": "123456"  # テスト用の固定コード</p>
+<p>                    })</p>
+                    
+<p>                    assert response.status_code == 200</p>
+<p>                    final_tokens = response.json()</p>
+<p>                    assert "access_token" in final_tokens</p>
+<p>            ''',</p>
+            
+<p>            'security_testing': '''</p>
+<p>            class TestSecurityVulnerabilities:</p>
+<p>                """セキュリティ脆弱性のテスト"""</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_sql_injection_protection(self, client):</p>
+<p>                    """SQLインジェクション対策のテスト"""</p>
+                    
+<p>                    malicious_inputs = [</p>
+<p>                        "admin'--",</p>
+<p>                        "' OR '1'='1",</p>
+<p>                        "'; DROP TABLE users; --",</p>
+<p>                        "admin' UNION SELECT * FROM users--"</p>
+<p>                    ]</p>
+                    
+<p>                    for payload in malicious_inputs:</p>
+<p>                        response = await client.post("/auth/login", json={</p>
+<p>                            "email": payload,</p>
+<p>                            "password": "password"</p>
+<p>                        })</p>
+                        
+<p>                        # SQLエラーが露出していないことを確認</p>
+<p>                        assert response.status_code in [400, 401]</p>
+<p>                        assert "SQL" not in response.text</p>
+<p>                        assert "syntax" not in response.text.lower()</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_brute_force_protection(self, client):</p>
+<p>                    """ブルートフォース対策のテスト"""</p>
+                    
+<p>                    # 連続してログイン失敗</p>
+<p>                    for i in range(6):</p>
+<p>                        response = await client.post("/auth/login", json={</p>
+<p>                            "email": "test@example.com",</p>
+<p>                            "password": f"wrong_password_{i}"</p>
+<p>                        })</p>
+                    
+<p>                    # レート制限が発動することを確認</p>
+<p>                    assert response.status_code == 429</p>
+<p>                    assert "Too many attempts" in response.json()["error"]</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_jwt_tampering(self, client):</p>
+<p>                    """JWT改ざん検知のテスト"""</p>
+                    
+<p>                    # 正規のトークン取得</p>
+<p>                    response = await client.post("/auth/login", json={</p>
+<p>                        "email": "test@example.com",</p>
+<p>                        "password": "password"</p>
+<p>                    })</p>
+<p>                    token = response.json()["access_token"]</p>
+                    
+<p>                    # トークンを改ざん</p>
+<p>                    parts = token.split('.')</p>
+<p>                    payload = base64.urlsafe_b64decode(parts[1] + '==')</p>
+<p>                    tampered_payload = payload.replace(b'"role":"user"', b'"role":"admin"')</p>
+<p>                    tampered = parts[0] + '.' + base64.urlsafe_b64encode(tampered_payload).decode().rstrip('=') + '.' + parts[2]</p>
+                    
+<p>                    # 改ざんされたトークンでアクセス</p>
+<p>                    response = await client.get(</p>
+<p>                        "/api/admin/users",</p>
+<p>                        headers={"Authorization": f"Bearer {tampered}"}</p>
+<p>                    )</p>
+                    
+<p>                    assert response.status_code == 401</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def e2e_testing(self):</p>
+<p>        """E2Eテスト"""</p>
+        
+<p>        return {</p>
+<p>            'playwright_tests': '''</p>
+<p>            from playwright.async_api import async_playwright</p>
+            
+<p>            class TestE2EAuthentication:</p>
+<p>                """E2E認証テスト"""</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_complete_auth_flow(self):</p>
+<p>                    async with async_playwright() as p:</p>
+<p>                        browser = await p.chromium.launch()</p>
+<p>                        context = await browser.new_context()</p>
+<p>                        page = await context.new_page()</p>
+                        
+<p>                        # 1. ログインページへ移動</p>
+<p>                        await page.goto("https://app.example.com/login")</p>
+                        
+<p>                        # 2. ログインフォームの入力</p>
+<p>                        await page.fill('input[name="email"]', 'test@example.com')</p>
+<p>                        await page.fill('input[name="password"]', 'password123')</p>
+                        
+<p>                        # 3. ログインボタンクリック</p>
+<p>                        await page.click('button[type="submit"]')</p>
+                        
+<p>                        # 4. ダッシュボードへのリダイレクトを確認</p>
+<p>                        await page.wait_for_url("https://app.example.com/dashboard")</p>
+                        
+<p>                        # 5. ユーザー情報の表示確認</p>
+<p>                        user_name = await page.text_content('.user-name')</p>
+<p>                        assert user_name == "Test User"</p>
+                        
+<p>                        # 6. 保護されたリソースへのアクセス</p>
+<p>                        await page.goto("https://app.example.com/settings")</p>
+<p>                        await page.wait_for_selector('.settings-form')</p>
+                        
+<p>                        # 7. ログアウト</p>
+<p>                        await page.click('.logout-button')</p>
+<p>                        await page.wait_for_url("https://app.example.com/login")</p>
+                        
+<p>                        # 8. ログアウト後のアクセス制限確認</p>
+<p>                        await page.goto("https://app.example.com/dashboard")</p>
+<p>                        await page.wait_for_url("https://app.example.com/login")</p>
+                        
+<p>                        await browser.close()</p>
+                
+<p>                @pytest.mark.asyncio</p>
+<p>                async def test_mfa_e2e_flow(self):</p>
+<p>                    """MFAのE2Eテスト"""</p>
+<p>                    async with async_playwright() as p:</p>
+<p>                        browser = await p.chromium.launch()</p>
+<p>                        page = await browser.new_page()</p>
+                        
+<p>                        # 1. ログイン</p>
+<p>                        await page.goto("https://app.example.com/login")</p>
+<p>                        await page.fill('input[name="email"]', 'mfa_user@example.com')</p>
+<p>                        await page.fill('input[name="password"]', 'password')</p>
+<p>                        await page.click('button[type="submit"]')</p>
+                        
+<p>                        # 2. MFAページへのリダイレクト</p>
+<p>                        await page.wait_for_url("https://app.example.com/mfa")</p>
+                        
+<p>                        # 3. MFAコード入力</p>
+<p>                        # テスト環境では固定コードを使用</p>
+<p>                        await page.fill('input[name="mfa_code"]', '123456')</p>
+<p>                        await page.click('button[type="submit"]')</p>
+                        
+<p>                        # 4. ダッシュボードへのアクセス確認</p>
+<p>                        await page.wait_for_url("https://app.example.com/dashboard")</p>
+                        
+<p>                        await browser.close()</p>
+<p>            ''',</p>
+            
+<p>            'performance_testing': '''</p>
+<p>            import asyncio</p>
+<p>            import aiohttp</p>
+<p>            import time</p>
+<p>            from statistics import mean, stdev</p>
+            
+<p>            class TestAuthPerformance:</p>
+<p>                """認証パフォーマンステスト"""</p>
+                
+<p>                async def test_login_performance(self):</p>
+<p>                    """ログインAPIのパフォーマンステスト"""</p>
+                    
+<p>                    async def single_login():</p>
+<p>                        async with aiohttp.ClientSession() as session:</p>
+<p>                            start = time.time()</p>
+<p>                            async with session.post(</p>
+<p>                                "https://api.example.com/auth/login",</p>
+<p>                                json={</p>
+<p>                                    "email": "perf_test@example.com",</p>
+<p>                                    "password": "password"</p>
+<p>                                }</p>
+<p>                            ) as response:</p>
+<p>                                await response.json()</p>
+<p>                            return time.time() - start</p>
+                    
+<p>                    # 100回の同時ログインテスト</p>
+<p>                    tasks = [single_login() for _ in range(100)]</p>
+<p>                    durations = await asyncio.gather(*tasks)</p>
+                    
+<p>                    # パフォーマンス指標の計算</p>
+<p>                    avg_duration = mean(durations)</p>
+<p>                    std_duration = stdev(durations)</p>
+<p>                    p95_duration = sorted(durations)[int(len(durations) * 0.95)]</p>
+<p>                    p99_duration = sorted(durations)[int(len(durations) * 0.99)]</p>
+                    
+<p>                    # アサーション</p>
+<p>                    assert avg_duration < 0.2  # 平均200ms以下</p>
+<p>                    assert p95_duration < 0.5  # 95パーセンタイル500ms以下</p>
+<p>                    assert p99_duration < 1.0  # 99パーセンタイル1秒以下</p>
+                    
+<p>                    print(f"Average: {avg_duration:.3f}s")</p>
+<p>                    print(f"Std Dev: {std_duration:.3f}s")</p>
+<p>                    print(f"P95: {p95_duration:.3f}s")</p>
+<p>                    print(f"P99: {p99_duration:.3f}s")</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>まとめ</h2><p>この章では、認証認可システムの実装における重要なパターンとベストプラクティスを学びました：</p><p>1. <strong>認証フローのパターン</strong></p>
+<p>   - 基本的なパスワード認証からモダンなパスワードレス認証まで</p>
+<p>   - 多段階認証と適応型認証の実装</p>
+<p>   - 委譲認証パターンの活用</p><p>2. <strong>権限チェックの実装方法</strong></p>
+<p>   - 命令的・宣言的なアプローチの使い分け</p>
+<p>   - ポリシーベース認可の設計</p>
+<p>   - パフォーマンスを考慮した実装</p><p>3. <strong>監査ログの設計</strong></p>
+<p>   - 必要な情報の記録方法</p>
+<p>   - 機密データの適切な処理</p>
+<p>   - ログ分析と異常検知</p><p>4. <strong>テスト戦略</strong></p>
+<p>   - ユニットテストからE2Eテストまでの包括的アプローチ</p>
+<p>   - セキュリティ脆弱性のテスト</p>
+<p>   - パフォーマンステストの実施</p><p>次章では、セキュリティと脅威対策について、より詳細に学びます。</p><h2>演習問題</h2><h3>問題1：認証フローの設計</h3>
+<p>B2B SaaSアプリケーションで、以下の要件を満たす認証フローを設計しなさい：</p>
+<p>- エンタープライズSSO（SAML/OIDC）対応</p>
+<p>- 管理者による強制的なMFA設定</p>
+<p>- IPアドレス制限</p>
+<p>- セッション管理の詳細設計</p><h3>問題2：カスタム認可システム</h3>
+<p>以下の要件を満たすカスタム認可システムを実装しなさい：</p>
+<p>- 階層的な組織構造（会社→部門→チーム）</p>
+<p>- リソースの継承可能な権限</p>
+<p>- 時限的な権限付与</p>
+<p>- 権限の委譲機能</p><h3>問題3：監査ログシステム</h3>
+<p>以下の要件を満たす監査ログシステムを設計・実装しなさい：</p>
+<p>- GDPR準拠（個人データの適切な処理）</p>
+<p>- 改ざん防止機能</p>
+<p>- 効率的な検索機能</p>
+<p>- 長期保存とアーカイブ戦略</p><h3>問題4：E2Eテストシナリオ</h3>
+<p>以下の認証シナリオをカバーするE2Eテストを作成しなさい：</p>
+<p>- 通常のログイン→操作→ログアウト</p>
+<p>- パスワードリセットフロー</p>
+<p>- MFA設定と解除</p>
+<p>- 同時ログインセッション管理</p>
+<p>- ブラウザを閉じた後の再アクセス</p><h3>問題5：パフォーマンス最適化</h3>
+<p>1000万ユーザー規模のシステムで、以下の認証認可処理を最適化しなさい：</p>
+<p>- ログイン処理（目標: p99 < 100ms）</p>
+<p>- トークン検証（目標: p99 < 20ms）</p>
+<p>- 複雑な権限チェック（目標: p99 < 50ms）</p>
+<p>- 実装コードと測定結果を含めること</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

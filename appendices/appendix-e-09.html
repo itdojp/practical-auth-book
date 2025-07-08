@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第9章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第9章 演習問題解答</h1><h2>問題1：マイクロサービス認証設計</h2><h3>解答</h3><p><strong>Eコマースシステムのマイクロサービス構成と認証アーキテクチャ</strong></p><p>#### サービス一覧と役割</p><p><pre><code>yaml
+<p>services:</p>
+<p>  1_api_gateway:</p>
+<p>    role: "外部リクエストの受付、認証、ルーティング"</p>
+<p>    public: true</p>
+    
+<p>  2_auth_service:</p>
+<p>    role: "認証・認可・トークン管理"</p>
+<p>    critical: true</p>
+    
+<p>  3_user_service:</p>
+<p>    role: "ユーザー情報管理"</p>
+<p>    pii: true</p>
+    
+<p>  4_product_service:</p>
+<p>    role: "商品カタログ管理"</p>
+<p>    cacheable: true</p>
+    
+<p>  5_inventory_service:</p>
+<p>    role: "在庫管理"</p>
+<p>    realtime: true</p>
+    
+<p>  6_cart_service:</p>
+<p>    role: "ショッピングカート管理"</p>
+<p>    session_bound: true</p>
+    
+<p>  7_order_service:</p>
+<p>    role: "注文処理"</p>
+<p>    transactional: true</p>
+    
+<p>  8_payment_service:</p>
+<p>    role: "決済処理"</p>
+<p>    pci_compliant: true</p>
+    
+<p>  9_notification_service:</p>
+<p>    role: "通知（メール、SMS、プッシュ）"</p>
+<p>    async: true</p>
+    
+<p>  10_analytics_service:</p>
+<p>    role: "分析・レポーティング"</p>
+<p>    read_only: true</p>
+<p></code></pre></p><p>#### 認証フロー設計</p><p><pre><code>python</p>
+<p>class EcommerceAuthFlow:</p>
+<p>    """Eコマース認証フロー"""</p>
+    
+<p>    def user_authentication_flow(self):</p>
+<p>        """ユーザー認証フロー"""</p>
+<p>        return {</p>
+<p>            'sequence': '''</p>
+<p>            1. Client → API Gateway: Login request</p>
+<p>            2. API Gateway → Auth Service: Validate credentials</p>
+<p>            3. Auth Service → User Service: Get user details</p>
+<p>            4. Auth Service → API Gateway: Issue tokens</p>
+<p>            5. API Gateway → Client: Return tokens</p>
+            
+<p>            Token Strategy:</p>
+<p>            - Access Token: JWT (15分)</p>
+<p>            - Refresh Token: Opaque (7日)</p>
+<p>            - ID Token: JWT (ユーザー情報)</p>
+<p>            ''',</p>
+            
+<p>            'implementation': '''</p>
+<p>            @api_gateway.post("/auth/login")</p>
+<p>            async def login(credentials: LoginRequest):</p>
+<p>                # 1. 基本的な検証</p>
+<p>                if not validate_input(credentials):</p>
+<p>                    raise ValidationError()</p>
+                
+<p>                # 2. Auth Serviceへの認証要求</p>
+<p>                auth_result = await auth_service.authenticate(</p>
+<p>                    email=credentials.email,</p>
+<p>                    password=credentials.password,</p>
+<p>                    device_id=request.headers.get("X-Device-ID")</p>
+<p>                )</p>
+                
+<p>                if not auth_result.success:</p>
+<p>                    # レート制限の更新</p>
+<p>                    await rate_limiter.record_failure(credentials.email)</p>
+<p>                    raise AuthenticationError()</p>
+                
+<p>                # 3. トークン生成</p>
+<p>                tokens = await auth_service.create_tokens(</p>
+<p>                    user_id=auth_result.user_id,</p>
+<p>                    roles=auth_result.roles,</p>
+<p>                    device_id=request.headers.get("X-Device-ID")</p>
+<p>                )</p>
+                
+<p>                # 4. セッション情報の保存</p>
+<p>                await session_store.create(</p>
+<p>                    session_id=tokens.session_id,</p>
+<p>                    user_id=auth_result.user_id,</p>
+<p>                    tokens=tokens</p>
+<p>                )</p>
+                
+<p>                return {</p>
+<p>                    "access_token": tokens.access_token,</p>
+<p>                    "refresh_token": tokens.refresh_token,</p>
+<p>                    "expires_in": 900</p>
+<p>                }</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def service_to_service_flow(self):</p>
+<p>        """サービス間認証フロー"""</p>
+<p>        return {</p>
+<p>            'pattern': 'Service Mesh with mTLS + Service Tokens',</p>
+            
+<p>            'implementation': '''</p>
+<p>            class ServiceAuthenticator:</p>
+<p>                def __init__(self):</p>
+<p>                    self.service_registry = ServiceRegistry()</p>
+<p>                    self.token_issuer = ServiceTokenIssuer()</p>
+                
+<p>                async def authenticate_service(self, cert: Certificate) -> ServiceIdentity:</p>
+<p>                    # 1. mTLSによる相互認証</p>
+<p>                    service_name = extract_service_name(cert)</p>
+<p>                    if not self.verify_certificate(cert):</p>
+<p>                        raise InvalidCertificateError()</p>
+                    
+<p>                    # 2. サービスの登録確認</p>
+<p>                    service = await self.service_registry.get(service_name)</p>
+<p>                    if not service or not service.active:</p>
+<p>                        raise UnregisteredServiceError()</p>
+                    
+<p>                    # 3. サービストークンの発行</p>
+<p>                    token = self.token_issuer.issue(</p>
+<p>                        service_name=service_name,</p>
+<p>                        permissions=service.permissions,</p>
+<p>                        validity=timedelta(minutes=5)</p>
+<p>                    )</p>
+                    
+<p>                    return ServiceIdentity(</p>
+<p>                        name=service_name,</p>
+<p>                        token=token,</p>
+<p>                        permissions=service.permissions</p>
+<p>                    )</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def token_strategy(self):</p>
+<p>        """トークン戦略"""</p>
+<p>        return {</p>
+<p>            'token_types': {</p>
+<p>                'user_access_token': {</p>
+<p>                    'format': 'JWT',</p>
+<p>                    'claims': {</p>
+<p>                        'sub': 'user_id',</p>
+<p>                        'roles': ['customer', 'premium'],</p>
+<p>                        'sid': 'session_id',</p>
+<p>                        'did': 'device_id'</p>
+<p>                    },</p>
+<p>                    'ttl': '15 minutes',</p>
+<p>                    'usage': 'API呼び出し'</p>
+<p>                },</p>
+                
+<p>                'service_token': {</p>
+<p>                    'format': 'JWT (内部署名)',</p>
+<p>                    'claims': {</p>
+<p>                        'iss': 'auth-service',</p>
+<p>                        'sub': 'service-name',</p>
+<p>                        'aud': 'target-service',</p>
+<p>                        'permissions': ['read', 'write']</p>
+<p>                    },</p>
+<p>                    'ttl': '5 minutes',</p>
+<p>                    'usage': 'サービス間通信'</p>
+<p>                },</p>
+                
+<p>                'delegation_token': {</p>
+<p>                    'format': 'JWT',</p>
+<p>                    'claims': {</p>
+<p>                        'act': 'acting-service',</p>
+<p>                        'sub': 'original-user',</p>
+<p>                        'dlg': 'delegation-chain'</p>
+<p>                    },</p>
+<p>                    'ttl': '2 minutes',</p>
+<p>                    'usage': 'サービス連鎖での権限委譲'</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def error_handling(self):</p>
+<p>        """エラー処理戦略"""</p>
+<p>        return {</p>
+<p>            'error_responses': {</p>
+<p>                'auth_service_down': {</p>
+<p>                    'fallback': 'Cache-based validation',</p>
+<p>                    'response': {</p>
+<p>                        'status': 503,</p>
+<p>                        'error': 'AUTH_SERVICE_UNAVAILABLE',</p>
+<p>                        'message': 'Authentication service is temporarily unavailable',</p>
+<p>                        'retry_after': 30</p>
+<p>                    }</p>
+<p>                },</p>
+                
+<p>                'token_expired': {</p>
+<p>                    'auto_refresh': True,</p>
+<p>                    'response': {</p>
+<p>                        'status': 401,</p>
+<p>                        'error': 'TOKEN_EXPIRED',</p>
+<p>                        'message': 'Access token has expired',</p>
+<p>                        'refresh_endpoint': '/auth/refresh'</p>
+<p>                    }</p>
+<p>                },</p>
+                
+<p>                'insufficient_permissions': {</p>
+<p>                    'log_attempt': True,</p>
+<p>                    'response': {</p>
+<p>                        'status': 403,</p>
+<p>                        'error': 'INSUFFICIENT_PERMISSIONS',</p>
+<p>                        'message': 'You do not have permission to access this resource',</p>
+<p>                        'required_roles': ['admin']</p>
+<p>                    }</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'circuit_breaker': '''</p>
+<p>            @circuit_breaker(</p>
+<p>                failure_threshold=5,</p>
+<p>                recovery_timeout=60,</p>
+<p>                expected_exception=ServiceUnavailableError</p>
+<p>            )</p>
+<p>            async def call_auth_service(request):</p>
+<p>                try:</p>
+<p>                    return await auth_service.validate(request)</p>
+<p>                except TimeoutError:</p>
+<p>                    # フォールバック処理</p>
+<p>                    return await validate_from_cache(request)</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>問題2：API Gateway実装</h2><h3>解答</h3><p><pre><code>python</p>
+<p>from fastapi import FastAPI, Request, HTTPException, Depends</p>
+<p>from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials</p>
+<p>from typing import Optional, Dict, Any</p>
+<p>import httpx</p>
+<p>import jwt</p>
+<p>import redis</p>
+<p>import time</p>
+<p>from datetime import datetime, timedelta</p>
+<p>import asyncio</p>
+<p>import logging</p><h1>FastAPI アプリケーション</h1>
+<p>app = FastAPI(title="API Gateway")</p><h1>設定</h1>
+<p>class Config:</p>
+<p>    JWT_SECRET = "your-secret-key"</p>
+<p>    JWT_ALGORITHM = "HS256"</p>
+<p>    REDIS_URL = "redis://localhost:6379"</p>
+<p>    RATE_LIMIT_REQUESTS = 100</p>
+<p>    RATE_LIMIT_WINDOW = 3600  # 1時間</p>
+    
+<p>    # サービスレジストリ</p>
+<p>    SERVICES = {</p>
+<p>        "users": "http://user-service:8080",</p>
+<p>        "products": "http://product-service:8080",</p>
+<p>        "orders": "http://order-service:8080"</p>
+<p>    }</p><h1>依存性注入</h1>
+<p>security = HTTPBearer()</p>
+<p>redis_client = redis.from_url(Config.REDIS_URL, decode_responses=True)</p>
+<p>logger = logging.getLogger(__name__)</p><h1>JWT検証</h1>
+<p>class JWTValidator:</p>
+<p>    @staticmethod</p>
+<p>    def decode_token(token: str) -> Dict[str, Any]:</p>
+<p>        try:</p>
+<p>            payload = jwt.decode(</p>
+<p>                token,</p>
+<p>                Config.JWT_SECRET,</p>
+<p>                algorithms=[Config.JWT_ALGORITHM]</p>
+<p>            )</p>
+<p>            return payload</p>
+<p>        except jwt.ExpiredSignatureError:</p>
+<p>            raise HTTPException(status_code=401, detail="Token has expired")</p>
+<p>        except jwt.InvalidTokenError:</p>
+<p>            raise HTTPException(status_code=401, detail="Invalid token")</p><h1>レート制限</h1>
+<p>class RateLimiter:</p>
+<p>    def __init__(self, redis_client):</p>
+<p>        self.redis = redis_client</p>
+        
+<p>    async def check_rate_limit(self, user_id: str) -> bool:</p>
+<p>        key = f"rate_limit:{user_id}"</p>
+<p>        current_time = int(time.time())</p>
+<p>        window_start = current_time - Config.RATE_LIMIT_WINDOW</p>
+        
+<p>        # スライディングウィンドウログアルゴリズム</p>
+<p>        pipe = self.redis.pipeline()</p>
+<p>        pipe.zremrangebyscore(key, 0, window_start)</p>
+<p>        pipe.zadd(key, {str(current_time): current_time})</p>
+<p>        pipe.zcount(key, window_start, current_time)</p>
+<p>        pipe.expire(key, Config.RATE_LIMIT_WINDOW)</p>
+        
+<p>        results = pipe.execute()</p>
+<p>        request_count = results[2]</p>
+        
+<p>        if request_count > Config.RATE_LIMIT_REQUESTS:</p>
+<p>            return False</p>
+<p>        return True</p><h1>監査ログ</h1>
+<p>class AuditLogger:</p>
+<p>    def __init__(self, redis_client):</p>
+<p>        self.redis = redis_client</p>
+        
+<p>    async def log_request(self, user_id: str, request: Request, response_status: int):</p>
+<p>        log_entry = {</p>
+<p>            "timestamp": datetime.utcnow().isoformat(),</p>
+<p>            "user_id": user_id,</p>
+<p>            "method": request.method,</p>
+<p>            "path": str(request.url.path),</p>
+<p>            "query_params": dict(request.query_params),</p>
+<p>            "client_ip": request.client.host,</p>
+<p>            "user_agent": request.headers.get("user-agent"),</p>
+<p>            "response_status": response_status,</p>
+<p>            "request_id": request.state.request_id</p>
+<p>        }</p>
+        
+<p>        # Redisにログを保存（有効期限30日）</p>
+<p>        key = f"audit_log:{datetime.utcnow().strftime('%Y%m%d')}:{user_id}"</p>
+<p>        self.redis.rpush(key, json.dumps(log_entry))</p>
+<p>        self.redis.expire(key, 30 <em> 24 </em> 3600)</p>
+        
+<p>        # 非同期でログファイルにも書き込み</p>
+<p>        logger.info(f"API Request: {log_entry}")</p><h1>依存性注入用の関数</h1>
+<p>rate_limiter = RateLimiter(redis_client)</p>
+<p>audit_logger = AuditLogger(redis_client)</p>
+<p>jwt_validator = JWTValidator()</p><p>async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):</p>
+<p>    token = credentials.credentials</p>
+<p>    user_data = jwt_validator.decode_token(token)</p>
+    
+<p>    # レート制限チェック</p>
+<p>    if not await rate_limiter.check_rate_limit(user_data["sub"]):</p>
+<p>        raise HTTPException(</p>
+<p>            status_code=429,</p>
+<p>            detail="Rate limit exceeded",</p>
+<p>            headers={"Retry-After": "3600"}</p>
+<p>        )</p>
+    
+<p>    return user_data</p><h1>プロキシ機能</h1>
+<p>class ServiceProxy:</p>
+<p>    def __init__(self):</p>
+<p>        self.client = httpx.AsyncClient(timeout=30.0)</p>
+        
+<p>    async def forward_request(</p>
+<p>        self,</p>
+<p>        service: str,</p>
+<p>        path: str,</p>
+<p>        method: str,</p>
+<p>        headers: dict,</p>
+<p>        body: bytes,</p>
+<p>        params: dict</p>
+<p>    ) -> httpx.Response:</p>
+<p>        if service not in Config.SERVICES:</p>
+<p>            raise HTTPException(status_code=404, detail="Service not found")</p>
+        
+<p>        service_url = Config.SERVICES[service]</p>
+<p>        url = f"{service_url}/{path}"</p>
+        
+<p>        # 内部ヘッダーの追加</p>
+<p>        internal_headers = headers.copy()</p>
+<p>        internal_headers["X-Internal-Request"] = "true"</p>
+<p>        internal_headers["X-Request-ID"] = headers.get("X-Request-ID", "")</p>
+        
+<p>        try:</p>
+<p>            response = await self.client.request(</p>
+<p>                method=method,</p>
+<p>                url=url,</p>
+<p>                headers=internal_headers,</p>
+<p>                content=body,</p>
+<p>                params=params</p>
+<p>            )</p>
+<p>            return response</p>
+<p>        except httpx.TimeoutException:</p>
+<p>            raise HTTPException(status_code=504, detail="Service timeout")</p>
+<p>        except httpx.HTTPError:</p>
+<p>            raise HTTPException(status_code=502, detail="Service error")</p><p>proxy = ServiceProxy()</p><h1>ミドルウェア</h1>
+<p>@app.middleware("http")</p>
+<p>async def add_request_id(request: Request, call_next):</p>
+<p>    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))</p>
+<p>    request.state.request_id = request_id</p>
+    
+<p>    response = await call_next(request)</p>
+<p>    response.headers["X-Request-ID"] = request_id</p>
+    
+<p>    return response</p><h1>エンドポイント</h1>
+<p>@app.get("/health")</p>
+<p>async def health_check():</p>
+<p>    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}</p><p>@app.api_route("/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])</p>
+<p>async def gateway_proxy(</p>
+<p>    service: str,</p>
+<p>    path: str,</p>
+<p>    request: Request,</p>
+<p>    current_user: dict = Depends(get_current_user)</p>
+<p>):</p>
+<p>    # リクエストボディの読み取り</p>
+<p>    body = await request.body()</p>
+    
+<p>    # ヘッダーの準備</p>
+<p>    headers = dict(request.headers)</p>
+<p>    headers["X-User-ID"] = current_user["sub"]</p>
+<p>    headers["X-User-Roles"] = ",".join(current_user.get("roles", []))</p>
+    
+<p>    # サービスへのプロキシ</p>
+<p>    response = await proxy.forward_request(</p>
+<p>        service=service,</p>
+<p>        path=path,</p>
+<p>        method=request.method,</p>
+<p>        headers=headers,</p>
+<p>        body=body,</p>
+<p>        params=dict(request.query_params)</p>
+<p>    )</p>
+    
+<p>    # 監査ログ</p>
+<p>    await audit_logger.log_request(</p>
+<p>        user_id=current_user["sub"],</p>
+<p>        request=request,</p>
+<p>        response_status=response.status_code</p>
+<p>    )</p>
+    
+<p>    # レスポンスの返却</p>
+<p>    return Response(</p>
+<p>        content=response.content,</p>
+<p>        status_code=response.status_code,</p>
+<p>        headers=dict(response.headers)</p>
+<p>    )</p><h1>管理用エンドポイント</h1>
+<p>@app.get("/admin/metrics")</p>
+<p>async def get_metrics(current_user: dict = Depends(get_current_user)):</p>
+<p>    if "admin" not in current_user.get("roles", []):</p>
+<p>        raise HTTPException(status_code=403, detail="Admin access required")</p>
+    
+<p>    # メトリクスの収集</p>
+<p>    metrics = {</p>
+<p>        "timestamp": datetime.utcnow().isoformat(),</p>
+<p>        "active_connections": len(proxy.client._pool._connections),</p>
+<p>        "rate_limit_status": {}</p>
+<p>    }</p>
+    
+<p>    # レート制限状況の取得</p>
+<p>    for key in redis_client.scan_iter("rate_limit:*"):</p>
+<p>        user_id = key.split(":")[-1]</p>
+<p>        count = redis_client.zcount(key, "-inf", "+inf")</p>
+<p>        metrics["rate_limit_status"][user_id] = {</p>
+<p>            "current_requests": count,</p>
+<p>            "limit": Config.RATE_LIMIT_REQUESTS</p>
+<p>        }</p>
+    
+<p>    return metrics</p><p>if __name__ == "__main__":</p>
+<p>    import uvicorn</p>
+<p>    uvicorn.run(app, host="0.0.0.0", port=8000)</p>
+<p></code></pre></p><h2>問題3：Zero Trust設計</h2><h3>解答</h3><p><strong>金融システムへのZero Trust原則適用設計</strong></p><p><pre><code>python</p>
+<p>class FinancialZeroTrustDesign:</p>
+<p>    """金融システムのZero Trust設計"""</p>
+    
+<p>    def risk_assessment_factors(self):</p>
+<p>        """リスク評価要素（10個以上）"""</p>
+<p>        return {</p>
+<p>            'device_factors': {</p>
+<p>                'device_trust_score': {</p>
+<p>                    'weight': 15,</p>
+<p>                    'calculation': '''</p>
+<p>                    - 管理デバイス: 100</p>
+<p>                    - 登録済み個人デバイス: 70</p>
+<p>                    - 未登録デバイス: 30</p>
+<p>                    - ルート化/Jailbreak: 0</p>
+<p>                    '''</p>
+<p>                },</p>
+<p>                'device_compliance': {</p>
+<p>                    'weight': 10,</p>
+<p>                    'checks': [</p>
+<p>                        'OS最新パッチ適用',</p>
+<p>                        'アンチウイルス有効',</p>
+<p>                        'ディスク暗号化',</p>
+<p>                        'ファイアウォール有効'</p>
+<p>                    ]</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'location_factors': {</p>
+<p>                'geolocation_risk': {</p>
+<p>                    'weight': 20,</p>
+<p>                    'scoring': '''</p>
+<p>                    def calculate_location_risk(ip_address, gps_coords):</p>
+<p>                        country_risk = get_country_risk_score(ip_address)</p>
+                        
+<p>                        # 高リスク国からのアクセス</p>
+<p>                        if country_risk > 80:</p>
+<p>                            return 100</p>
+                        
+<p>                        # オフィスからのアクセス</p>
+<p>                        if is_office_location(gps_coords):</p>
+<p>                            return 10</p>
+                        
+<p>                        # VPN使用</p>
+<p>                        if is_vpn(ip_address):</p>
+<p>                            return 70</p>
+                        
+<p>                        return country_risk</p>
+<p>                    '''</p>
+<p>                },</p>
+<p>                'impossible_travel': {</p>
+<p>                    'weight': 25,</p>
+<p>                    'detection': 'Previous location vs current location / time'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'behavioral_factors': {</p>
+<p>                'access_pattern': {</p>
+<p>                    'weight': 10,</p>
+<p>                    'analysis': [</p>
+<p>                        '通常のアクセス時間帯か',</p>
+<p>                        'アクセス頻度の異常',</p>
+<p>                        '通常と異なるアプリケーション使用'</p>
+<p>                    ]</p>
+<p>                },</p>
+<p>                'transaction_behavior': {</p>
+<p>                    'weight': 20,</p>
+<p>                    'checks': [</p>
+<p>                        '取引金額の異常',</p>
+<p>                        '送金先の異常',</p>
+<p>                        '取引頻度の急激な変化'</p>
+<p>                    ]</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'authentication_factors': {</p>
+<p>                'auth_method_strength': {</p>
+<p>                    'weight': 15,</p>
+<p>                    'scores': {</p>
+<p>                        'password_only': 30,</p>
+<p>                        'password_mfa_sms': 60,</p>
+<p>                        'password_mfa_app': 80,</p>
+<p>                        'biometric_mfa': 95,</p>
+<p>                        'hardware_key': 100</p>
+<p>                    }</p>
+<p>                },</p>
+<p>                'session_age': {</p>
+<p>                    'weight': 5,</p>
+<p>                    'calculation': 'exponential_decay(session_duration)'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'network_factors': {</p>
+<p>                'network_reputation': {</p>
+<p>                    'weight': 10,</p>
+<p>                    'checks': [</p>
+<p>                        'Known malicious IP',</p>
+<p>                        'Tor exit node',</p>
+<p>                        'Public WiFi',</p>
+<p>                        'Corporate network'</p>
+<p>                    ]</p>
+<p>                },</p>
+<p>                'connection_security': {</p>
+<p>                    'weight': 5,</p>
+<p>                    'requirements': [</p>
+<p>                        'TLS 1.3',</p>
+<p>                        'Certificate pinning',</p>
+<p>                        'No weak ciphers'</p>
+<p>                    ]</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'resource_sensitivity': {</p>
+<p>                'data_classification': {</p>
+<p>                    'weight': 30,</p>
+<p>                    'levels': {</p>
+<p>                        'public': 10,</p>
+<p>                        'internal': 30,</p>
+<p>                        'confidential': 60,</p>
+<p>                        'restricted': 100</p>
+<p>                    }</p>
+<p>                },</p>
+<p>                'operation_risk': {</p>
+<p>                    'weight': 25,</p>
+<p>                    'operations': {</p>
+<p>                        'read_balance': 20,</p>
+<p>                        'internal_transfer': 50,</p>
+<p>                        'external_transfer': 80,</p>
+<p>                        'wire_transfer': 100,</p>
+<p>                        'account_closure': 90</p>
+<p>                    }</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def dynamic_access_control(self):</p>
+<p>        """動的アクセス制御ルール"""</p>
+<p>        return {</p>
+<p>            'rule_engine': '''</p>
+<p>            class DynamicAccessController:</p>
+<p>                def evaluate_access(self, context: AccessContext) -> AccessDecision:</p>
+<p>                    risk_score = self.calculate_risk_score(context)</p>
+                    
+<p>                    # リスクレベルの判定</p>
+<p>                    if risk_score < 30:</p>
+<p>                        risk_level = "LOW"</p>
+<p>                    elif risk_score < 60:</p>
+<p>                        risk_level = "MEDIUM"</p>
+<p>                    elif risk_score < 80:</p>
+<p>                        risk_level = "HIGH"</p>
+<p>                    else:</p>
+<p>                        risk_level = "CRITICAL"</p>
+                    
+<p>                    # リソース感度の取得</p>
+<p>                    resource_sensitivity = self.get_resource_sensitivity(context.resource)</p>
+                    
+<p>                    # 動的ルールの適用</p>
+<p>                    return self.apply_rules(risk_level, resource_sensitivity, context)</p>
+<p>            ''',</p>
+            
+<p>            'access_rules': {</p>
+<p>                'low_risk': {</p>
+<p>                    'public_data': 'ALLOW',</p>
+<p>                    'internal_data': 'ALLOW',</p>
+<p>                    'confidential_data': 'ALLOW',</p>
+<p>                    'restricted_data': 'ALLOW_WITH_LOGGING'</p>
+<p>                },</p>
+                
+<p>                'medium_risk': {</p>
+<p>                    'public_data': 'ALLOW',</p>
+<p>                    'internal_data': 'ALLOW',</p>
+<p>                    'confidential_data': 'REQUIRE_MFA',</p>
+<p>                    'restricted_data': 'REQUIRE_MFA_AND_APPROVAL'</p>
+<p>                },</p>
+                
+<p>                'high_risk': {</p>
+<p>                    'public_data': 'ALLOW',</p>
+<p>                    'internal_data': 'REQUIRE_MFA',</p>
+<p>                    'confidential_data': 'REQUIRE_STEP_UP_AUTH',</p>
+<p>                    'restricted_data': 'DENY'</p>
+<p>                },</p>
+                
+<p>                'critical_risk': {</p>
+<p>                    'public_data': 'ALLOW_READ_ONLY',</p>
+<p>                    'internal_data': 'DENY',</p>
+<p>                    'confidential_data': 'DENY',</p>
+<p>                    'restricted_data': 'DENY_AND_ALERT'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'step_up_authentication': '''</p>
+<p>            async def require_step_up_auth(user: User, required_level: str):</p>
+<p>                current_auth_level = user.current_auth_level</p>
+                
+<p>                if required_level == "MFA" and current_auth_level < 2:</p>
+<p>                    return await prompt_mfa(user)</p>
+                
+<p>                elif required_level == "BIOMETRIC" and current_auth_level < 3:</p>
+<p>                    return await prompt_biometric(user)</p>
+                
+<p>                elif required_level == "TRANSACTION_SIGNING":</p>
+<p>                    return await prompt_transaction_signing(user)</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def continuous_verification(self):</p>
+<p>        """継続的検証の実装"""</p>
+<p>        return {</p>
+<p>            'verification_triggers': [</p>
+<p>                'Periodic time-based (every 5 minutes)',</p>
+<p>                'Resource access attempt',</p>
+<p>                'Behavioral anomaly detected',</p>
+<p>                'Risk score change > 20 points',</p>
+<p>                'Network change',</p>
+<p>                'New device detected'</p>
+<p>            ],</p>
+            
+<p>            'implementation': '''</p>
+<p>            class ContinuousVerificationEngine:</p>
+<p>                def __init__(self):</p>
+<p>                    self.verification_interval = timedelta(minutes=5)</p>
+<p>                    self.risk_threshold_delta = 20</p>
+                
+<p>                async def monitor_session(self, session_id: str):</p>
+<p>                    session = await self.get_session(session_id)</p>
+<p>                    last_risk_score = session.risk_score</p>
+                    
+<p>                    while session.active:</p>
+<p>                        # 定期的な検証</p>
+<p>                        await asyncio.sleep(self.verification_interval.seconds)</p>
+                        
+<p>                        # リスク再評価</p>
+<p>                        current_context = await self.build_context(session)</p>
+<p>                        new_risk_score = await self.calculate_risk(current_context)</p>
+                        
+<p>                        # 大幅なリスク変化の検出</p>
+<p>                        if abs(new_risk_score - last_risk_score) > self.risk_threshold_delta:</p>
+<p>                            await self.handle_risk_change(session, new_risk_score)</p>
+                        
+<p>                        # 行動分析</p>
+<p>                        anomalies = await self.detect_anomalies(session)</p>
+<p>                        if anomalies:</p>
+<p>                            await self.handle_anomalies(session, anomalies)</p>
+                        
+<p>                        last_risk_score = new_risk_score</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def incident_response_flow(self):</p>
+<p>        """インシデント対応フロー"""</p>
+<p>        return {</p>
+<p>            'detection_to_response': '''</p>
+<p>            class IncidentResponseOrchestrator:</p>
+<p>                async def handle_security_incident(self, incident: SecurityIncident):</p>
+<p>                    # 1. 即座の封じ込め</p>
+<p>                    if incident.severity >= Severity.HIGH:</p>
+<p>                        await self.immediate_containment(incident)</p>
+                    
+<p>                    # 2. 調査</p>
+<p>                    investigation = await self.investigate(incident)</p>
+                    
+<p>                    # 3. 影響評価</p>
+<p>                    impact = await self.assess_impact(investigation)</p>
+                    
+<p>                    # 4. 対応実施</p>
+<p>                    response_plan = self.create_response_plan(impact)</p>
+<p>                    await self.execute_response(response_plan)</p>
+                    
+<p>                    # 5. 復旧</p>
+<p>                    await self.recovery_actions(incident)</p>
+                    
+<p>                    # 6. 事後分析</p>
+<p>                    await self.post_incident_analysis(incident)</p>
+<p>            ''',</p>
+            
+<p>            'response_actions': {</p>
+<p>                'immediate_containment': [</p>
+<p>                    'セッションの即時無効化',</p>
+<p>                    'アカウントの一時凍結',</p>
+<p>                    '関連するAPIキーの無効化',</p>
+<p>                    'IPアドレスのブロック'</p>
+<p>                ],</p>
+                
+<p>                'investigation_steps': [</p>
+<p>                    'ログの収集と分析',</p>
+<p>                    '影響を受けたリソースの特定',</p>
+<p>                    'アクセスパターンの分析',</p>
+<p>                    '関連するセッションの調査'</p>
+<p>                ],</p>
+                
+<p>                'recovery_actions': [</p>
+<p>                    'パスワードリセット要求',</p>
+<p>                    'MFA再登録',</p>
+<p>                    'デバイス再認証',</p>
+<p>                    'セキュリティ質問の更新'</p>
+<p>                ],</p>
+                
+<p>                'notification_matrix': {</p>
+<p>                    'low_severity': ['Security team'],</p>
+<p>                    'medium_severity': ['Security team', 'User'],</p>
+<p>                    'high_severity': ['Security team', 'User', 'Management'],</p>
+<p>                    'critical_severity': ['All above', 'CISO', 'Legal', 'PR']</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>問題4：サービスメッシュ設定</h2><h3>解答</h3><p><strong>Istioを使用したセキュリティポリシー実装</strong></p><p><pre><code>yaml</p>
+<h1>1. mTLS設定 - すべてのサービス間で必須</h1>
+<p>apiVersion: security.istio.io/v1beta1</p>
+<p>kind: PeerAuthentication</p>
+<p>metadata:</p>
+<p>  name: default</p>
+<p>  namespace: istio-system</p>
+<p>spec:</p>
+<p>  mtls:</p>
+<p>    mode: STRICT</p><p>---</p>
+<h1>2. データベースサービスへのアクセス制限</h1>
+<p>apiVersion: security.istio.io/v1beta1</p>
+<p>kind: AuthorizationPolicy</p>
+<p>metadata:</p>
+<p>  name: database-access-policy</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  selector:</p>
+<p>    matchLabels:</p>
+<p>      app: database</p>
+<p>  action: ALLOW</p>
+<p>  rules:</p>
+<p>  - from:</p>
+<p>    - source:</p>
+<p>        principals: </p>
+<p>        - "cluster.local/ns/production/sa/order-service"</p>
+<p>        - "cluster.local/ns/production/sa/user-service"</p>
+<p>        - "cluster.local/ns/production/sa/inventory-service"</p>
+<p>    to:</p>
+<p>    - operation:</p>
+<p>        methods: ["GET", "POST", "PUT", "DELETE"]</p>
+<p>        ports: ["5432"]</p><p>---</p>
+<h1>3. API Gateway経由のみ外部トラフィックを許可</h1>
+<p>apiVersion: networking.istio.io/v1beta1</p>
+<p>kind: Gateway</p>
+<p>metadata:</p>
+<p>  name: api-gateway</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  selector:</p>
+<p>    istio: ingressgateway</p>
+<p>  servers:</p>
+<p>  - port:</p>
+<p>      number: 443</p>
+<p>      name: https</p>
+<p>      protocol: HTTPS</p>
+<p>    tls:</p>
+<p>      mode: SIMPLE</p>
+<p>      credentialName: api-cert</p>
+<p>    hosts:</p>
+<p>    - "api.example.com"</p><p>---</p>
+<p>apiVersion: networking.istio.io/v1beta1</p>
+<p>kind: VirtualService</p>
+<p>metadata:</p>
+<p>  name: api-routing</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  hosts:</p>
+<p>  - "api.example.com"</p>
+<p>  gateways:</p>
+<p>  - api-gateway</p>
+<p>  http:</p>
+<p>  - match:</p>
+<p>    - uri:</p>
+<p>        prefix: "/api/v1/"</p>
+<p>    route:</p>
+<p>    - destination:</p>
+<p>        host: api-gateway-service</p>
+<p>        port:</p>
+<p>          number: 8080</p><p>---</p>
+<h1>外部からの直接アクセスを拒否</h1>
+<p>apiVersion: security.istio.io/v1beta1</p>
+<p>kind: AuthorizationPolicy</p>
+<p>metadata:</p>
+<p>  name: deny-external-access</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  selector:</p>
+<p>    matchLabels:</p>
+<p>      internal: "true"</p>
+<p>  action: DENY</p>
+<p>  rules:</p>
+<p>  - from:</p>
+<p>    - source:</p>
+<p>        notNamespaces: ["production", "istio-system"]</p><p>---</p>
+<h1>4. サービスごとのレート制限</h1>
+<p>apiVersion: v1</p>
+<p>kind: ConfigMap</p>
+<p>metadata:</p>
+<p>  name: ratelimit-config</p>
+<p>  namespace: production</p>
+<p>data:</p>
+<p>  config.yaml: |</p>
+<p>    domain: production-ratelimit</p>
+<p>    descriptors:</p>
+<p>      - key: service</p>
+<p>        value: "user-service"</p>
+<p>        rate_limit:</p>
+<p>          unit: minute</p>
+<p>          requests_per_unit: 1000</p>
+<p>      - key: service</p>
+<p>        value: "order-service"</p>
+<p>        rate_limit:</p>
+<p>          unit: minute</p>
+<p>          requests_per_unit: 500</p>
+<p>      - key: service</p>
+<p>        value: "payment-service"</p>
+<p>        rate_limit:</p>
+<p>          unit: minute</p>
+<p>          requests_per_unit: 100</p>
+<p>      - key: service</p>
+<p>        value: "analytics-service"</p>
+<p>        rate_limit:</p>
+<p>          unit: minute</p>
+<p>          requests_per_unit: 2000</p><p>---</p>
+<p>apiVersion: v1</p>
+<p>kind: Service</p>
+<p>metadata:</p>
+<p>  name: ratelimit</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  ports:</p>
+<p>  - port: 8081</p>
+<p>    protocol: TCP</p>
+<p>  selector:</p>
+<p>    app: ratelimit</p><p>---</p>
+<p>apiVersion: apps/v1</p>
+<p>kind: Deployment</p>
+<p>metadata:</p>
+<p>  name: ratelimit</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  replicas: 2</p>
+<p>  selector:</p>
+<p>    matchLabels:</p>
+<p>      app: ratelimit</p>
+<p>  template:</p>
+<p>    metadata:</p>
+<p>      labels:</p>
+<p>        app: ratelimit</p>
+<p>    spec:</p>
+<p>      containers:</p>
+<p>      - name: ratelimit</p>
+<p>        image: envoyproxy/ratelimit:v1.4.0</p>
+<p>        command: ["/bin/ratelimit"]</p>
+<p>        env:</p>
+<p>        - name: LOG_LEVEL</p>
+<p>          value: debug</p>
+<p>        - name: REDIS_SOCKET_TYPE</p>
+<p>          value: tcp</p>
+<p>        - name: REDIS_URL</p>
+<p>          value: redis:6379</p>
+<p>        - name: USE_STATSD</p>
+<p>          value: "false"</p>
+<p>        - name: RUNTIME_ROOT</p>
+<p>          value: /data</p>
+<p>        - name: RUNTIME_SUBDIRECTORY</p>
+<p>          value: ratelimit</p>
+<p>        ports:</p>
+<p>        - containerPort: 8080</p>
+<p>        - containerPort: 8081</p>
+<p>        - containerPort: 6070</p>
+<p>        volumeMounts:</p>
+<p>        - name: config-volume</p>
+<p>          mountPath: /data/ratelimit/config</p>
+<p>      volumes:</p>
+<p>      - name: config-volume</p>
+<p>        configMap:</p>
+<p>          name: ratelimit-config</p><p>---</p>
+<h1>EnvoyFilterでレート制限を適用</h1>
+<p>apiVersion: networking.istio.io/v1alpha3</p>
+<p>kind: EnvoyFilter</p>
+<p>metadata:</p>
+<p>  name: ratelimit-filter</p>
+<p>  namespace: production</p>
+<p>spec:</p>
+<p>  configPatches:</p>
+<p>  - applyTo: HTTP_FILTER</p>
+<p>    match:</p>
+<p>      context: SIDECAR_INBOUND</p>
+<p>      listener:</p>
+<p>        filterChain:</p>
+<p>          filter:</p>
+<p>            name: "envoy.filters.network.http_connection_manager"</p>
+<p>    patch:</p>
+<p>      operation: INSERT_BEFORE</p>
+<p>      value:</p>
+<p>        name: envoy.filters.http.ratelimit</p>
+<p>        typed_config:</p>
+<p>          "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit</p>
+<p>          domain: production-ratelimit</p>
+<p>          failure_mode_deny: false</p>
+<p>          rate_limit_service:</p>
+<p>            grpc_service:</p>
+<p>              envoy_grpc:</p>
+<p>                cluster_name: rate_limit_service</p>
+<p>              timeout: 0.25s</p>
+<p>            transport_api_version: V3</p><p>---</p>
+<h1>サービスメッシュ全体の可観測性設定</h1>
+<p>apiVersion: v1</p>
+<p>kind: ConfigMap</p>
+<p>metadata:</p>
+<p>  name: istio-custom-telemetry</p>
+<p>  namespace: istio-system</p>
+<p>data:</p>
+<p>  custom_metrics.yaml: |</p>
+<p>    telemetry:</p>
+<p>    - name: security-metrics</p>
+<p>      dimensions:</p>
+<p>        source_service: source.workload.name | "unknown"</p>
+<p>        destination_service: destination.service.name | "unknown"</p>
+<p>        auth_result: connection.mtls | "none"</p>
+<p>        response_code: response.code | 0</p>
+<p>      metrics:</p>
+<p>      - name: security_request_count</p>
+<p>        dimensions:</p>
+<p>          - source_service</p>
+<p>          - destination_service</p>
+<p>          - auth_result</p>
+<p>          - response_code</p>
+<p>        value: "1"</p>
+<p>      - name: unauthorized_access_attempts</p>
+<p>        dimensions:</p>
+<p>          - source_service</p>
+<p>          - destination_service</p>
+<p>        value: response.code == 403 ? 1 : 0</p>
+<p></code></pre></p><h2>問題5：パフォーマンス最適化</h2><h3>解答</h3><p><strong>認証処理ボトルネック最適化計画</strong></p><p><pre><code>python</p>
+<p>class AuthPerformanceOptimization:</p>
+<p>    """認証パフォーマンス最適化"""</p>
+    
+<p>    def current_analysis(self):</p>
+<p>        """現状分析"""</p>
+<p>        return {</p>
+<p>            'latency_measurements': {</p>
+<p>                'auth_service_calls': {</p>
+<p>                    'p50': '150ms',</p>
+<p>                    'p95': '500ms',</p>
+<p>                    'p99': '1200ms',</p>
+<p>                    'breakdown': {</p>
+<p>                        'network': '20ms',</p>
+<p>                        'jwt_validation': '80ms',</p>
+<p>                        'database_lookup': '200ms',</p>
+<p>                        'permission_check': '150ms',</p>
+<p>                        'response_serialization': '50ms'</p>
+<p>                    }</p>
+<p>                },</p>
+                
+<p>                'bottleneck_identification': '''</p>
+<p>                # プロファイリング結果</p>
+<p>                1. DB クエリ (40% of time)</p>
+<p>                   - User lookup: 150ms avg</p>
+<p>                   - Permission fetch: 100ms avg</p>
+<p>                   - N+1 問題あり</p>
+                
+<p>                2. JWT 検証 (16% of time)</p>
+<p>                   - RSA署名検証: 80ms</p>
+<p>                   - 毎回公開鍵取得</p>
+                
+<p>                3. 権限チェック (30% of time)</p>
+<p>                   - 複雑なRBACルール</p>
+<p>                   - キャッシュなし</p>
+                
+<p>                4. ネットワーク (14% of time)</p>
+<p>                   - サービス間の往復</p>
+<p>                   - TLS handshake</p>
+<p>                '''</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def optimization_strategies(self):</p>
+<p>        """最適化案（5つ以上）"""</p>
+<p>        return {</p>
+<p>            '1_caching_strategy': {</p>
+<p>                'description': 'マルチレベルキャッシング',</p>
+<p>                'implementation': '''</p>
+<p>                class MultiLevelCache:</p>
+<p>                    def __init__(self):</p>
+<p>                        # L1: プロセス内キャッシュ（超高速）</p>
+<p>                        self.l1_cache = LRUCache(maxsize=10000, ttl=60)</p>
+                        
+<p>                        # L2: Redis（高速、分散）</p>
+<p>                        self.l2_cache = RedisCache(ttl=300)</p>
+                        
+<p>                        # L3: CDN（エッジキャッシング）</p>
+<p>                        self.l3_cache = CDNCache(ttl=600)</p>
+                    
+<p>                    async def get_user_permissions(self, user_id: str):</p>
+<p>                        # L1チェック</p>
+<p>                        if data := self.l1_cache.get(user_id):</p>
+<p>                            return data</p>
+                        
+<p>                        # L2チェック</p>
+<p>                        if data := await self.l2_cache.get(user_id):</p>
+<p>                            self.l1_cache.set(user_id, data)</p>
+<p>                            return data</p>
+                        
+<p>                        # DBから取得</p>
+<p>                        data = await self.fetch_from_db(user_id)</p>
+                        
+<p>                        # 全レベルにキャッシュ</p>
+<p>                        await self.cache_all_levels(user_id, data)</p>
+                        
+<p>                        return data</p>
+<p>                ''',</p>
+<p>                'expected_improvement': '60-80% reduction in DB calls'</p>
+<p>            },</p>
+            
+<p>            '2_jwt_optimization': {</p>
+<p>                'description': 'JWT検証の最適化',</p>
+<p>                'implementation': '''</p>
+<p>                class OptimizedJWTValidator:</p>
+<p>                    def __init__(self):</p>
+<p>                        # 公開鍵のキャッシュ</p>
+<p>                        self.key_cache = {}</p>
+                        
+<p>                        # より高速なアルゴリズムへ移行</p>
+<p>                        self.algorithm = 'ES256'  # ECDSAは RSAより高速</p>
+                        
+<p>                        # JWTのプリバリデーション</p>
+<p>                        self.prevalidation_cache = TTLCache(maxsize=10000, ttl=300)</p>
+                    
+<p>                    def validate_token_fast(self, token: str):</p>
+<p>                        # キャッシュチェック</p>
+<p>                        if token in self.prevalidation_cache:</p>
+<p>                            return self.prevalidation_cache[token]</p>
+                        
+<p>                        # 高速な基本チェック</p>
+<p>                        if not self.quick_format_check(token):</p>
+<p>                            return None</p>
+                        
+<p>                        # 署名検証（最適化済み）</p>
+<p>                        claims = self.verify_signature_optimized(token)</p>
+                        
+<p>                        # キャッシュに保存</p>
+<p>                        self.prevalidation_cache[token] = claims</p>
+                        
+<p>                        return claims</p>
+<p>                ''',</p>
+<p>                'expected_improvement': 'JWT validation from 80ms to 10ms'</p>
+<p>            },</p>
+            
+<p>            '3_database_optimization': {</p>
+<p>                'description': 'データベースクエリ最適化',</p>
+<p>                'implementation': '''</p>
+<p>                -- 複合インデックスの追加</p>
+<p>                CREATE INDEX idx_user_permissions ON user_permissions(user_id, resource_type, permission);</p>
+                
+<p>                -- マテリアライズドビューの作成</p>
+<p>                CREATE MATERIALIZED VIEW user_effective_permissions AS</p>
+<p>                SELECT </p>
+<p>                    u.id as user_id,</p>
+<p>                    r.name as role,</p>
+<p>                    array_agg(DISTINCT p.permission) as permissions</p>
+<p>                FROM users u</p>
+<p>                JOIN user_roles ur ON u.id = ur.user_id</p>
+<p>                JOIN roles r ON ur.role_id = r.id</p>
+<p>                JOIN role_permissions rp ON r.id = rp.role_id</p>
+<p>                JOIN permissions p ON rp.permission_id = p.id</p>
+<p>                GROUP BY u.id, r.name;</p>
+                
+<p>                -- コネクションプーリングの最適化</p>
+<p>                class OptimizedDBPool:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.pool = asyncpg.create_pool(</p>
+<p>                            min_size=20,</p>
+<p>                            max_size=100,</p>
+<p>                            max_queries=50000,</p>
+<p>                            max_inactive_connection_lifetime=300,</p>
+<p>                            command_timeout=10</p>
+<p>                        )</p>
+<p>                ''',</p>
+<p>                'expected_improvement': 'Query time from 200ms to 20ms'</p>
+<p>            },</p>
+            
+<p>            '4_service_mesh_optimization': {</p>
+<p>                'description': 'サービスメッシュレベルの最適化',</p>
+<p>                'implementation': '''</p>
+<p>                # gRPC の使用（HTTPより効率的）</p>
+<p>                service AuthService {</p>
+<p>                    rpc ValidateToken(TokenRequest) returns (TokenResponse);</p>
+<p>                    rpc GetPermissions(PermissionRequest) returns (PermissionResponse);</p>
+<p>                }</p>
+                
+<p>                # バッチリクエスト</p>
+<p>                service BatchAuthService {</p>
+<p>                    rpc BatchValidate(BatchTokenRequest) returns (BatchTokenResponse);</p>
+<p>                }</p>
+                
+<p>                # コネクション再利用</p>
+<p>                class ServiceClient:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.channel_pool = {</p>
+<p>                            'auth': grpc.aio.insecure_channel(</p>
+<p>                                'auth-service:50051',</p>
+<p>                                options=[</p>
+<p>                                    ('grpc.keepalive_time_ms', 10000),</p>
+<p>                                    ('grpc.keepalive_timeout_ms', 5000),</p>
+<p>                                    ('grpc.http2.max_pings_without_data', 0),</p>
+<p>                                    ('grpc.http2.min_time_between_pings_ms', 10000),</p>
+<p>                                ]</p>
+<p>                            )</p>
+<p>                        }</p>
+<p>                ''',</p>
+<p>                'expected_improvement': 'Network overhead reduced by 40%'</p>
+<p>            },</p>
+            
+<p>            '5_edge_computing': {</p>
+<p>                'description': 'エッジでの認証処理',</p>
+<p>                'implementation': '''</p>
+<p>                # CloudFlare Workers での JWT検証</p>
+<p>                addEventListener('fetch', event => {</p>
+<p>                    event.respondWith(handleRequest(event.request))</p>
+<p>                })</p>
+                
+<p>                async function handleRequest(request) {</p>
+<p>                    const token = request.headers.get('Authorization')</p>
+                    
+<p>                    // エッジでの高速JWT検証</p>
+<p>                    const claims = await verifyJWT(token)</p>
+                    
+<p>                    if (!claims) {</p>
+<p>                        return new Response('Unauthorized', { status: 401 })</p>
+<p>                    }</p>
+                    
+<p>                    // 検証済みヘッダーを追加してオリジンへ</p>
+<p>                    request.headers.set('X-Verified-User', claims.sub)</p>
+<p>                    request.headers.set('X-Verified-Roles', claims.roles.join(','))</p>
+                    
+<p>                    return fetch(request)</p>
+<p>                }</p>
+<p>                ''',</p>
+<p>                'expected_improvement': 'Reduce origin auth calls by 90%'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def implementation_priority(self):</p>
+<p>        """実装優先順位"""</p>
+<p>        return {</p>
+<p>            'priority_matrix': {</p>
+<p>                'immediate': [</p>
+<p>                    {</p>
+<p>                        'task': 'L1/L2キャッシング実装',</p>
+<p>                        'effort': '1 week',</p>
+<p>                        'impact': 'High',</p>
+<p>                        'risk': 'Low'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'task': 'データベースインデックス追加',</p>
+<p>                        'effort': '2 days',</p>
+<p>                        'impact': 'Medium',</p>
+<p>                        'risk': 'Low'</p>
+<p>                    }</p>
+<p>                ],</p>
+                
+<p>                'short_term': [</p>
+<p>                    {</p>
+<p>                        'task': 'JWT アルゴリズム変更',</p>
+<p>                        'effort': '2 weeks',</p>
+<p>                        'impact': 'Medium',</p>
+<p>                        'risk': 'Medium'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'task': 'コネクションプーリング最適化',</p>
+<p>                        'effort': '1 week',</p>
+<p>                        'impact': 'Medium',</p>
+<p>                        'risk': 'Low'</p>
+<p>                    }</p>
+<p>                ],</p>
+                
+<p>                'long_term': [</p>
+<p>                    {</p>
+<p>                        'task': 'gRPC移行',</p>
+<p>                        'effort': '1 month',</p>
+<p>                        'impact': 'High',</p>
+<p>                        'risk': 'Medium'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'task': 'エッジコンピューティング',</p>
+<p>                        'effort': '2 months',</p>
+<p>                        'impact': 'Very High',</p>
+<p>                        'risk': 'Medium'</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def expected_results(self):</p>
+<p>        """期待される改善効果"""</p>
+<p>        return {</p>
+<p>            'performance_targets': {</p>
+<p>                'current': {</p>
+<p>                    'p50': '150ms',</p>
+<p>                    'p95': '500ms',</p>
+<p>                    'p99': '1200ms',</p>
+<p>                    'throughput': '1000 req/s'</p>
+<p>                },</p>
+                
+<p>                'after_optimization': {</p>
+<p>                    'p50': '20ms',</p>
+<p>                    'p95': '50ms',</p>
+<p>                    'p99': '100ms',</p>
+<p>                    'throughput': '10000 req/s'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'cost_benefit': {</p>
+<p>                'implementation_cost': '$50,000',</p>
+<p>                'infrastructure_savings': '$20,000/month',</p>
+<p>                'roi_period': '3 months'</p>
+<p>            },</p>
+            
+<p>            'monitoring_plan': '''</p>
+<p>            # Prometheusメトリクス</p>
+<p>            - auth_request_duration_seconds</p>
+<p>            - auth_cache_hit_rate</p>
+<p>            - auth_db_query_duration_seconds</p>
+<p>            - auth_jwt_validation_duration_seconds</p>
+            
+<p>            # アラート設定</p>
+<p>            - P95 latency > 100ms</p>
+<p>            - Cache hit rate < 80%</p>
+<p>            - Error rate > 1%</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

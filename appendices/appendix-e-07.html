@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第7章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第7章 演習問題解答</h1><h2>問題1：OpenID Connect実装</h2><h3>解答</h3><p><pre><code>python
+<p>import json</p>
+<p>import time</p>
+<p>import secrets</p>
+<p>from typing import Dict, Optional, List</p>
+<p>from urllib.parse import urlencode, urlparse, parse_qs</p>
+<p>import requests</p>
+<p>import jwt</p>
+<p>from flask import Flask, request, redirect, session, url_for, jsonify</p>
+<p>from cryptography.hazmat.primitives import serialization</p>
+<p>from cryptography.hazmat.primitives.asymmetric import rsa</p>
+<p>from functools import wraps</p><p>app = Flask(__name__)</p>
+<p>app.secret_key = secrets.token_bytes(32)</p><p>class OpenIDConnectRP:</p>
+<p>    """</p>
+<p>    OpenID Connect Relying Party実装</p>
+<p>    - ディスカバリによる自動設定</p>
+<p>    - IDトークンの完全な検証</p>
+<p>    - UserInfoエンドポイントの利用</p>
+<p>    - セッション管理</p>
+<p>    """</p>
+    
+<p>    def __init__(self, client_id: str, client_secret: str, </p>
+<p>                 issuer: str, redirect_uri: str):</p>
+<p>        self.client_id = client_id</p>
+<p>        self.client_secret = client_secret</p>
+<p>        self.issuer = issuer</p>
+<p>        self.redirect_uri = redirect_uri</p>
+        
+<p>        # ディスカバリ実行</p>
+<p>        self.provider_config = self._discover_provider()</p>
+<p>        self.jwks = self._fetch_jwks()</p>
+        
+<p>        # セッション管理</p>
+<p>        self.sessions = {}  # 実運用ではRedis等を使用</p>
+        
+<p>    def _discover_provider(self) -> Dict:</p>
+<p>        """OpenID Provider のディスカバリ"""</p>
+        
+<p>        discovery_url = f"{self.issuer}/.well-known/openid-configuration"</p>
+        
+<p>        try:</p>
+<p>            response = requests.get(discovery_url, timeout=10)</p>
+<p>            response.raise_for_status()</p>
+            
+<p>            config = response.json()</p>
+            
+<p>            # 必須エンドポイントの確認</p>
+<p>            required_endpoints = [</p>
+<p>                'authorization_endpoint',</p>
+<p>                'token_endpoint',</p>
+<p>                'jwks_uri',</p>
+<p>                'issuer'</p>
+<p>            ]</p>
+            
+<p>            for endpoint in required_endpoints:</p>
+<p>                if endpoint not in config:</p>
+<p>                    raise ValueError(f"Missing required endpoint: {endpoint}")</p>
+            
+<p>            # issuerの検証</p>
+<p>            if config['issuer'] != self.issuer:</p>
+<p>                raise ValueError(f"Issuer mismatch: {config['issuer']} != {self.issuer}")</p>
+            
+<p>            return config</p>
+            
+<p>        except Exception as e:</p>
+<p>            raise Exception(f"Discovery failed: {e}")</p>
+    
+<p>    def _fetch_jwks(self) -> Dict:</p>
+<p>        """JWKS（JSON Web Key Set）の取得"""</p>
+        
+<p>        jwks_uri = self.provider_config['jwks_uri']</p>
+        
+<p>        try:</p>
+<p>            response = requests.get(jwks_uri, timeout=10)</p>
+<p>            response.raise_for_status()</p>
+            
+<p>            jwks = response.json()</p>
+            
+<p>            # JWKSをキーIDでインデックス化</p>
+<p>            key_dict = {}</p>
+<p>            for key in jwks.get('keys', []):</p>
+<p>                if 'kid' in key:</p>
+<p>                    key_dict[key['kid']] = key</p>
+            
+<p>            return key_dict</p>
+            
+<p>        except Exception as e:</p>
+<p>            raise Exception(f"JWKS fetch failed: {e}")</p>
+    
+<p>    def create_authorization_url(self, scope: List[str] = None,</p>
+<p>                               <em></em>kwargs) -> str:</p>
+<p>        """認可URLの作成"""</p>
+        
+<p>        if scope is None:</p>
+<p>            scope = ['openid', 'profile', 'email']</p>
+        
+<p>        # セキュリティパラメータ生成</p>
+<p>        state = secrets.token_urlsafe(32)</p>
+<p>        nonce = secrets.token_urlsafe(32)</p>
+        
+<p>        # セッションに保存</p>
+<p>        session_id = secrets.token_urlsafe(16)</p>
+<p>        self.sessions[session_id] = {</p>
+<p>            'state': state,</p>
+<p>            'nonce': nonce,</p>
+<p>            'created_at': time.time()</p>
+<p>        }</p>
+        
+<p>        # 認可リクエストパラメータ</p>
+<p>        params = {</p>
+<p>            'response_type': 'code',</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'redirect_uri': self.redirect_uri,</p>
+<p>            'scope': ' '.join(scope),</p>
+<p>            'state': state,</p>
+<p>            'nonce': nonce</p>
+<p>        }</p>
+        
+<p>        # 追加パラメータ</p>
+<p>        params.update(kwargs)</p>
+        
+<p>        # PKCEサポート確認</p>
+<p>        if 'code_challenge_methods_supported' in self.provider_config:</p>
+<p>            if 'S256' in self.provider_config['code_challenge_methods_supported']:</p>
+<p>                verifier, challenge = self._generate_pkce()</p>
+<p>                self.sessions[session_id]['code_verifier'] = verifier</p>
+<p>                params['code_challenge'] = challenge</p>
+<p>                params['code_challenge_method'] = 'S256'</p>
+        
+<p>        auth_url = f"{self.provider_config['authorization_endpoint']}?{urlencode(params)}"</p>
+        
+<p>        # セッションIDをFlaskセッションに保存</p>
+<p>        session['oidc_session_id'] = session_id</p>
+        
+<p>        return auth_url</p>
+    
+<p>    def _generate_pkce(self) -> tuple:</p>
+<p>        """PKCE生成"""</p>
+<p>        import hashlib</p>
+<p>        import base64</p>
+        
+<p>        verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')</p>
+<p>        challenge = base64.urlsafe_b64encode(</p>
+<p>            hashlib.sha256(verifier.encode('utf-8')).digest()</p>
+<p>        ).decode('utf-8').rstrip('=')</p>
+        
+<p>        return verifier, challenge</p>
+    
+<p>    def handle_authorization_response(self, authorization_response_url: str) -> Dict:</p>
+<p>        """認可レスポンスの処理"""</p>
+        
+<p>        # URLパラメータ解析</p>
+<p>        parsed = urlparse(authorization_response_url)</p>
+<p>        params = parse_qs(parsed.query)</p>
+        
+<p>        # エラーチェック</p>
+<p>        if 'error' in params:</p>
+<p>            error = params['error'][0]</p>
+<p>            error_description = params.get('error_description', [''])[0]</p>
+<p>            raise Exception(f"Authorization error: {error} - {error_description}")</p>
+        
+<p>        # 必須パラメータ確認</p>
+<p>        if 'code' not in params or 'state' not in params:</p>
+<p>            raise ValueError("Missing required parameters")</p>
+        
+<p>        code = params['code'][0]</p>
+<p>        state = params['state'][0]</p>
+        
+<p>        # セッション取得</p>
+<p>        session_id = session.get('oidc_session_id')</p>
+<p>        if not session_id or session_id not in self.sessions:</p>
+<p>            raise SecurityError("Session not found")</p>
+        
+<p>        oidc_session = self.sessions[session_id]</p>
+        
+<p>        # セッション有効期限（10分）</p>
+<p>        if time.time() - oidc_session['created_at'] > 600:</p>
+<p>            del self.sessions[session_id]</p>
+<p>            raise SecurityError("Session expired")</p>
+        
+<p>        # State検証</p>
+<p>        if state != oidc_session['state']:</p>
+<p>            raise SecurityError("State mismatch - possible CSRF attack")</p>
+        
+<p>        # トークン交換</p>
+<p>        tokens = self._exchange_code_for_tokens(code, oidc_session)</p>
+        
+<p>        # IDトークン検証</p>
+<p>        id_token_claims = self._verify_id_token(</p>
+<p>            tokens['id_token'],</p>
+<p>            oidc_session['nonce']</p>
+<p>        )</p>
+        
+<p>        # UserInfo取得</p>
+<p>        user_info = {}</p>
+<p>        if 'userinfo_endpoint' in self.provider_config and 'access_token' in tokens:</p>
+<p>            user_info = self._fetch_userinfo(tokens['access_token'])</p>
+        
+<p>        # セッション情報更新</p>
+<p>        self.sessions[session_id] = {</p>
+<p>            'authenticated': True,</p>
+<p>            'id_token_claims': id_token_claims,</p>
+<p>            'user_info': user_info,</p>
+<p>            'access_token': tokens.get('access_token'),</p>
+<p>            'refresh_token': tokens.get('refresh_token'),</p>
+<p>            'authenticated_at': time.time(),</p>
+<p>            'expires_at': time.time() + tokens.get('expires_in', 3600)</p>
+<p>        }</p>
+        
+<p>        return {</p>
+<p>            'id_token_claims': id_token_claims,</p>
+<p>            'user_info': user_info,</p>
+<p>            'session_id': session_id</p>
+<p>        }</p>
+    
+<p>    def _exchange_code_for_tokens(self, code: str, oidc_session: Dict) -> Dict:</p>
+<p>        """認可コードをトークンに交換"""</p>
+        
+<p>        token_data = {</p>
+<p>            'grant_type': 'authorization_code',</p>
+<p>            'code': code,</p>
+<p>            'redirect_uri': self.redirect_uri,</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'client_secret': self.client_secret</p>
+<p>        }</p>
+        
+<p>        # PKCE使用時</p>
+<p>        if 'code_verifier' in oidc_session:</p>
+<p>            token_data['code_verifier'] = oidc_session['code_verifier']</p>
+        
+<p>        response = requests.post(</p>
+<p>            self.provider_config['token_endpoint'],</p>
+<p>            data=token_data,</p>
+<p>            headers={'Accept': 'application/json'},</p>
+<p>            timeout=10</p>
+<p>        )</p>
+        
+<p>        if response.status_code != 200:</p>
+<p>            raise Exception(f"Token exchange failed: {response.text}")</p>
+        
+<p>        return response.json()</p>
+    
+<p>    def _verify_id_token(self, id_token: str, nonce: str) -> Dict:</p>
+<p>        """IDトークンの完全な検証"""</p>
+        
+<p>        # ヘッダー解析</p>
+<p>        header = jwt.get_unverified_header(id_token)</p>
+        
+<p>        # 署名鍵の取得</p>
+<p>        kid = header.get('kid')</p>
+<p>        if not kid or kid not in self.jwks:</p>
+<p>            raise ValueError(f"Unknown key ID: {kid}")</p>
+        
+<p>        jwk = self.jwks[kid]</p>
+        
+<p>        # 公開鍵の構築（RSA）</p>
+<p>        if jwk['kty'] == 'RSA':</p>
+<p>            public_key = self._jwk_to_rsa_public_key(jwk)</p>
+<p>        else:</p>
+<p>            raise ValueError(f"Unsupported key type: {jwk['kty']}")</p>
+        
+<p>        # トークン検証</p>
+<p>        try:</p>
+<p>            claims = jwt.decode(</p>
+<p>                id_token,</p>
+<p>                public_key,</p>
+<p>                algorithms=[header['alg']],</p>
+<p>                audience=self.client_id,</p>
+<p>                issuer=self.issuer,</p>
+<p>                options={</p>
+<p>                    'verify_signature': True,</p>
+<p>                    'verify_aud': True,</p>
+<p>                    'verify_iss': True,</p>
+<p>                    'verify_exp': True,</p>
+<p>                    'verify_iat': True,</p>
+<p>                    'require_exp': True,</p>
+<p>                    'require_iat': True</p>
+<p>                }</p>
+<p>            )</p>
+<p>        except jwt.PyJWTError as e:</p>
+<p>            raise SecurityError(f"ID token verification failed: {e}")</p>
+        
+<p>        # Nonce検証</p>
+<p>        if claims.get('nonce') != nonce:</p>
+<p>            raise SecurityError("Nonce mismatch")</p>
+        
+<p>        # 追加検証</p>
+<p>        self._validate_id_token_claims(claims)</p>
+        
+<p>        return claims</p>
+    
+<p>    def _jwk_to_rsa_public_key(self, jwk: Dict):</p>
+<p>        """JWKからRSA公開鍵への変換"""</p>
+<p>        from cryptography.hazmat.primitives.asymmetric import rsa</p>
+<p>        from cryptography.hazmat.backends import default_backend</p>
+<p>        import base64</p>
+        
+<p>        # Base64URLデコード</p>
+<p>        def b64url_decode(data):</p>
+<p>            padding = len(data) % 4</p>
+<p>            if padding:</p>
+<p>                data += '=' * (4 - padding)</p>
+<p>            return base64.urlsafe_b64decode(data)</p>
+        
+<p>        # RSAパラメータ取得</p>
+<p>        n = int.from_bytes(b64url_decode(jwk['n']), byteorder='big')</p>
+<p>        e = int.from_bytes(b64url_decode(jwk['e']), byteorder='big')</p>
+        
+<p>        # 公開鍵構築</p>
+<p>        public_numbers = rsa.RSAPublicNumbers(e, n)</p>
+<p>        public_key = public_numbers.public_key(default_backend())</p>
+        
+<p>        return public_key</p>
+    
+<p>    def _validate_id_token_claims(self, claims: Dict):</p>
+<p>        """IDトークンクレームの追加検証"""</p>
+        
+<p>        current_time = int(time.time())</p>
+        
+<p>        # 発行時刻の検証（未来でないこと）</p>
+<p>        if 'iat' in claims and claims['iat'] > current_time + 60:</p>
+<p>            raise SecurityError("Token issued in the future")</p>
+        
+<p>        # 認証時刻の検証（max_ageが指定された場合）</p>
+<p>        if 'auth_time' in claims:</p>
+<p>            # デフォルトmax_age = 1時間</p>
+<p>            max_age = 3600</p>
+<p>            if current_time - claims['auth_time'] > max_age:</p>
+<p>                raise SecurityError("Authentication too old")</p>
+        
+<p>        # azp（Authorized Party）の検証</p>
+<p>        if 'azp' in claims and claims['azp'] != self.client_id:</p>
+<p>            raise SecurityError("Authorized party mismatch")</p>
+    
+<p>    def _fetch_userinfo(self, access_token: str) -> Dict:</p>
+<p>        """UserInfoエンドポイントからユーザー情報取得"""</p>
+        
+<p>        response = requests.get(</p>
+<p>            self.provider_config['userinfo_endpoint'],</p>
+<p>            headers={'Authorization': f'Bearer {access_token}'},</p>
+<p>            timeout=10</p>
+<p>        )</p>
+        
+<p>        if response.status_code != 200:</p>
+<p>            raise Exception(f"UserInfo fetch failed: {response.text}")</p>
+        
+<p>        return response.json()</p>
+    
+<p>    def get_session(self, session_id: str) -> Optional[Dict]:</p>
+<p>        """セッション情報の取得"""</p>
+        
+<p>        session_data = self.sessions.get(session_id)</p>
+        
+<p>        if not session_data:</p>
+<p>            return None</p>
+        
+<p>        # 有効期限チェック</p>
+<p>        if session_data.get('expires_at', 0) < time.time():</p>
+<p>            # セッション期限切れ</p>
+<p>            if 'refresh_token' in session_data:</p>
+<p>                # リフレッシュ試行</p>
+<p>                try:</p>
+<p>                    self._refresh_session(session_id)</p>
+<p>                    session_data = self.sessions[session_id]</p>
+<p>                except:</p>
+<p>                    del self.sessions[session_id]</p>
+<p>                    return None</p>
+<p>            else:</p>
+<p>                del self.sessions[session_id]</p>
+<p>                return None</p>
+        
+<p>        return session_data</p>
+    
+<p>    def _refresh_session(self, session_id: str):</p>
+<p>        """セッションのリフレッシュ"""</p>
+        
+<p>        session_data = self.sessions[session_id]</p>
+<p>        refresh_token = session_data.get('refresh_token')</p>
+        
+<p>        if not refresh_token:</p>
+<p>            raise ValueError("No refresh token available")</p>
+        
+<p>        # トークンリフレッシュ</p>
+<p>        token_data = {</p>
+<p>            'grant_type': 'refresh_token',</p>
+<p>            'refresh_token': refresh_token,</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'client_secret': self.client_secret</p>
+<p>        }</p>
+        
+<p>        response = requests.post(</p>
+<p>            self.provider_config['token_endpoint'],</p>
+<p>            data=token_data,</p>
+<p>            headers={'Accept': 'application/json'},</p>
+<p>            timeout=10</p>
+<p>        )</p>
+        
+<p>        if response.status_code != 200:</p>
+<p>            raise Exception(f"Token refresh failed: {response.text}")</p>
+        
+<p>        tokens = response.json()</p>
+        
+<p>        # セッション更新</p>
+<p>        session_data['access_token'] = tokens['access_token']</p>
+<p>        session_data['expires_at'] = time.time() + tokens.get('expires_in', 3600)</p>
+        
+<p>        if 'refresh_token' in tokens:</p>
+<p>            session_data['refresh_token'] = tokens['refresh_token']</p>
+        
+<p>        if 'id_token' in tokens:</p>
+<p>            # 新しいIDトークンの検証</p>
+<p>            id_token_claims = self._verify_id_token(tokens['id_token'], None)</p>
+<p>            session_data['id_token_claims'] = id_token_claims</p>
+    
+<p>    def logout(self, session_id: str):</p>
+<p>        """ログアウト処理"""</p>
+        
+<p>        session_data = self.sessions.get(session_id)</p>
+        
+<p>        if not session_data:</p>
+<p>            return</p>
+        
+<p>        # エンドセッションエンドポイントの確認</p>
+<p>        if 'end_session_endpoint' in self.provider_config:</p>
+<p>            # OPでのログアウト</p>
+<p>            id_token = session_data.get('id_token')</p>
+<p>            if id_token:</p>
+<p>                logout_url = self._create_logout_url(id_token)</p>
+<p>                # 実際はリダイレクトを返す</p>
+        
+<p>        # ローカルセッション削除</p>
+<p>        del self.sessions[session_id]</p>
+    
+<p>    def _create_logout_url(self, id_token: str) -> str:</p>
+<p>        """ログアウトURLの作成"""</p>
+        
+<p>        params = {</p>
+<p>            'id_token_hint': id_token,</p>
+<p>            'post_logout_redirect_uri': f"{request.host_url}logout_callback"</p>
+<p>        }</p>
+        
+<p>        return f"{self.provider_config['end_session_endpoint']}?{urlencode(params)}"</p><h1>Flask統合</h1>
+<p>oidc_client = None</p><p>def init_oidc(app):</p>
+<p>    """OpenID Connect初期化"""</p>
+<p>    global oidc_client</p>
+    
+<p>    oidc_client = OpenIDConnectRP(</p>
+<p>        client_id=app.config['OIDC_CLIENT_ID'],</p>
+<p>        client_secret=app.config['OIDC_CLIENT_SECRET'],</p>
+<p>        issuer=app.config['OIDC_ISSUER'],</p>
+<p>        redirect_uri=app.config['OIDC_REDIRECT_URI']</p>
+<p>    )</p><p>def require_auth(f):</p>
+<p>    """認証デコレータ"""</p>
+<p>    @wraps(f)</p>
+<p>    def decorated_function(<em>args, </em>*kwargs):</p>
+<p>        session_id = session.get('oidc_session_id')</p>
+        
+<p>        if not session_id:</p>
+<p>            return redirect(url_for('login'))</p>
+        
+<p>        session_data = oidc_client.get_session(session_id)</p>
+        
+<p>        if not session_data or not session_data.get('authenticated'):</p>
+<p>            return redirect(url_for('login'))</p>
+        
+<p>        # リクエストコンテキストにユーザー情報を追加</p>
+<p>        request.oidc_user = {</p>
+<p>            'claims': session_data['id_token_claims'],</p>
+<p>            'userinfo': session_data.get('user_info', {})</p>
+<p>        }</p>
+        
+<p>        return f(<em>args, </em>*kwargs)</p>
+    
+<p>    return decorated_function</p><p>@app.route('/login')</p>
+<p>def login():</p>
+<p>    """ログイン開始"""</p>
+<p>    auth_url = oidc_client.create_authorization_url(</p>
+<p>        scope=['openid', 'profile', 'email'],</p>
+<p>        prompt='select_account'  # アカウント選択を強制</p>
+<p>    )</p>
+<p>    return redirect(auth_url)</p><p>@app.route('/callback')</p>
+<p>def callback():</p>
+<p>    """認可コールバック"""</p>
+<p>    try:</p>
+<p>        result = oidc_client.handle_authorization_response(request.url)</p>
+        
+<p>        # ログイン成功</p>
+<p>        session['oidc_session_id'] = result['session_id']</p>
+        
+<p>        return redirect(url_for('profile'))</p>
+        
+<p>    except Exception as e:</p>
+<p>        return f"Authentication failed: {e}", 400</p><p>@app.route('/profile')</p>
+<p>@require_auth</p>
+<p>def profile():</p>
+<p>    """プロフィール表示"""</p>
+<p>    return jsonify({</p>
+<p>        'claims': request.oidc_user['claims'],</p>
+<p>        'userinfo': request.oidc_user['userinfo']</p>
+<p>    })</p><p>@app.route('/logout')</p>
+<p>@require_auth</p>
+<p>def logout():</p>
+<p>    """ログアウト"""</p>
+<p>    session_id = session.get('oidc_session_id')</p>
+    
+<p>    if session_id:</p>
+<p>        oidc_client.logout(session_id)</p>
+<p>        session.pop('oidc_session_id', None)</p>
+    
+<p>    return redirect('/')</p><p>if __name__ == '__main__':</p>
+<p>    # 設定</p>
+<p>    app.config.update({</p>
+<p>        'OIDC_CLIENT_ID': 'your-client-id',</p>
+<p>        'OIDC_CLIENT_SECRET': 'your-client-secret',</p>
+<p>        'OIDC_ISSUER': 'https://accounts.google.com',</p>
+<p>        'OIDC_REDIRECT_URI': 'http://localhost:5000/callback'</p>
+<p>    })</p>
+    
+<p>    init_oidc(app)</p>
+<p>    app.run(debug=True)</p>
+<p></code></pre></p><h3>実装のポイント</h3><p>1. <strong>ディスカバリ機能</strong>：<code>.well-known/openid-configuration</code>から自動設定取得</p>
+<p>2. <strong>IDトークン検証</strong>：署名、有効期限、nonce、発行者、audienceの完全検証</p>
+<p>3. <strong>UserInfo利用</strong>：アクセストークンを使用した追加情報取得</p>
+<p>4. <strong>セッション管理</strong>：有効期限管理、自動リフレッシュ、ログアウト処理</p><h2>問題2：SAML統合</h2><h3>解答</h3><p><pre><code>python</p>
+<p>from saml2 import (</p>
+<p>    BINDING_HTTP_POST, </p>
+<p>    BINDING_HTTP_REDIRECT,</p>
+<p>    entity</p>
+<p>)</p>
+<p>from saml2.client import Saml2Client</p>
+<p>from saml2.config import Config as Saml2Config</p>
+<p>from saml2.saml import NAMEID_FORMAT_PERSISTENT</p>
+<p>from saml2.metadata import create_metadata_string</p>
+<p>import os</p><p>class SAMLServiceProviderIntegration:</p>
+<p>    """</p>
+<p>    既存WebアプリケーションへのSAML SP統合設計</p>
+<p>    """</p>
+    
+<p>    def __init__(self, app_config):</p>
+<p>        self.app_config = app_config</p>
+<p>        self.saml_config = self._create_saml_config()</p>
+<p>        self.saml_client = Saml2Client(config=self.saml_config)</p>
+        
+<p>    def _create_saml_config(self):</p>
+<p>        """SAML設定の作成"""</p>
+        
+<p>        config = {</p>
+<p>            # サービスプロバイダの基本情報</p>
+<p>            'entityid': self.app_config['SP_ENTITY_ID'],</p>
+<p>            'description': 'SAML Service Provider',</p>
+            
+<p>            # サービス設定</p>
+<p>            'service': {</p>
+<p>                'sp': {</p>
+<p>                    'name': self.app_config['SP_NAME'],</p>
+<p>                    'endpoints': {</p>
+<p>                        # アサーションコンシューマーサービス</p>
+<p>                        'assertion_consumer_service': [</p>
+<p>                            (</p>
+<p>                                f"{self.app_config['BASE_URL']}/saml/acs",</p>
+<p>                                BINDING_HTTP_POST</p>
+<p>                            ),</p>
+<p>                        ],</p>
+<p>                        # シングルログアウトサービス</p>
+<p>                        'single_logout_service': [</p>
+<p>                            (</p>
+<p>                                f"{self.app_config['BASE_URL']}/saml/sls",</p>
+<p>                                BINDING_HTTP_REDIRECT</p>
+<p>                            ),</p>
+<p>                            (</p>
+<p>                                f"{self.app_config['BASE_URL']}/saml/sls",</p>
+<p>                                BINDING_HTTP_POST</p>
+<p>                            ),</p>
+<p>                        ],</p>
+<p>                    },</p>
+                    
+<p>                    # セキュリティ設定</p>
+<p>                    'authn_requests_signed': True,</p>
+<p>                    'want_assertions_signed': True,</p>
+<p>                    'want_response_signed': True,</p>
+                    
+<p>                    # NameIDフォーマット</p>
+<p>                    'name_id_format': [</p>
+<p>                        NAMEID_FORMAT_PERSISTENT,</p>
+<p>                        "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"</p>
+<p>                    ],</p>
+                    
+<p>                    # 必須属性</p>
+<p>                    'required_attributes': [</p>
+<p>                        'email',</p>
+<p>                        'displayName',</p>
+<p>                        'employeeID'</p>
+<p>                    ],</p>
+                    
+<p>                    # オプション属性</p>
+<p>                    'optional_attributes': [</p>
+<p>                        'department',</p>
+<p>                        'title',</p>
+<p>                        'manager'</p>
+<p>                    ],</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            # IdPメタデータ</p>
+<p>            'metadata': {</p>
+<p>                'local': [self.app_config['IDP_METADATA_FILE']],</p>
+<p>                # または</p>
+<p>                # 'remote': [</p>
+<p>                #     {</p>
+<p>                #         'url': self.app_config['IDP_METADATA_URL'],</p>
+<p>                #         'cert': self.app_config['METADATA_CERT']</p>
+<p>                #     }</p>
+<p>                # ]</p>
+<p>            },</p>
+            
+<p>            # 証明書と鍵</p>
+<p>            'key_file': self.app_config['SP_KEY_FILE'],</p>
+<p>            'cert_file': self.app_config['SP_CERT_FILE'],</p>
+            
+<p>            # 暗号化設定</p>
+<p>            'encryption_keypairs': [{</p>
+<p>                'key_file': self.app_config['SP_KEY_FILE'],</p>
+<p>                'cert_file': self.app_config['SP_CERT_FILE'],</p>
+<p>            }],</p>
+            
+<p>            # デバッグ設定</p>
+<p>            'debug': self.app_config.get('DEBUG', False),</p>
+<p>            'xmlsec_binary': '/usr/bin/xmlsec1',</p>
+<p>        }</p>
+        
+<p>        return Saml2Config().load(config)</p>
+    
+<p>    def generate_sp_metadata(self):</p>
+<p>        """SPメタデータの生成"""</p>
+        
+<p>        metadata = create_metadata_string(</p>
+<p>            configfile=None,</p>
+<p>            config=self.saml_config,</p>
+<p>            valid=96,  # 96時間有効</p>
+<p>            cert=self.app_config['SP_CERT_FILE'],</p>
+<p>            keyfile=self.app_config['SP_KEY_FILE'],</p>
+<p>            id=None,</p>
+<p>            name=self.app_config['SP_NAME'],</p>
+<p>            sign=True</p>
+<p>        )</p>
+        
+<p>        return metadata</p>
+    
+<p>    def integrate_with_app(self, app):</p>
+<p>        """既存アプリケーションとの統合"""</p>
+        
+<p>        from flask import Flask, request, redirect, session, make_response</p>
+        
+<p>        # メタデータエンドポイント</p>
+<p>        @app.route('/saml/metadata')</p>
+<p>        def saml_metadata():</p>
+<p>            metadata = self.generate_sp_metadata()</p>
+<p>            response = make_response(metadata)</p>
+<p>            response.headers['Content-Type'] = 'text/xml'</p>
+<p>            return response</p>
+        
+<p>        # SSO開始</p>
+<p>        @app.route('/saml/login')</p>
+<p>        def saml_login():</p>
+<p>            # RelayStateで元のURLを保存</p>
+<p>            relay_state = request.args.get('next', '/')</p>
+            
+<p>            # 認証リクエスト作成</p>
+<p>            session_id, auth_request_info = self.saml_client.prepare_for_authenticate(</p>
+<p>                relay_state=relay_state</p>
+<p>            )</p>
+            
+<p>            # セッションに保存</p>
+<p>            session['saml_session_id'] = session_id</p>
+<p>            session['saml_relay_state'] = relay_state</p>
+            
+<p>            # IdPへリダイレクト</p>
+<p>            redirect_url = None</p>
+<p>            for key, value in auth_request_info['headers']:</p>
+<p>                if key == 'Location':</p>
+<p>                    redirect_url = value</p>
+            
+<p>            return redirect(redirect_url)</p>
+        
+<p>        # アサーションコンシューマーサービス</p>
+<p>        @app.route('/saml/acs', methods=['POST'])</p>
+<p>        def saml_acs():</p>
+<p>            try:</p>
+<p>                # SAMLレスポンス取得</p>
+<p>                saml_response = request.form.get('SAMLResponse')</p>
+<p>                relay_state = request.form.get('RelayState', '/')</p>
+                
+<p>                # レスポンス検証</p>
+<p>                authn_response = self.saml_client.parse_authn_request_response(</p>
+<p>                    saml_response,</p>
+<p>                    BINDING_HTTP_POST</p>
+<p>                )</p>
+                
+<p>                # 検証成功</p>
+<p>                user_info = self._process_saml_response(authn_response)</p>
+                
+<p>                # セッション作成</p>
+<p>                session['user'] = user_info</p>
+<p>                session['saml_session_index'] = authn_response.session_index</p>
+<p>                session['saml_nameid'] = authn_response.name_id.text</p>
+<p>                session['saml_nameid_format'] = authn_response.name_id.format</p>
+                
+<p>                # 元のページへリダイレクト</p>
+<p>                return redirect(relay_state)</p>
+                
+<p>            except Exception as e:</p>
+<p>                app.logger.error(f"SAML authentication failed: {e}")</p>
+<p>                return "Authentication failed", 400</p>
+        
+<p>        # シングルログアウト</p>
+<p>        @app.route('/saml/logout')</p>
+<p>        def saml_logout():</p>
+<p>            # ログアウトリクエスト作成</p>
+<p>            session_id = session.get('saml_session_index')</p>
+<p>            name_id = session.get('saml_nameid')</p>
+<p>            name_id_format = session.get('saml_nameid_format')</p>
+            
+<p>            if session_id and name_id:</p>
+<p>                logout_request = self.saml_client.create_logout_request(</p>
+<p>                    name_id=name_id,</p>
+<p>                    session_index=session_id,</p>
+<p>                    name_id_format=name_id_format</p>
+<p>                )</p>
+                
+<p>                # セッションクリア</p>
+<p>                session.clear()</p>
+                
+<p>                # IdPへリダイレクト</p>
+<p>                return redirect(logout_request)</p>
+            
+<p>            # ローカルログアウトのみ</p>
+<p>            session.clear()</p>
+<p>            return redirect('/')</p>
+        
+<p>        # シングルログアウトサービス</p>
+<p>        @app.route('/saml/sls', methods=['GET', 'POST'])</p>
+<p>        def saml_sls():</p>
+<p>            # ログアウトレスポンス/リクエストの処理</p>
+            
+<p>            if request.method == 'GET':</p>
+<p>                # Redirect binding</p>
+<p>                saml_request = request.args.get('SAMLRequest')</p>
+<p>                saml_response = request.args.get('SAMLResponse')</p>
+<p>            else:</p>
+<p>                # POST binding</p>
+<p>                saml_request = request.form.get('SAMLRequest')</p>
+<p>                saml_response = request.form.get('SAMLResponse')</p>
+            
+<p>            if saml_request:</p>
+<p>                # IdPからのログアウトリクエスト</p>
+<p>                self._handle_logout_request(saml_request)</p>
+<p>            elif saml_response:</p>
+<p>                # IdPからのログアウトレスポンス</p>
+<p>                self._handle_logout_response(saml_response)</p>
+            
+<p>            session.clear()</p>
+<p>            return redirect('/')</p>
+    
+<p>    def _process_saml_response(self, authn_response):</p>
+<p>        """SAMLレスポンスの処理と属性マッピング"""</p>
+        
+<p>        # 属性マッピング設定</p>
+<p>        attribute_mapping = {</p>
+<p>            # SAML属性名 -> アプリケーション属性名</p>
+<p>            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress': 'email',</p>
+<p>            'http://schemas.microsoft.com/identity/claims/displayname': 'display_name',</p>
+<p>            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name': 'username',</p>
+<p>            'employeeID': 'employee_id',</p>
+<p>            'department': 'department',</p>
+<p>            'title': 'job_title',</p>
+<p>            'manager': 'manager_email',</p>
+            
+<p>            # 追加の標準属性</p>
+<p>            'urn:oid:0.9.2342.19200300.100.1.3': 'email',  # mail</p>
+<p>            'urn:oid:2.5.4.42': 'first_name',  # givenName</p>
+<p>            'urn:oid:2.5.4.4': 'last_name',   # sn (surname)</p>
+<p>            'urn:oid:2.5.4.3': 'common_name',  # cn</p>
+<p>        }</p>
+        
+<p>        # ユーザー情報の抽出</p>
+<p>        user_info = {</p>
+<p>            'nameid': authn_response.name_id.text,</p>
+<p>            'nameid_format': authn_response.name_id.format,</p>
+<p>            'session_index': authn_response.session_index,</p>
+<p>            'attributes': {}</p>
+<p>        }</p>
+        
+<p>        # 属性のマッピング</p>
+<p>        for saml_attr, values in authn_response.ava.items():</p>
+<p>            # マッピングに基づいて変換</p>
+<p>            app_attr = attribute_mapping.get(saml_attr, saml_attr)</p>
+            
+<p>            # 単一値か複数値かの処理</p>
+<p>            if isinstance(values, list):</p>
+<p>                if len(values) == 1:</p>
+<p>                    user_info['attributes'][app_attr] = values[0]</p>
+<p>                else:</p>
+<p>                    user_info['attributes'][app_attr] = values</p>
+<p>            else:</p>
+<p>                user_info['attributes'][app_attr] = values</p>
+        
+<p>        # 必須属性の検証</p>
+<p>        required_attrs = ['email', 'employee_id']</p>
+<p>        missing_attrs = []</p>
+        
+<p>        for attr in required_attrs:</p>
+<p>            if attr not in user_info['attributes']:</p>
+<p>                missing_attrs.append(attr)</p>
+        
+<p>        if missing_attrs:</p>
+<p>            raise ValueError(f"Missing required attributes: {missing_attrs}")</p>
+        
+<p>        # ユーザー識別子の決定</p>
+<p>        user_info['user_id'] = user_info['attributes'].get(</p>
+<p>            'employee_id',</p>
+<p>            user_info['nameid']</p>
+<p>        )</p>
+        
+<p>        return user_info</p>
+    
+<p>    def _handle_logout_request(self, saml_request):</p>
+<p>        """IdPからのログアウトリクエスト処理"""</p>
+        
+<p>        # ログアウトリクエストの解析</p>
+<p>        logout_request = self.saml_client.parse_logout_request(</p>
+<p>            saml_request,</p>
+<p>            BINDING_HTTP_REDIRECT</p>
+<p>        )</p>
+        
+<p>        # 該当セッションの特定と無効化</p>
+<p>        session_index = logout_request.session_index</p>
+        
+<p>        # ログアウトレスポンスの作成</p>
+<p>        logout_response = self.saml_client.create_logout_response(</p>
+<p>            logout_request.id,</p>
+<p>            status={</p>
+<p>                'status_code': {</p>
+<p>                    'value': 'urn:oasis:names:tc:SAML:2.0:status:Success'</p>
+<p>                }</p>
+<p>            }</p>
+<p>        )</p>
+        
+<p>        return logout_response</p>
+    
+<p>    def monitoring_and_troubleshooting(self):</p>
+<p>        """監視とトラブルシューティング"""</p>
+        
+<p>        return {</p>
+<p>            'logging_configuration': '''</p>
+<p>            import logging</p>
+            
+<p>            # SAML専用ロガー</p>
+<p>            saml_logger = logging.getLogger('saml2')</p>
+<p>            saml_logger.setLevel(logging.DEBUG)</p>
+            
+<p>            # ハンドラー設定</p>
+<p>            handler = logging.FileHandler('saml.log')</p>
+<p>            handler.setFormatter(logging.Formatter(</p>
+<p>                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'</p>
+<p>            ))</p>
+<p>            saml_logger.addHandler(handler)</p>
+<p>            ''',</p>
+            
+<p>            'common_issues': {</p>
+<p>                'signature_verification_failed': {</p>
+<p>                    'cause': '証明書の不一致',</p>
+<p>                    'solution': 'IdPメタデータの更新、証明書の確認'</p>
+<p>                },</p>
+<p>                'time_skew': {</p>
+<p>                    'cause': 'サーバー間の時刻のずれ',</p>
+<p>                    'solution': 'NTP同期、NotBefore/NotOnOrAfterの許容範囲調整'</p>
+<p>                },</p>
+<p>                'attribute_missing': {</p>
+<p>                    'cause': 'IdPが必要な属性を送信していない',</p>
+<p>                    'solution': 'IdP管理者に属性マッピングの確認を依頼'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'debug_tools': [</p>
+<p>                'SAML Chrome Panel (ブラウザ拡張)',</p>
+<p>                'SAML-tracer (Firefox拡張)',</p>
+<p>                'xmlsec1コマンドラインツール'</p>
+<p>            ]</p>
+<p>        }</p><h1>使用例</h1>
+<p>app_config = {</p>
+<p>    'SP_ENTITY_ID': 'https://myapp.example.com',</p>
+<p>    'SP_NAME': 'My Application',</p>
+<p>    'BASE_URL': 'https://myapp.example.com',</p>
+<p>    'IDP_METADATA_FILE': '/path/to/idp_metadata.xml',</p>
+<p>    'SP_KEY_FILE': '/path/to/sp.key',</p>
+<p>    'SP_CERT_FILE': '/path/to/sp.crt',</p>
+<p>    'DEBUG': True</p>
+<p>}</p><p>saml_integration = SAMLServiceProviderIntegration(app_config)</p>
+<p></code></pre></p><h3>設計のポイント</h3><p>1. <strong>メタデータ管理</strong>：自動生成と手動/リモート取得の両対応</p>
+<p>2. <strong>属性マッピング</strong>：柔軟な属性変換と必須属性の検証</p>
+<p>3. <strong>シングルログアウト</strong>：IdP起動とSP起動の両方に対応</p>
+<p>4. <strong>既存アプリとの統合</strong>：最小限の変更で統合可能な設計</p><h2>問題3：プロトコル選択</h2><h3>解答</h3><p>#### 1. 大学間の学術リソース共有</p><p><strong>選択：SAML</strong></p><p><strong>理由：</strong></p>
+<p>- <strong>既存のフェデレーション</strong>：eduGAIN等の学術フェデレーションはSAMLベース</p>
+<p>- <strong>成熟したエコシステム</strong>：Shibbolethなど実績のある実装</p>
+<p>- <strong>詳細な属性情報</strong>：所属、役職、研究分野など複雑な属性の交換</p>
+<p>- <strong>信頼関係の確立</strong>：大学間の正式な契約に基づく信頼関係</p><p><strong>実装例：</strong></p>
+<pre><code>xml
+<p><!-- 学術用属性の例 --></p>
+<p><saml:Attribute Name="eduPersonAffiliation"></p>
+<p>    <saml:AttributeValue>faculty</saml:AttributeValue></p>
+<p>    <saml:AttributeValue>member</saml:AttributeValue></p>
+<p></saml:Attribute></p>
+<p><saml:Attribute Name="eduPersonScopedAffiliation"></p>
+<p>    <saml:AttributeValue>faculty@university.edu</saml:AttributeValue></p>
+<p></saml:Attribute></p>
+<p><saml:Attribute Name="eduPersonEntitlement"></p>
+<p>    <saml:AttributeValue>urn:mace:example.edu:library:premium</saml:AttributeValue></p>
+<p></saml:Attribute></p>
+<p></code></pre></p><p>#### 2. スタートアップのSaaS統合</p><p><strong>選択：OpenID Connect</strong></p><p><strong>理由：</strong></p>
+<p>- <strong>開発速度</strong>：RESTful APIで実装が簡単</p>
+<p>- <strong>モダンスタック</strong>：JWT、OAuth 2.0ベース</p>
+<p>- <strong>ソーシャルログイン</strong>：Google、GitHubなどとの統合が容易</p>
+<p>- <strong>開発者体験</strong>：豊富なライブラリとドキュメント</p><p><strong>実装例：</strong></p>
+<pre><code>javascript
+<p>// Next.js + NextAuth.jsの例</p>
+<p>import NextAuth from 'next-auth'</p>
+<p>import GoogleProvider from 'next-auth/providers/google'</p><p>export default NextAuth({</p>
+<p>  providers: [</p>
+<p>    GoogleProvider({</p>
+<p>      clientId: process.env.GOOGLE_CLIENT_ID,</p>
+<p>      clientSecret: process.env.GOOGLE_CLIENT_SECRET,</p>
+<p>      authorization: {</p>
+<p>        params: {</p>
+<p>          scope: 'openid email profile https://www.googleapis.com/auth/calendar.readonly'</p>
+<p>        }</p>
+<p>      }</p>
+<p>    })</p>
+<p>  ],</p>
+<p>  callbacks: {</p>
+<p>    async jwt({ token, account, user }) {</p>
+<p>      if (account?.access_token) {</p>
+<p>        token.accessToken = account.access_token</p>
+<p>      }</p>
+<p>      return token</p>
+<p>    }</p>
+<p>  }</p>
+<p>})</p>
+<p></code></pre></p><p>#### 3. 銀行のモバイルアプリ</p><p><strong>選択：OpenID Connect</strong></p><p><strong>理由：</strong></p>
+<p>- <strong>モバイル最適化</strong>：コンパクトなJWTトークン</p>
+<p>- <strong>PKCE対応</strong>：モバイルアプリのセキュリティ強化</p>
+<p>- <strong>API統合</strong>：RESTful APIとの親和性</p>
+<p>- <strong>生体認証統合</strong>：FIDO2等との組み合わせが容易</p><p><strong>実装考慮事項：</strong></p>
+<pre><code>python
+<p>class BankingMobileAuth:</p>
+<p>    def __init__(self):</p>
+<p>        self.required_aal = 'aal3'  # 高い認証保証レベル</p>
+<p>        self.token_lifetime = 300   # 5分（短い有効期限）</p>
+        
+<p>    def create_mobile_auth_request(self):</p>
+<p>        return {</p>
+<p>            'response_type': 'code',</p>
+<p>            'scope': 'openid profile accounts:read transactions:read',</p>
+<p>            'acr_values': 'urn:banking:psd2:sca',  # 強力な認証要求</p>
+<p>            'max_age': 0,  # 強制再認証</p>
+<p>            'prompt': 'login consent'</p>
+<p>        }</p>
+<p></code></pre></p><p>#### 4. 製造業のサプライチェーン連携</p><p><strong>選択：SAML（既存システム）+ OpenID Connect（新規API）のハイブリッド</strong></p><p><strong>理由：</strong></p>
+<p>- <strong>レガシー対応</strong>：既存のERP/SCMシステムはSAML対応が多い</p>
+<p>- <strong>API連携</strong>：新しいマイクロサービスはOIDC/OAuth 2.0</p>
+<p>- <strong>B2B要件</strong>：企業間の正式な契約と詳細な属性交換</p>
+<p>- <strong>段階的移行</strong>：既存システムを維持しながら新技術導入</p><p><strong>ハイブリッドアーキテクチャ：</strong></p>
+<pre><code>python
+<p>class SupplyChainAuthGateway:</p>
+<p>    """SAMLとOIDCのブリッジ"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.saml_handler = SAMLHandler()</p>
+<p>        self.oidc_handler = OIDCHandler()</p>
+        
+<p>    def authenticate(self, request):</p>
+<p>        if request.is_legacy_system():</p>
+<p>            # レガシーシステム向けSAML</p>
+<p>            return self.saml_handler.process(request)</p>
+<p>        else:</p>
+<p>            # 新システム向けOIDC</p>
+<p>            return self.oidc_handler.process(request)</p>
+    
+<p>    def token_exchange(self, saml_assertion):</p>
+<p>        """SAMLアサーションをOIDCトークンに変換"""</p>
+<p>        # アサーションの検証</p>
+<p>        claims = self.saml_handler.validate_assertion(saml_assertion)</p>
+        
+<p>        # OIDCトークンの生成</p>
+<p>        return self.oidc_handler.create_token({</p>
+<p>            'sub': claims['nameid'],</p>
+<p>            'company': claims['organization'],</p>
+<p>            'role': claims['supply_chain_role'],</p>
+<p>            'permissions': self.map_permissions(claims)</p>
+<p>        })</p>
+<p></code></pre></p><h3>選択基準のまとめ</h3><p>| シナリオ | プロトコル | 決定要因 |</p>
+<p>|---------|-----------|---------|</p>
+<p>| 大学間連携 | SAML | 既存フェデレーション、複雑な属性 |</p>
+<p>| スタートアップ | OIDC | 開発効率、モダンスタック |</p>
+<p>| 銀行モバイル | OIDC | モバイル最適化、API統合 |</p>
+<p>| サプライチェーン | ハイブリッド | レガシー対応＋将来性 |</p><h2>問題4：ハイブリッド実装</h2><h3>解答</h3><p><pre><code>python</p>
+<p>import time</p>
+<p>import uuid</p>
+<p>from typing import Dict, Optional, Union</p>
+<p>from abc import ABC, abstractmethod</p>
+<p>import jwt</p>
+<p>from saml2 import saml, sigver</p>
+<p>from saml2.s_utils import factory</p><p>class ProtocolHandler(ABC):</p>
+<p>    """プロトコルハンドラーの基底クラス"""</p>
+    
+<p>    @abstractmethod</p>
+<p>    def authenticate(self, request):</p>
+<p>        pass</p>
+    
+<p>    @abstractmethod</p>
+<p>    def create_response(self, user_info):</p>
+<p>        pass</p><p>class HybridIdentityProvider:</p>
+<p>    """</p>
+<p>    SAMLとOpenID Connectの両方をサポートするIdP</p>
+<p>    """</p>
+    
+<p>    def __init__(self, config):</p>
+<p>        self.config = config</p>
+<p>        self.user_store = UserStore()</p>
+<p>        self.session_store = SessionStore()</p>
+        
+<p>        # プロトコルハンドラー</p>
+<p>        self.saml_handler = SAMLProtocolHandler(config)</p>
+<p>        self.oidc_handler = OIDCProtocolHandler(config)</p>
+        
+<p>        # 共通認証エンジン</p>
+<p>        self.auth_engine = CommonAuthenticationEngine(config)</p>
+        
+<p>    def handle_request(self, request):</p>
+<p>        """リクエストのルーティング"""</p>
+        
+<p>        # プロトコルの判定</p>
+<p>        protocol_type = self._detect_protocol(request)</p>
+        
+<p>        if protocol_type == 'saml':</p>
+<p>            return self.saml_handler.process(request, self.auth_engine)</p>
+<p>        elif protocol_type == 'oidc':</p>
+<p>            return self.oidc_handler.process(request, self.auth_engine)</p>
+<p>        else:</p>
+<p>            raise ValueError(f"Unknown protocol: {protocol_type}")</p>
+    
+<p>    def _detect_protocol(self, request):</p>
+<p>        """プロトコルの自動検出"""</p>
+        
+<p>        # SAMLの判定</p>
+<p>        if 'SAMLRequest' in request.params:</p>
+<p>            return 'saml'</p>
+        
+<p>        # OIDCの判定</p>
+<p>        if request.path.startswith('/authorize') and 'openid' in request.params.get('scope', ''):</p>
+<p>            return 'oidc'</p>
+        
+<p>        # エンドポイントベース</p>
+<p>        if request.path in ['/saml/sso', '/saml/slo']:</p>
+<p>            return 'saml'</p>
+<p>        elif request.path in ['/authorize', '/token', '/userinfo']:</p>
+<p>            return 'oidc'</p>
+        
+<p>        return 'unknown'</p><p>class CommonAuthenticationEngine:</p>
+<p>    """共通認証エンジン"""</p>
+    
+<p>    def __init__(self, config):</p>
+<p>        self.config = config</p>
+<p>        self.mfa_provider = MFAProvider()</p>
+        
+<p>    def authenticate(self, credentials):</p>
+<p>        """共通の認証処理"""</p>
+        
+<p>        # 基本認証</p>
+<p>        user = self._verify_credentials(credentials)</p>
+        
+<p>        if not user:</p>
+<p>            raise AuthenticationError("Invalid credentials")</p>
+        
+<p>        # リスクベース認証</p>
+<p>        risk_score = self._assess_risk(credentials, user)</p>
+        
+<p>        # MFA要求の判定</p>
+<p>        if risk_score > 30 or user.require_mfa:</p>
+<p>            mfa_result = self.mfa_provider.challenge(user)</p>
+<p>            if not mfa_result:</p>
+<p>                raise AuthenticationError("MFA failed")</p>
+        
+<p>        # 認証コンテキストの作成</p>
+<p>        auth_context = {</p>
+<p>            'user': user,</p>
+<p>            'auth_time': int(time.time()),</p>
+<p>            'auth_methods': self._get_auth_methods(user, risk_score),</p>
+<p>            'auth_level': self._determine_auth_level(user, risk_score),</p>
+<p>            'session_id': str(uuid.uuid4())</p>
+<p>        }</p>
+        
+<p>        return auth_context</p>
+    
+<p>    def _verify_credentials(self, credentials):</p>
+<p>        """クレデンシャル検証"""</p>
+<p>        # 実装省略</p>
+<p>        pass</p>
+    
+<p>    def _assess_risk(self, credentials, user):</p>
+<p>        """リスクアセスメント"""</p>
+<p>        score = 0</p>
+        
+<p>        # IPアドレスチェック</p>
+<p>        if not self._is_known_ip(credentials.ip_address, user):</p>
+<p>            score += 20</p>
+        
+<p>        # デバイスチェック</p>
+<p>        if not self._is_known_device(credentials.device_id, user):</p>
+<p>            score += 30</p>
+        
+<p>        # 時間帯チェック</p>
+<p>        if self._is_unusual_time(user):</p>
+<p>            score += 20</p>
+        
+<p>        return score</p><p>class SAMLProtocolHandler(ProtocolHandler):</p>
+<p>    """SAMLプロトコルハンドラー"""</p>
+    
+<p>    def __init__(self, config):</p>
+<p>        self.config = config</p>
+<p>        self.saml_config = self._init_saml_config()</p>
+        
+<p>    def process(self, request, auth_engine):</p>
+<p>        """SAMLリクエストの処理"""</p>
+        
+<p>        # SAMLリクエストの解析</p>
+<p>        saml_request = self._parse_saml_request(request)</p>
+        
+<p>        # 認証が必要な場合</p>
+<p>        if not request.session.get('authenticated'):</p>
+<p>            # 認証ページへリダイレクト</p>
+<p>            return self._redirect_to_auth(saml_request)</p>
+        
+<p>        # 認証済みの場合</p>
+<p>        auth_context = request.session['auth_context']</p>
+        
+<p>        # SAMLレスポンスの作成</p>
+<p>        saml_response = self._create_saml_response(saml_request, auth_context)</p>
+        
+<p>        return saml_response</p>
+    
+<p>    def _create_saml_response(self, saml_request, auth_context):</p>
+<p>        """SAMLレスポンスの作成"""</p>
+        
+<p>        # アサーションの作成</p>
+<p>        assertion = self._create_assertion(auth_context)</p>
+        
+<p>        # 属性の追加</p>
+<p>        attributes = self._map_to_saml_attributes(auth_context['user'])</p>
+<p>        assertion.attribute_statement = [self._create_attribute_statement(attributes)]</p>
+        
+<p>        # レスポンスの作成</p>
+<p>        response = saml.Response()</p>
+<p>        response.id = f"_{uuid.uuid4()}"</p>
+<p>        response.in_response_to = saml_request.id</p>
+<p>        response.issue_instant = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())</p>
+<p>        response.issuer = saml.Issuer(text=self.config['entity_id'])</p>
+<p>        response.status = self._create_success_status()</p>
+<p>        response.assertion = [assertion]</p>
+        
+<p>        # 署名</p>
+<p>        signed_response = self._sign_response(response)</p>
+        
+<p>        return signed_response</p>
+    
+<p>    def _map_to_saml_attributes(self, user):</p>
+<p>        """ユーザー属性をSAML属性にマッピング"""</p>
+        
+<p>        attribute_mapping = {</p>
+<p>            'email': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',</p>
+<p>            'name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name',</p>
+<p>            'given_name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',</p>
+<p>            'family_name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',</p>
+<p>            'employee_id': 'employeeID',</p>
+<p>            'department': 'department',</p>
+<p>            'role': 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'</p>
+<p>        }</p>
+        
+<p>        saml_attributes = {}</p>
+        
+<p>        for attr_name, attr_value in user.attributes.items():</p>
+<p>            saml_name = attribute_mapping.get(attr_name, attr_name)</p>
+<p>            saml_attributes[saml_name] = attr_value</p>
+        
+<p>        return saml_attributes</p><p>class OIDCProtocolHandler(ProtocolHandler):</p>
+<p>    """OpenID Connectプロトコルハンドラー"""</p>
+    
+<p>    def __init__(self, config):</p>
+<p>        self.config = config</p>
+<p>        self.signing_key = config['signing_key']</p>
+        
+<p>    def process(self, request, auth_engine):</p>
+<p>        """OIDCリクエストの処理"""</p>
+        
+<p>        if request.path == '/authorize':</p>
+<p>            return self._handle_authorization(request, auth_engine)</p>
+<p>        elif request.path == '/token':</p>
+<p>            return self._handle_token(request)</p>
+<p>        elif request.path == '/userinfo':</p>
+<p>            return self._handle_userinfo(request)</p>
+    
+<p>    def _handle_authorization(self, request, auth_engine):</p>
+<p>        """認可エンドポイント"""</p>
+        
+<p>        # リクエストの検証</p>
+<p>        self._validate_authorization_request(request)</p>
+        
+<p>        # 認証が必要な場合</p>
+<p>        if not request.session.get('authenticated'):</p>
+<p>            return self._redirect_to_auth(request)</p>
+        
+<p>        # 認証済みの場合</p>
+<p>        auth_context = request.session['auth_context']</p>
+        
+<p>        # 認可コードの生成</p>
+<p>        code = self._generate_authorization_code(request, auth_context)</p>
+        
+<p>        # リダイレクト</p>
+<p>        redirect_uri = request.params['redirect_uri']</p>
+<p>        state = request.params.get('state', '')</p>
+        
+<p>        return f"{redirect_uri}?code={code}&state={state}"</p>
+    
+<p>    def _handle_token(self, request):</p>
+<p>        """トークンエンドポイント"""</p>
+        
+<p>        grant_type = request.params.get('grant_type')</p>
+        
+<p>        if grant_type == 'authorization_code':</p>
+<p>            return self._exchange_code_for_tokens(request)</p>
+<p>        elif grant_type == 'refresh_token':</p>
+<p>            return self._refresh_tokens(request)</p>
+<p>        else:</p>
+<p>            raise ValueError(f"Unsupported grant type: {grant_type}")</p>
+    
+<p>    def _create_id_token(self, auth_context, client_id, nonce=None):</p>
+<p>        """IDトークンの作成"""</p>
+        
+<p>        claims = {</p>
+<p>            'iss': self.config['issuer'],</p>
+<p>            'sub': auth_context['user'].id,</p>
+<p>            'aud': client_id,</p>
+<p>            'exp': int(time.time() + 3600),</p>
+<p>            'iat': int(time.time()),</p>
+<p>            'auth_time': auth_context['auth_time']</p>
+<p>        }</p>
+        
+<p>        if nonce:</p>
+<p>            claims['nonce'] = nonce</p>
+        
+<p>        # 認証方法の追加</p>
+<p>        if auth_context.get('auth_methods'):</p>
+<p>            claims['amr'] = auth_context['auth_methods']</p>
+        
+<p>        # 認証コンテキストクラス</p>
+<p>        claims['acr'] = self._map_to_acr(auth_context['auth_level'])</p>
+        
+<p>        # ユーザー属性の追加</p>
+<p>        user_claims = self._map_to_oidc_claims(auth_context['user'])</p>
+<p>        claims.update(user_claims)</p>
+        
+<p>        # JWTとして署名</p>
+<p>        id_token = jwt.encode(claims, self.signing_key, algorithm='RS256')</p>
+        
+<p>        return id_token</p>
+    
+<p>    def _map_to_oidc_claims(self, user):</p>
+<p>        """ユーザー属性をOIDCクレームにマッピング"""</p>
+        
+<p>        claim_mapping = {</p>
+<p>            'email': 'email',</p>
+<p>            'email_verified': 'email_verified',</p>
+<p>            'name': 'name',</p>
+<p>            'given_name': 'given_name',</p>
+<p>            'family_name': 'family_name',</p>
+<p>            'picture': 'picture',</p>
+<p>            'locale': 'locale',</p>
+<p>            'zoneinfo': 'zoneinfo'</p>
+<p>        }</p>
+        
+<p>        oidc_claims = {}</p>
+        
+<p>        for attr_name, attr_value in user.attributes.items():</p>
+<p>            claim_name = claim_mapping.get(attr_name, attr_name)</p>
+<p>            if claim_name in claim_mapping.values():</p>
+<p>                oidc_claims[claim_name] = attr_value</p>
+        
+<p>        # カスタムクレーム（名前空間付き）</p>
+<p>        for attr_name, attr_value in user.attributes.items():</p>
+<p>            if attr_name not in claim_mapping:</p>
+<p>                oidc_claims[f"https://{self.config['issuer']}/claims/{attr_name}"] = attr_value</p>
+        
+<p>        return oidc_claims</p><p>class AttributeMapper:</p>
+<p>    """属性の相互マッピング"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        # 共通属性定義</p>
+<p>        self.common_attributes = {</p>
+<p>            'user_id': {'type': 'string', 'required': True},</p>
+<p>            'email': {'type': 'string', 'required': True},</p>
+<p>            'name': {'type': 'string', 'required': True},</p>
+<p>            'given_name': {'type': 'string'},</p>
+<p>            'family_name': {'type': 'string'},</p>
+<p>            'department': {'type': 'string'},</p>
+<p>            'employee_id': {'type': 'string'},</p>
+<p>            'roles': {'type': 'array'}</p>
+<p>        }</p>
+        
+<p>        # プロトコル別マッピング</p>
+<p>        self.saml_mapping = {</p>
+<p>            'user_id': 'urn:oid:0.9.2342.19200300.100.1.1',  # uid</p>
+<p>            'email': 'urn:oid:0.9.2342.19200300.100.1.3',    # mail</p>
+<p>            'name': 'urn:oid:2.5.4.3',                       # cn</p>
+<p>            'given_name': 'urn:oid:2.5.4.42',                # givenName</p>
+<p>            'family_name': 'urn:oid:2.5.4.4',                # sn</p>
+<p>            'department': 'urn:oid:2.5.4.11',                # ou</p>
+<p>            'employee_id': 'employeeNumber',</p>
+<p>            'roles': 'eduPersonAffiliation'</p>
+<p>        }</p>
+        
+<p>        self.oidc_mapping = {</p>
+<p>            'user_id': 'sub',</p>
+<p>            'email': 'email',</p>
+<p>            'name': 'name',</p>
+<p>            'given_name': 'given_name',</p>
+<p>            'family_name': 'family_name',</p>
+<p>            'department': 'https://example.com/claims/department',</p>
+<p>            'employee_id': 'https://example.com/claims/employee_id',</p>
+<p>            'roles': 'https://example.com/claims/roles'</p>
+<p>        }</p>
+    
+<p>    def to_saml(self, common_attrs):</p>
+<p>        """共通属性をSAML属性に変換"""</p>
+<p>        saml_attrs = {}</p>
+        
+<p>        for attr_name, attr_value in common_attrs.items():</p>
+<p>            if attr_name in self.saml_mapping:</p>
+<p>                saml_name = self.saml_mapping[attr_name]</p>
+<p>                saml_attrs[saml_name] = attr_value</p>
+        
+<p>        return saml_attrs</p>
+    
+<p>    def to_oidc(self, common_attrs):</p>
+<p>        """共通属性をOIDCクレームに変換"""</p>
+<p>        oidc_claims = {}</p>
+        
+<p>        for attr_name, attr_value in common_attrs.items():</p>
+<p>            if attr_name in self.oidc_mapping:</p>
+<p>                claim_name = self.oidc_mapping[attr_name]</p>
+<p>                oidc_claims[claim_name] = attr_value</p>
+        
+<p>        return oidc_claims</p>
+    
+<p>    def from_saml(self, saml_attrs):</p>
+<p>        """SAML属性を共通属性に変換"""</p>
+<p>        common_attrs = {}</p>
+<p>        reverse_mapping = {v: k for k, v in self.saml_mapping.items()}</p>
+        
+<p>        for saml_name, saml_value in saml_attrs.items():</p>
+<p>            if saml_name in reverse_mapping:</p>
+<p>                attr_name = reverse_mapping[saml_name]</p>
+<p>                common_attrs[attr_name] = saml_value</p>
+        
+<p>        return common_attrs</p>
+    
+<p>    def from_oidc(self, oidc_claims):</p>
+<p>        """OIDCクレームを共通属性に変換"""</p>
+<p>        common_attrs = {}</p>
+<p>        reverse_mapping = {v: k for k, v in self.oidc_mapping.items()}</p>
+        
+<p>        for claim_name, claim_value in oidc_claims.items():</p>
+<p>            if claim_name in reverse_mapping:</p>
+<p>                attr_name = reverse_mapping[claim_name]</p>
+<p>                common_attrs[attr_name] = claim_value</p>
+        
+<p>        return common_attrs</p><h1>設定とメタデータ</h1>
+<p>class HybridIdPConfiguration:</p>
+<p>    def __init__(self):</p>
+<p>        self.config = {</p>
+<p>            'entity_id': 'https://idp.example.com',</p>
+<p>            'issuer': 'https://idp.example.com',</p>
+            
+<p>            # エンドポイント</p>
+<p>            'endpoints': {</p>
+<p>                # SAML</p>
+<p>                'saml_sso': '/saml/sso',</p>
+<p>                'saml_slo': '/saml/slo',</p>
+<p>                'saml_metadata': '/saml/metadata',</p>
+                
+<p>                # OIDC</p>
+<p>                'authorization': '/authorize',</p>
+<p>                'token': '/token',</p>
+<p>                'userinfo': '/userinfo',</p>
+<p>                'jwks': '/jwks',</p>
+<p>                'discovery': '/.well-known/openid-configuration'</p>
+<p>            },</p>
+            
+<p>            # 証明書と鍵</p>
+<p>            'signing_key': 'path/to/private_key.pem',</p>
+<p>            'signing_cert': 'path/to/certificate.pem',</p>
+            
+<p>            # セキュリティ設定</p>
+<p>            'token_lifetime': 3600,</p>
+<p>            'session_lifetime': 28800,</p>
+<p>            'require_signed_requests': True,</p>
+<p>            'require_encrypted_assertions': False</p>
+<p>        }</p>
+    
+<p>    def generate_metadata(self):</p>
+<p>        """SAMLメタデータとOIDC Discoveryの生成"""</p>
+        
+<p>        # SAMLメタデータ</p>
+<p>        saml_metadata = f'''</p>
+<p>        <EntityDescriptor entityID="{self.config['entity_id']}"></p>
+<p>            <IDPSSODescriptor></p>
+<p>                <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" </p>
+<p>                                   Location="{self.config['entity_id']}/saml/sso"/></p>
+<p>                <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" </p>
+<p>                                   Location="{self.config['entity_id']}/saml/slo"/></p>
+<p>            </IDPSSODescriptor></p>
+<p>        </EntityDescriptor></p>
+<p>        '''</p>
+        
+<p>        # OIDC Discovery</p>
+<p>        oidc_discovery = {</p>
+<p>            'issuer': self.config['issuer'],</p>
+<p>            'authorization_endpoint': f"{self.config['issuer']}/authorize",</p>
+<p>            'token_endpoint': f"{self.config['issuer']}/token",</p>
+<p>            'userinfo_endpoint': f"{self.config['issuer']}/userinfo",</p>
+<p>            'jwks_uri': f"{self.config['issuer']}/jwks",</p>
+<p>            'scopes_supported': ['openid', 'profile', 'email'],</p>
+<p>            'response_types_supported': ['code', 'id_token', 'code id_token'],</p>
+<p>            'subject_types_supported': ['public', 'pairwise'],</p>
+<p>            'id_token_signing_alg_values_supported': ['RS256']</p>
+<p>        }</p>
+        
+<p>        return {</p>
+<p>            'saml': saml_metadata,</p>
+<p>            'oidc': oidc_discovery</p>
+<p>        }</p>
+<p></code></pre></p><h3>設計のポイント</h3><p>1. <strong>共通認証基盤</strong>：プロトコルに依存しない認証エンジン</p>
+<p>2. <strong>プロトコル変換</strong>：共通属性モデルを介した相互変換</p>
+<p>3. <strong>属性マッピング</strong>：標準とカスタム属性の柔軟な対応</p>
+<p>4. <strong>統一管理</strong>：設定、セッション、監査ログの一元化</p><h2>問題5：セキュリティ監査</h2><h3>解答</h3><p><pre><code>python</p>
+<p>class SSOSecurityAudit:</p>
+<p>    """SSO実装のセキュリティ監査"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.findings = []</p>
+<p>        self.risk_levels = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}</p>
+        
+<p>    def audit_sso_implementation(self, implementation):</p>
+<p>        """包括的なSSO監査"""</p>
+        
+<p>        # 1. プロトコル実装の監査</p>
+<p>        self._audit_protocol_implementation(implementation)</p>
+        
+<p>        # 2. 証明書と鍵管理</p>
+<p>        self._audit_key_management(implementation)</p>
+        
+<p>        # 3. セッション管理</p>
+<p>        self._audit_session_management(implementation)</p>
+        
+<p>        # 4. ログと監視</p>
+<p>        self._audit_logging_and_monitoring(implementation)</p>
+        
+<p>        return self.generate_report()</p>
+    
+<p>    def _audit_protocol_implementation(self, impl):</p>
+<p>        """プロトコル実装の監査"""</p>
+        
+<p>        # SAML固有のチェック</p>
+<p>        if impl.supports_saml:</p>
+<p>            self._check_saml_security(impl)</p>
+        
+<p>        # OIDC固有のチェック</p>
+<p>        if impl.supports_oidc:</p>
+<p>            self._check_oidc_security(impl)</p>
+    
+<p>    def _check_saml_security(self, impl):</p>
+<p>        """SAML セキュリティチェック"""</p>
+        
+<p>        # 署名検証</p>
+<p>        if not impl.saml_config.get('verify_signatures', False):</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'SAML-001',</p>
+<p>                'severity': 'CRITICAL',</p>
+<p>                'title': 'SAML署名検証が無効',</p>
+<p>                'description': 'SAMLアサーションの署名検証が行われていない',</p>
+<p>                'impact': 'なりすましによる不正アクセスの可能性',</p>
+<p>                'recommendation': '''</p>
+<p>                config['verify_signatures'] = True</p>
+<p>                config['require_signed_assertions'] = True</p>
+<p>                config['require_signed_response'] = True</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['CRITICAL'] += 1</p>
+        
+<p>        # XMLインジェクション対策</p>
+<p>        if not impl.saml_config.get('disable_dtd', False):</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'SAML-002',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'title': 'XML外部エンティティ（XXE）攻撃の脆弱性',</p>
+<p>                'description': 'DTDが無効化されていない',</p>
+<p>                'impact': 'ファイル読み取りやSSRFの可能性',</p>
+<p>                'recommendation': '''</p>
+<p>                # lxmlの設定</p>
+<p>                parser = etree.XMLParser(</p>
+<p>                    no_network=True,</p>
+<p>                    dtd_validation=False,</p>
+<p>                    resolve_entities=False</p>
+<p>                )</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['HIGH'] += 1</p>
+        
+<p>        # リプレイ攻撃対策</p>
+<p>        if not impl.saml_config.get('check_assertion_timeframe', False):</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'SAML-003',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'title': 'リプレイ攻撃への脆弱性',</p>
+<p>                'description': 'アサーションの時刻検証が不十分',</p>
+<p>                'impact': '古いアサーションの再利用による不正アクセス',</p>
+<p>                'recommendation': '''</p>
+<p>                # NotBefore/NotOnOrAfterの厳密な検証</p>
+<p>                def validate_timeframe(assertion):</p>
+<p>                    current_time = time.time()</p>
+<p>                    not_before = assertion.conditions.not_before</p>
+<p>                    not_on_or_after = assertion.conditions.not_on_or_after</p>
+                    
+<p>                    # 時刻のスキュー許容（5分）</p>
+<p>                    skew = 300</p>
+                    
+<p>                    if current_time < (not_before - skew):</p>
+<p>                        raise SecurityError("Assertion not yet valid")</p>
+                    
+<p>                    if current_time >= (not_on_or_after + skew):</p>
+<p>                        raise SecurityError("Assertion expired")</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['HIGH'] += 1</p>
+    
+<p>    def _check_oidc_security(self, impl):</p>
+<p>        """OIDC セキュリティチェック"""</p>
+        
+<p>        # nonce検証</p>
+<p>        if not impl.oidc_config.get('require_nonce', False):</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'OIDC-001',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'title': 'Nonce検証の欠如',</p>
+<p>                'description': 'リプレイ攻撃対策のnonceが検証されていない',</p>
+<p>                'impact': 'IDトークンの再利用による攻撃',</p>
+<p>                'recommendation': '''</p>
+<p>                def verify_id_token(token, expected_nonce):</p>
+<p>                    claims = jwt.decode(token, key, algorithms=['RS256'])</p>
+                    
+<p>                    if claims.get('nonce') != expected_nonce:</p>
+<p>                        raise SecurityError("Nonce mismatch")</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['HIGH'] += 1</p>
+        
+<p>        # at_hash検証</p>
+<p>        if impl.uses_implicit_flow and not impl.oidc_config.get('verify_at_hash', False):</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'OIDC-002',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'title': 'at_hash検証の欠如',</p>
+<p>                'description': 'アクセストークンとIDトークンの関連性が検証されていない',</p>
+<p>                'impact': 'トークン置換攻撃の可能性',</p>
+<p>                'recommendation': '''</p>
+<p>                def verify_at_hash(id_token, access_token):</p>
+<p>                    claims = jwt.decode(id_token, key)</p>
+                    
+<p>                    if 'at_hash' in claims:</p>
+<p>                        # アクセストークンのハッシュ計算</p>
+<p>                        hash_digest = hashlib.sha256(access_token.encode()).digest()</p>
+<p>                        at_hash = base64.urlsafe_b64encode(hash_digest[:16]).decode().rstrip('=')</p>
+                        
+<p>                        if claims['at_hash'] != at_hash:</p>
+<p>                            raise SecurityError("at_hash mismatch")</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['MEDIUM'] += 1</p>
+    
+<p>    def _audit_key_management(self, impl):</p>
+<p>        """鍵管理の監査"""</p>
+        
+<p>        # 鍵のローテーション</p>
+<p>        if not impl.has_key_rotation:</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'KEY-001',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'title': '鍵ローテーションの未実装',</p>
+<p>                'description': '署名鍵が定期的にローテーションされていない',</p>
+<p>                'impact': '鍵漏洩時の影響期間が長い',</p>
+<p>                'recommendation': '''</p>
+<p>                class KeyRotationManager:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.rotation_interval = 90 <em> 24 </em> 3600  # 90日</p>
+                        
+<p>                    def should_rotate(self, key):</p>
+<p>                        return (time.time() - key.created_at) > self.rotation_interval</p>
+                    
+<p>                    def rotate_keys(self):</p>
+<p>                        new_key = self.generate_new_key()</p>
+<p>                        self.keys = {</p>
+<p>                            'current': new_key,</p>
+<p>                            'previous': self.keys.get('current')</p>
+<p>                        }</p>
+<p>                        self.update_jwks()</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['MEDIUM'] += 1</p>
+        
+<p>        # 鍵の保管</p>
+<p>        if impl.stores_keys_in_code:</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'KEY-002',</p>
+<p>                'severity': 'CRITICAL',</p>
+<p>                'title': '鍵のハードコーディング',</p>
+<p>                'description': 'ソースコード内に秘密鍵が含まれている',</p>
+<p>                'impact': 'ソースコード漏洩時に全システムが危険',</p>
+<p>                'recommendation': '''</p>
+<p>                # 環境変数またはシークレット管理サービスを使用</p>
+<p>                import os</p>
+<p>                from azure.keyvault.secrets import SecretClient</p>
+                
+<p>                # 環境変数</p>
+<p>                private_key = os.environ.get('IDP_PRIVATE_KEY')</p>
+                
+<p>                # Azure Key Vault</p>
+<p>                client = SecretClient(vault_url, credential)</p>
+<p>                private_key = client.get_secret('idp-private-key').value</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['CRITICAL'] += 1</p>
+    
+<p>    def _audit_session_management(self, impl):</p>
+<p>        """セッション管理の監査"""</p>
+        
+<p>        # セッション固定攻撃</p>
+<p>        if not impl.regenerates_session_id:</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'SESS-001',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'title': 'セッション固定攻撃への脆弱性',</p>
+<p>                'description': '認証後にセッションIDが再生成されていない',</p>
+<p>                'impact': '攻撃者が事前に用意したセッションIDでなりすまし',</p>
+<p>                'recommendation': '''</p>
+<p>                def authenticate_user(credentials):</p>
+<p>                    user = verify_credentials(credentials)</p>
+                    
+<p>                    # セッションIDの再生成</p>
+<p>                    session.regenerate_id()</p>
+                    
+<p>                    session['user'] = user</p>
+<p>                    session['authenticated_at'] = time.time()</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['HIGH'] += 1</p>
+        
+<p>        # グローバルログアウト</p>
+<p>        if not impl.supports_global_logout:</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'SESS-002',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'title': 'グローバルログアウトの未実装',</p>
+<p>                'description': '一箇所でのログアウトが他のSPに伝播しない',</p>
+<p>                'impact': 'ユーザーの期待に反してセッションが残る',</p>
+<p>                'recommendation': '''</p>
+<p>                # バックチャネルログアウトの実装</p>
+<p>                async def propagate_logout(user_id, session_index):</p>
+<p>                    active_sessions = get_user_sessions(user_id)</p>
+                    
+<p>                    for sp_session in active_sessions:</p>
+<p>                        logout_token = create_logout_token(</p>
+<p>                            user_id,</p>
+<p>                            session_index,</p>
+<p>                            sp_session.client_id</p>
+<p>                        )</p>
+                        
+<p>                        await send_backchannel_logout(</p>
+<p>                            sp_session.logout_uri,</p>
+<p>                            logout_token</p>
+<p>                        )</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['MEDIUM'] += 1</p>
+    
+<p>    def _audit_logging_and_monitoring(self, impl):</p>
+<p>        """ログと監視の監査"""</p>
+        
+<p>        # 認証イベントのログ</p>
+<p>        required_events = [</p>
+<p>            'login_success',</p>
+<p>            'login_failure',</p>
+<p>            'logout',</p>
+<p>            'token_issued',</p>
+<p>            'mfa_challenge',</p>
+<p>            'permission_denied'</p>
+<p>        ]</p>
+        
+<p>        missing_events = []</p>
+<p>        for event in required_events:</p>
+<p>            if not impl.logs_event(event):</p>
+<p>                missing_events.append(event)</p>
+        
+<p>        if missing_events:</p>
+<p>            self.findings.append({</p>
+<p>                'id': 'LOG-001',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'title': '不十分な監査ログ',</p>
+<p>                'description': f'以下のイベントがログされていない: {missing_events}',</p>
+<p>                'impact': 'セキュリティインシデントの検知と調査が困難',</p>
+<p>                'recommendation': '''</p>
+<p>                class AuditLogger:</p>
+<p>                    def log_auth_event(self, event_type, context):</p>
+<p>                        log_entry = {</p>
+<p>                            'timestamp': datetime.utcnow().isoformat(),</p>
+<p>                            'event_type': event_type,</p>
+<p>                            'user_id': context.get('user_id'),</p>
+<p>                            'client_id': context.get('client_id'),</p>
+<p>                            'ip_address': context.get('ip_address'),</p>
+<p>                            'user_agent': context.get('user_agent'),</p>
+<p>                            'result': context.get('result'),</p>
+<p>                            'error': context.get('error')</p>
+<p>                        }</p>
+                        
+<p>                        # 構造化ログ</p>
+<p>                        logger.info(json.dumps(log_entry))</p>
+                        
+<p>                        # SIEM転送</p>
+<p>                        siem_client.send(log_entry)</p>
+<p>                '''</p>
+<p>            })</p>
+<p>            self.risk_levels['MEDIUM'] += 1</p>
+    
+<p>    def generate_report(self):</p>
+<p>        """監査レポートの生成"""</p>
+        
+<p>        return {</p>
+<p>            'executive_summary': {</p>
+<p>                'total_findings': len(self.findings),</p>
+<p>                'risk_distribution': self.risk_levels,</p>
+<p>                'overall_risk': self._calculate_overall_risk(),</p>
+<p>                'compliance_status': self._check_compliance()</p>
+<p>            },</p>
+            
+<p>            'findings': sorted(</p>
+<p>                self.findings,</p>
+<p>                key=lambda x: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].index(x['severity'])</p>
+<p>            ),</p>
+            
+<p>            'recommendations': {</p>
+<p>                'immediate_actions': [</p>
+<p>                    f for f in self.findings </p>
+<p>                    if f['severity'] in ['CRITICAL', 'HIGH']</p>
+<p>                ],</p>
+                
+<p>                'remediation_timeline': {</p>
+<p>                    'week_1': 'CRITICAL findings',</p>
+<p>                    'week_2-4': 'HIGH findings',</p>
+<p>                    'month_2': 'MEDIUM findings',</p>
+<p>                    'month_3': 'LOW findings and hardening'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'positive_findings': [</p>
+<p>                'HTTPSの強制',</p>
+<p>                '適切なトークン有効期限',</p>
+<p>                'CSRFトークンの実装'</p>
+<p>            ]</p>
+<p>        }</p>
+    
+<p>    def _calculate_overall_risk(self):</p>
+<p>        """総合リスクの計算"""</p>
+        
+<p>        score = (</p>
+<p>            self.risk_levels['CRITICAL'] * 10 +</p>
+<p>            self.risk_levels['HIGH'] * 5 +</p>
+<p>            self.risk_levels['MEDIUM'] * 2 +</p>
+<p>            self.risk_levels['LOW'] * 1</p>
+<p>        )</p>
+        
+<p>        if score >= 20:</p>
+<p>            return 'CRITICAL'</p>
+<p>        elif score >= 10:</p>
+<p>            return 'HIGH'</p>
+<p>        elif score >= 5:</p>
+<p>            return 'MEDIUM'</p>
+<p>        else:</p>
+<p>            return 'LOW'</p>
+    
+<p>    def _check_compliance(self):</p>
+<p>        """コンプライアンスチェック"""</p>
+        
+<p>        return {</p>
+<p>            'oauth2_security_bcp': {</p>
+<p>                'status': 'PARTIAL',</p>
+<p>                'missing': ['PKCE for public clients', 'Token binding']</p>
+<p>            },</p>
+<p>            'oidc_certification': {</p>
+<p>                'status': 'FAIL',</p>
+<p>                'missing': ['Dynamic client registration', 'Request objects']</p>
+<p>            },</p>
+<p>            'saml2_conformance': {</p>
+<p>                'status': 'PASS',</p>
+<p>                'level': 'Basic Web SSO Profile'</p>
+<p>            }</p>
+<p>        }</p><h1>改善提案の実装例</h1>
+<p>class ImprovedSSOImplementation:</p>
+<p>    """セキュリティ監査結果に基づく改善実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        # セキュアな設定</p>
+<p>        self.config = {</p>
+<p>            # SAML</p>
+<p>            'saml': {</p>
+<p>                'verify_signatures': True,</p>
+<p>                'require_signed_assertions': True,</p>
+<p>                'require_signed_requests': True,</p>
+<p>                'check_assertion_timeframe': True,</p>
+<p>                'assertion_valid_duration': 300,  # 5分</p>
+<p>                'disable_dtd': True,</p>
+<p>                'replay_prevention': True</p>
+<p>            },</p>
+            
+<p>            # OIDC</p>
+<p>            'oidc': {</p>
+<p>                'require_nonce': True,</p>
+<p>                'verify_at_hash': True,</p>
+<p>                'require_pkce': True,</p>
+<p>                'supported_algorithms': ['RS256', 'ES256'],</p>
+<p>                'id_token_lifetime': 3600,</p>
+<p>                'access_token_lifetime': 900</p>
+<p>            },</p>
+            
+<p>            # セッション</p>
+<p>            'session': {</p>
+<p>                'regenerate_id_on_auth': True,</p>
+<p>                'absolute_timeout': 28800,  # 8時間</p>
+<p>                'idle_timeout': 1800,       # 30分</p>
+<p>                'secure_cookie': True,</p>
+<p>                'http_only': True,</p>
+<p>                'same_site': 'Lax'</p>
+<p>            },</p>
+            
+<p>            # ログ</p>
+<p>            'logging': {</p>
+<p>                'log_all_auth_events': True,</p>
+<p>                'include_request_details': True,</p>
+<p>                'exclude_sensitive_data': True,</p>
+<p>                'structured_format': True</p>
+<p>            }</p>
+<p>        }</p>
+        
+<p>        # 鍵管理</p>
+<p>        self.key_manager = SecureKeyManager()</p>
+        
+<p>        # 監査ログ</p>
+<p>        self.audit_logger = StructuredAuditLogger()</p>
+<p></code></pre></p><h3>監査結果のサマリー</h3><p>1. <strong>発見された脆弱性</strong></p>
+<p>   - CRITICAL: 2件（署名検証無効、鍵のハードコーディング）</p>
+<p>   - HIGH: 4件（XXE、リプレイ攻撃、nonce検証、セッション固定）</p>
+<p>   - MEDIUM: 4件（鍵ローテーション、ログ不足等）</p><p>2. <strong>総合リスク評価：HIGH</strong></p>
+<p>   - 即座の対応が必要</p>
+<p>   - 特に署名検証と鍵管理は最優先</p><p>3. <strong>改善提案</strong></p>
+<p>   - 1週目：CRITICAL項目の修正</p>
+<p>   - 2-4週目：HIGH項目の対処</p>
+<p>   - 2ヶ月目：MEDIUM項目とセキュリティ強化</p><p>4. <strong>ポジティブな発見</strong></p>
+<p>   - HTTPS強制は実装済み</p>
+<p>   - 基本的なCSRF対策あり</p>
+<p>   - トークン有効期限は適切</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

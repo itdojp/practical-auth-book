@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章 認証認可の全体像 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第1章 認証認可の全体像</h1><h2>なぜこの章が重要か</h2><p>システム開発において、認証認可は避けて通れない基本機能です。しかし、多くの開発者が「とりあえず動けばいい」という実装に陥り、後になってセキュリティインシデントや大規模な改修に直面します。この章では、認証認可がなぜ必要なのか、どのような価値を提供するのかを理解し、本書全体の学習の道筋を明確にします。</p><h2>1.1 なぜ認証認可が必要か - ビジネスリスクとセキュリティの観点</h2><h3>1.1.1 ビジネスにおける認証認可の価値</h3><p>認証認可システムは、単なる「ログイン機能」ではありません。それは組織の資産を守り、ビジネスを成長させるための基盤です。</p><p><strong>実例：あるECサイトの事故</strong></p><p>2023年、ある中規模ECサイトで発生した事故を考えてみましょう。このサイトは「簡単な会員機能」として、メールアドレスとパスワードのみの認証を実装していました。</p><p><pre><code>
+<p>被害の概要：</p>
+<p>- 不正アクセスによる個人情報流出：10万件</p>
+<p>- 直接的な損害賠償：5億円</p>
+<p>- ブランド価値の毀損：計測不能</p>
+<p>- 復旧にかかった期間：3ヶ月</p>
+<p>- 失った顧客の信頼：回復に2年以上</p>
+<p></code></pre></p><p>この事故の根本原因は以下でした：</p><p>1. <strong>脆弱なパスワードポリシー</strong>：最小文字数のみの制限</p>
+<p>2. <strong>多要素認証の欠如</strong>：パスワードのみの単一要素認証</p>
+<p>3. <strong>不適切なセッション管理</strong>：セッション固定攻撃への脆弱性</p>
+<p>4. <strong>認可の不備</strong>：一般ユーザーが管理機能にアクセス可能</p><h3>1.1.2 認証認可が解決する4つの根本的な問題</h3><p>#### 1. アイデンティティの問題：「あなたは誰？」</p><p>デジタル世界では、相手の顔が見えません。認証は、デジタル世界における「身分証明書」の役割を果たします。</p><p><strong>現実世界の例え</strong>：</p>
+<p>- 銀行の窓口では、通帳と印鑑で本人確認</p>
+<p>- デジタル世界では、ID/パスワードや生体認証で本人確認</p><p>#### 2. 権限の問題：「何ができる？」</p><p>組織には様々な役割があり、それぞれに適切な権限があります。認可は、この権限管理をシステム化します。</p><p><strong>組織における権限の例</strong>：</p>
+<pre><code>
+<p>一般社員：</p>
+<p>- 自分のデータの閲覧・編集</p>
+<p>- 共有リソースの閲覧</p><p>マネージャー：</p>
+<p>- チームメンバーのデータ閲覧</p>
+<p>- 承認権限</p><p>管理者：</p>
+<p>- システム設定の変更</p>
+<p>- 全データへのアクセス</p>
+<p></code></pre></p><p>#### 3. 責任追跡の問題：「誰が何をした？」</p><p>コンプライアンスや内部統制の観点から、「誰が、いつ、何をしたか」を記録することは必須です。</p><p><strong>監査ログの重要性</strong>：</p>
+<p>- 不正の抑止力</p>
+<p>- インシデント発生時の原因究明</p>
+<p>- 法的要求への対応</p><p>#### 4. 利便性の問題：「毎回認証は面倒」</p><p>セキュリティと利便性は常にトレードオフの関係にあります。適切な認証認可システムは、このバランスを最適化します。</p><p><strong>利便性向上の施策</strong>：</p>
+<p>- シングルサインオン（SSO）</p>
+<p>- リメンバーミー機能</p>
+<p>- 生体認証の活用</p><h3>1.1.3 認証認可への投資対効果</h3><p>認証認可システムへの投資は、以下のような明確なROIをもたらします：</p><p><strong>コスト削減効果</strong>：</p>
+<p>1. <strong>セキュリティインシデントの予防</strong></p>
+<p>   - データ漏洩による賠償金：平均1件あたり4.5億円（2024年調査）</p>
+<p>   - 適切な認証認可により90%以上のインシデントが予防可能</p><p>2. <strong>運用コストの削減</strong></p>
+<p>   - パスワードリセット対応：1件あたり約3,000円</p>
+<p>   - セルフサービス化により80%削減可能</p><p>3. <strong>コンプライアンス対応</strong></p>
+<p>   - GDPR違反の制裁金：最大で年間売上の4%</p>
+<p>   - 適切な認証認可は必須要件</p><p><strong>ビジネス価値の向上</strong>：</p>
+<p>1. <strong>顧客満足度の向上</strong></p>
+<p>   - SSO導入により、ログイン時間を90%短縮</p>
+<p>   - 生体認証により、パスワード忘れによる離脱を防止</p><p>2. <strong>新規ビジネスの実現</strong></p>
+<p>   - B2B連携における信頼性の確保</p>
+<p>   - APIエコノミーへの参加</p><h2>1.2 基本用語と概念の整理 - 混同されやすい用語の明確な区別</h2><h3>1.2.1 認証（Authentication）と認可（Authorization）の違い</h3><p>多くの開発者が混同するこの2つの概念を、明確に区別しましょう。</p><p>#### 認証（Authentication）- "AuthN"</p><p><strong>定義</strong>：利用者が主張する身元（アイデンティティ）が正しいことを確認するプロセス</p><p><strong>日常での例え</strong>：</p>
+<pre><code>
+<p>空港のセキュリティチェック</p>
+<p>1. パスポートの提示（身元の主張）</p>
+<p>2. 顔写真との照合（認証）</p>
+<p>3. 本人であることの確認完了</p>
+<p></code></pre></p><p><strong>システムでの実装例</strong>：</p>
+<pre><code>python
+<p>def authenticate(username, password):</p>
+<p>    """ユーザーの身元を確認する"""</p>
+<p>    user = get_user_by_username(username)</p>
+<p>    if user and verify_password(password, user.password_hash):</p>
+<p>        return user  # 認証成功</p>
+<p>    return None  # 認証失敗</p>
+<p></code></pre></p><p>#### 認可（Authorization）- "AuthZ"</p><p><strong>定義</strong>：認証されたユーザーが、特定のリソースや操作に対してアクセス権限を持っているかを判定するプロセス</p><p><strong>日常での例え</strong>：</p>
+<pre><code>
+<p>ホテルのカードキー</p>
+<p>1. フロントで本人確認（認証済み）</p>
+<p>2. 部屋番号に応じたカードキー発行（権限付与）</p>
+<p>3. 自分の部屋のみ開錠可能（認可）</p>
+<p></code></pre></p><p><strong>システムでの実装例</strong>：</p>
+<pre><code>python
+<p>def authorize(user, resource, action):</p>
+<p>    """ユーザーのアクセス権限を確認する"""</p>
+<p>    permissions = get_user_permissions(user)</p>
+<p>    return has_permission(permissions, resource, action)</p>
+<p></code></pre></p><h3>1.2.2 その他の重要な用語</h3><p>#### アイデンティティ（Identity）</p><p><strong>定義</strong>：システム内でエンティティを一意に識別する属性の集合</p><p><strong>構成要素</strong>：</p>
+<p>- 識別子（ID、メールアドレスなど）</p>
+<p>- 属性（名前、所属、役職など）</p>
+<p>- クレデンシャル（パスワード、証明書など）</p><p>#### プリンシパル（Principal）</p><p><strong>定義</strong>：認証されたエンティティを表す概念。ユーザー、サービス、デバイスなどを含む</p><p><pre><code>java</p>
+<p>// Javaでの例</p>
+<p>Principal principal = request.getUserPrincipal();</p>
+<p>String username = principal.getName();</p>
+<p></code></pre></p><p>#### セッション（Session）</p><p><strong>定義</strong>：認証後の一連のインタラクションを管理する仕組み</p><p><strong>重要な属性</strong>：</p>
+<p>- セッションID：一意の識別子</p>
+<p>- 有効期限：セキュリティのため必須</p>
+<p>- 関連データ：ユーザー情報、権限など</p><p>#### トークン（Token）</p><p><strong>定義</strong>：認証・認可の情報を含む、検証可能なデータ構造</p><p><strong>種類</strong>：</p>
+<p>1. <strong>参照トークン（Opaque Token）</strong></p>
+<p>   - ランダムな文字列</p>
+<p>   - サーバー側で意味を解決</p><p>2. <strong>自己完結型トークン（Self-contained Token）</strong></p>
+<p>   - JWT（JSON Web Token）が代表例</p>
+<p>   - トークン自体に情報を含む</p><h3>1.2.3 混同を避けるための実践的なガイドライン</h3><p><strong>チェックリスト形式での理解</strong>：</p><p><pre><code></p>
+<p>□ ログイン処理 → 認証（Authentication）</p>
+<p>□ 「このボタンを押せるか」の判定 → 認可（Authorization）</p>
+<p>□ 「誰であるか」の情報 → アイデンティティ（Identity）</p>
+<p>□ 「ログイン中の人」を表す → プリンシパル（Principal）</p>
+<p>□ ログイン状態の管理 → セッション（Session）</p>
+<p>□ 認証情報の持ち運び → トークン（Token）</p>
+<p></code></pre></p><h2>1.3 歴史的経緯と現在のトレンド - 技術選択の判断基準</h2><h3>1.3.1 認証技術の進化</h3><p>認証技術の歴史を理解することで、なぜ現在の技術が生まれたのか、次に何が来るのかが見えてきます。</p><p>#### 第1世代：パスワードのみの時代（1960年代～）</p><p><strong>背景</strong>：メインフレーム時代、限られた人だけがコンピュータを使用</p><p><strong>問題点</strong>：</p>
+<p>- 平文保存によるリスク</p>
+<p>- 総当たり攻撃への脆弱性</p>
+<p>- パスワードの使い回し</p><p>#### 第2世代：暗号化とハッシュ化（1970年代～）</p><p><strong>技術革新</strong>：</p>
+<pre><code>
+<p>平文パスワード → MD5 → SHA-1 → bcrypt → Argon2</p>
+<p></code></pre></p><p><strong>学んだ教訓</strong>：</p>
+<p>- 可逆暗号化では不十分</p>
+<p>- ソルトの重要性</p>
+<p>- 計算量的安全性の必要性</p><p>#### 第3世代：多要素認証の登場（2000年代～）</p><p><strong>きっかけ</strong>：大規模な情報漏洩事件の頻発</p><p><strong>実装方式の進化</strong>：</p>
+<p>1. ハードウェアトークン（RSA SecurID）</p>
+<p>2. SMS認証</p>
+<p>3. TOTP/HOTP（Google Authenticator）</p>
+<p>4. プッシュ通知認証</p><p>#### 第4世代：生体認証の普及（2010年代～）</p><p><strong>技術の民主化</strong>：</p>
+<p>- スマートフォンへの指紋センサー搭載</p>
+<p>- 顔認証（Face ID）の登場</p>
+<p>- 行動的生体認証の研究</p><p>#### 第5世代：パスワードレスへの移行（2020年代～）</p><p><strong>FIDO2/WebAuthnの登場</strong>：</p>
+<pre><code>javascript
+<p>// パスワードレス認証の例</p>
+<p>navigator.credentials.create({</p>
+<p>    publicKey: {</p>
+<p>        challenge: new Uint8Array(32),</p>
+<p>        rp: { name: "Example Corp" },</p>
+<p>        user: {</p>
+<p>            id: new TextEncoder().encode("user@example.com"),</p>
+<p>            name: "user@example.com",</p>
+<p>            displayName: "User Name"</p>
+<p>        },</p>
+<p>        pubKeyCredParams: [{alg: -7, type: "public-key"}],</p>
+<p>        authenticatorSelection: {</p>
+<p>            authenticatorAttachment: "platform"</p>
+<p>        }</p>
+<p>    }</p>
+<p>});</p>
+<p></code></pre></p><h3>1.3.2 認可モデルの進化</h3><p>#### ACL（Access Control List）</p><p><strong>時代</strong>：1970年代～</p>
+<p><strong>特徴</strong>：リソース中心の単純なモデル</p>
+<pre><code>
+<p>file.txt:</p>
+<p>  - user1: read, write</p>
+<p>  - user2: read</p>
+<p>  - user3: no access</p>
+<p></code></pre></p><p>#### RBAC（Role-Based Access Control）</p><p><strong>時代</strong>：1990年代～</p>
+<p><strong>特徴</strong>：役割による権限管理</p>
+<pre><code>
+<p>User → Role → Permission</p>
+<p>John → Editor → [create_post, edit_post, delete_post]</p>
+<p>Jane → Viewer → [view_post]</p>
+<p></code></pre></p><p>#### ABAC（Attribute-Based Access Control）</p><p><strong>時代</strong>：2000年代～</p>
+<p><strong>特徴</strong>：柔軟な属性ベース制御</p>
+<pre><code>
+<p>if (user.department == "HR" && </p>
+<p>    resource.type == "employee_data" && </p>
+<p>    time.hour >= 9 && time.hour <= 18) {</p>
+<p>    allow_access()</p>
+<p>}</p>
+<p></code></pre></p><p>#### PBAC（Policy-Based Access Control）</p><p><strong>時代</strong>：2010年代～</p>
+<p><strong>特徴</strong>：宣言的なポリシー記述</p>
+<pre><code>rego
+<h1>Open Policy Agent (OPA)の例</h1>
+<p>allow {</p>
+<p>    input.method = "GET"</p>
+<p>    input.path = ["api", "users", user_id]</p>
+<p>    input.user.id = user_id</p>
+<p>}</p>
+<p></code></pre></p><h3>1.3.3 現在のトレンドと選択基準</h3><p>#### 1. Zero Trust Architecture</p><p><strong>原則</strong>：「決して信頼せず、常に検証する」</p><p><strong>実装のポイント</strong>：</p>
+<p>- すべてのアクセスを検証</p>
+<p>- 最小権限の徹底</p>
+<p>- 継続的な監視</p><p>#### 2. Decentralized Identity</p><p><strong>概念</strong>：ユーザーが自身のアイデンティティを管理</p><p><strong>技術要素</strong>：</p>
+<p>- ブロックチェーン</p>
+<p>- 自己主権型アイデンティティ</p>
+<p>- Verifiable Credentials</p><p>#### 3. Adaptive Authentication</p><p><strong>特徴</strong>：リスクに応じた動的な認証強度</p><p><pre><code>python</p>
+<p>def calculate_risk_score(request):</p>
+<p>    score = 0</p>
+<p>    if is_new_device(request): score += 30</p>
+<p>    if is_unusual_location(request): score += 40</p>
+<p>    if is_unusual_time(request): score += 20</p>
+<p>    return score</p><p>def determine_auth_method(risk_score):</p>
+<p>    if risk_score < 30: return "password_only"</p>
+<p>    elif risk_score < 70: return "password_and_otp"</p>
+<p>    else: return "password_and_biometric"</p>
+<p></code></pre></p><h3>1.3.4 技術選択のフレームワーク</h3><p>適切な技術を選択するための判断基準：</p><p><strong>1. セキュリティ要件</strong></p>
+<p>- 扱うデータの機密性</p>
+<p>- 規制要件（PCI-DSS、HIPAA等）</p>
+<p>- 脅威モデル</p><p><strong>2. ユーザビリティ要件</strong></p>
+<p>- ターゲットユーザーの技術リテラシー</p>
+<p>- 利用頻度</p>
+<p>- デバイスの種類</p><p><strong>3. 技術的制約</strong></p>
+<p>- 既存システムとの統合</p>
+<p>- パフォーマンス要件</p>
+<p>- 開発・運用コスト</p><p><strong>4. 将来性</strong></p>
+<p>- 標準化の状況</p>
+<p>- コミュニティの活発さ</p>
+<p>- ベンダーロックインのリスク</p><h2>1.4 本書の構成と学習の進め方 - 効果的な学習パス</h2><h3>1.4.1 本書の全体構成</h3><p>本書は4部構成で、基礎から実践まで段階的に学習できるよう設計されています。</p><p><strong>学習の流れ</strong>：</p>
+<pre><code>
+<p>第I部：基礎概念編</p>
+<p>  ↓ 基本的な理解</p>
+<p>第II部：プロトコルと標準編  </p>
+<p>  ↓ 技術の詳細</p>
+<p>第III部：システム設計編</p>
+<p>  ↓ 実装スキル</p>
+<p>第IV部：運用・発展編</p>
+<p>  ↓ 実践力</p>
+<p></code></pre></p><h3>1.4.2 読者のレベル別学習パス</h3><p>#### 初級者向けパス（開発経験1-2年）</p><p><strong>推奨学習順序</strong>：</p>
+<p>1. 第1-3章：基礎概念をしっかり理解</p>
+<p>2. 第4-5章：Webの基本的な認証を学習</p>
+<p>3. 第8章：簡単なシステム設計</p>
+<p>4. 各章の演習問題を必ず実施</p><p><strong>学習のポイント</strong>：</p>
+<p>- コードを実際に動かして理解</p>
+<p>- 用語の定義を正確に覚える</p>
+<p>- セキュリティの基本原則を身につける</p><p>#### 中級者向けパス（開発経験3-5年）</p><p><strong>推奨学習順序</strong>：</p>
+<p>1. 第1章：全体像の確認（流し読み可）</p>
+<p>2. 第4-7章：プロトコルの詳細理解</p>
+<p>3. 第9-10章：実践的な設計パターン</p>
+<p>4. 第11-12章：運用面の考慮事項</p><p><strong>学習のポイント</strong>：</p>
+<p>- 複数の技術の比較と選択基準</p>
+<p>- パフォーマンスとセキュリティのバランス</p>
+<p>- 実際のプロダクトへの適用</p><p>#### 上級者向けパス（アーキテクト志向）</p><p><strong>推奨学習順序</strong>：</p>
+<p>1. 第3章：認可モデルの深い理解</p>
+<p>2. 第9章：マイクロサービス環境</p>
+<p>3. 第11-13章：高度なトピック</p>
+<p>4. 全章の設計演習に挑戦</p><p><strong>学習のポイント</strong>：</p>
+<p>- アーキテクチャレベルの設計</p>
+<p>- 組織全体のID管理戦略</p>
+<p>- 最新技術動向の把握</p><h3>1.4.3 効果的な学習のためのTips</h3><p>#### 1. 手を動かす学習</p><p><strong>環境構築</strong>：</p>
+<pre><code>bash
+<h1>本書のサンプルコード環境</h1>
+<p>git clone https://github.com/[organization]/practical-auth-book</p>
+<p>cd practical-auth-book</p>
+<p>docker-compose up -d</p>
+<p></code></pre></p><p><strong>段階的な実装</strong>：</p>
+<p>1. まず動くものを作る</p>
+<p>2. セキュリティを強化</p>
+<p>3. パフォーマンスを最適化</p><p>#### 2. 実際の脆弱性を体験</p><p><strong>安全な環境での実験</strong>：</p>
+<p>- SQLインジェクション</p>
+<p>- セッション固定攻撃</p>
+<p>- JWTの改ざん</p><p>これにより、「なぜその対策が必要か」を実感できます。</p><p>#### 3. コミュニティでの学習</p><p><strong>推奨する活動</strong>：</p>
+<p>- 本書の読書会の開催</p>
+<p>- 実装したコードのレビュー</p>
+<p>- 疑問点の議論</p><h3>1.4.4 各章で学べること</h3><p><strong>第I部：基礎概念編</strong></p>
+<p>- 認証認可の本質的な理解</p>
+<p>- セキュリティの基本原則</p>
+<p>- 実装の第一歩</p><p><strong>第II部：プロトコルと標準編</strong></p>
+<p>- 業界標準プロトコルの仕組み</p>
+<p>- 正しい実装方法</p>
+<p>- よくある間違いとその対策</p><p><strong>第III部：システム設計編</strong></p>
+<p>- 実践的な設計スキル</p>
+<p>- スケーラブルなアーキテクチャ</p>
+<p>- テスト戦略</p><p><strong>第IV部：運用・発展編</strong></p>
+<p>- 本番環境での考慮事項</p>
+<p>- 最新技術トレンド</p>
+<p>- 将来への準備</p><h2>まとめ</h2><p>この章では、認証認可がビジネスにもたらす価値、基本的な用語と概念、技術の歴史と現在のトレンド、そして本書の効果的な活用方法を学びました。</p><p><strong>重要なポイント</strong>：</p>
+<p>1. 認証認可は単なる機能ではなく、ビジネスを守り成長させる基盤</p>
+<p>2. 認証（誰であるか）と認可（何ができるか）は明確に区別する</p>
+<p>3. 技術は常に進化しており、適切な選択が重要</p>
+<p>4. 本書は段階的に学習できるよう設計されている</p><p>次章では、認証の基礎について、より詳細に学んでいきます。パスワード認証の仕組みから始まり、なぜ多要素認証が必要なのか、生体認証にはどのような課題があるのかを理解していきましょう。</p><h2>演習問題</h2><h3>問題1：認証と認可の区別</h3>
+<p>以下のシナリオが「認証」と「認可」のどちらに該当するか答えなさい。</p><p>1. ユーザーがメールアドレスとパスワードを入力してログインする</p>
+<p>2. 管理者ページにアクセスしようとしたが、権限不足でエラーになった</p>
+<p>3. 指紋センサーで本人確認を行う</p>
+<p>4. 一般ユーザーが他のユーザーの個人情報を閲覧できないようにする</p>
+<p>5. ワンタイムパスワードを入力する</p><h3>問題2：セキュリティインシデントの分析</h3>
+<p>ある企業で以下のセキュリティインシデントが発生しました。それぞれの根本原因と対策を述べなさい。</p><p><strong>インシデント内容</strong>：</p>
+<p>- 退職した従業員のアカウントで、3ヶ月後にシステムへの不正アクセスが発生</p>
+<p>- 機密データがダウンロードされた形跡あり</p>
+<p>- ログを確認すると、正規のID/パスワードでログインされていた</p><h3>問題3：技術選択の判断</h3>
+<p>以下の要件に対して、適切な認証方式を選択し、その理由を説明しなさい。</p><p><strong>シナリオA</strong>：社内業務システム</p>
+<p>- ユーザー数：500名</p>
+<p>- アクセス頻度：1日複数回</p>
+<p>- 扱うデータ：人事・給与情報</p>
+<p>- 予算：中程度</p><p><strong>シナリオB</strong>：一般消費者向けECサイト</p>
+<p>- ユーザー数：100万人</p>
+<p>- アクセス頻度：月1-2回</p>
+<p>- 扱うデータ：購入履歴、クレジットカード情報</p>
+<p>- 予算：限定的</p><h3>問題4：実装計画の作成</h3>
+<p>小規模なWebアプリケーション（ユーザー数1000人程度）に認証機能を実装する計画を立てなさい。以下の観点を含めること：</p><p>1. 採用する認証方式とその理由</p>
+<p>2. 実装の優先順位</p>
+<p>3. セキュリティ上の考慮事項</p>
+<p>4. 将来の拡張性</p><h3>問題5：用語の説明</h3>
+<p>以下の用語を、技術に詳しくない経営層に説明するつもりで、日常的な例えを用いて説明しなさい。</p><p>1. シングルサインオン（SSO）</p>
+<p>2. 多要素認証（MFA）</p>
+<p>3. セッション管理</p>
+<p>4. トークンベース認証</p><h3>チャレンジ問題：脅威モデリング</h3>
+<p>あなたが開発している以下のシステムに対して、認証認可の観点から脅威モデリングを実施しなさい。</p><p><strong>システム概要</strong>：</p>
+<p>- 医療機関向け患者情報管理システム</p>
+<p>- 医師、看護師、事務員、患者本人がアクセス</p>
+<p>- 診療記録、検査結果、処方箋情報を管理</p>
+<p>- 外部の薬局システムとも連携</p><p><strong>検討すべき項目</strong>：</p>
+<p>1. 想定される脅威（最低5つ）</p>
+<p>2. 各脅威の影響度と発生可能性</p>
+<p>3. 対策案</p>
+<p>4. 残存リスクの評価</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>付録A 主要ライブラリ・フレームワークの比較 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>付録A 主要ライブラリ・フレームワークの比較</h1><h2>A.1 認証ライブラリの比較</h2><h3>A.1.1 Node.js/JavaScript</h3><p>| ライブラリ | 特徴 | 適用場面 | 注意点 |
+<p>|-----------|------|----------|--------|</p>
+<p>| <strong>Passport.js</strong> | - 500+の認証戦略<br>- 柔軟なミドルウェア設計<br>- 大規模コミュニティ | - Express/Koa等のNode.jsアプリ<br>- 多様な認証方式が必要な場合 | - セッション管理は別途必要<br>- TypeScript型定義が不完全 |</p>
+<p>| <strong>Auth0 SDK</strong> | - マネージドサービス<br>- 豊富な機能<br>- 優れたドキュメント | - 迅速な開発が必要<br>- エンタープライズ要件 | - ベンダーロックイン<br>- コスト（MAU課金） |</p>
+<p>| <strong>NextAuth.js</strong> | - Next.js最適化<br>- OAuth統合が簡単<br>- TypeScript完全対応 | - Next.jsプロジェクト<br>- JAMstack架構 | - Next.js以外では使いづらい<br>- カスタマイズに限界 |</p>
+<p>| <strong>node-oidc-provider</strong> | - OpenID Connect準拠<br>- 高度なカスタマイズ可能<br>- 認定実装 | - OIDCプロバイダー構築<br>- 標準準拠が必須 | - 学習曲線が急<br>- 設定が複雑 |</p><p><strong>実装例：Passport.js</strong></p>
+<pre><code>javascript
+<p>const passport = require('passport');</p>
+<p>const LocalStrategy = require('passport-local').Strategy;</p>
+<p>const JwtStrategy = require('passport-jwt').Strategy;</p><p>// ローカル認証戦略</p>
+<p>passport.use(new LocalStrategy({</p>
+<p>    usernameField: 'email',</p>
+<p>    passwordField: 'password'</p>
+<p>  },</p>
+<p>  async (email, password, done) => {</p>
+<p>    try {</p>
+<p>      const user = await User.findOne({ email });</p>
+<p>      if (!user || !await user.validatePassword(password)) {</p>
+<p>        return done(null, false, { message: 'Invalid credentials' });</p>
+<p>      }</p>
+<p>      return done(null, user);</p>
+<p>    } catch (error) {</p>
+<p>      return done(error);</p>
+<p>    }</p>
+<p>  }</p>
+<p>));</p><p>// JWT認証戦略</p>
+<p>passport.use(new JwtStrategy({</p>
+<p>    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),</p>
+<p>    secretOrKey: process.env.JWT_SECRET</p>
+<p>  },</p>
+<p>  async (payload, done) => {</p>
+<p>    try {</p>
+<p>      const user = await User.findById(payload.sub);</p>
+<p>      return done(null, user || false);</p>
+<p>    } catch (error) {</p>
+<p>      return done(error, false);</p>
+<p>    }</p>
+<p>  }</p>
+<p>));</p>
+<p></code></pre></p><h3>A.1.2 Python</h3><p>| ライブラリ | 特徴 | 適用場面 | 注意点 |</p>
+<p>|-----------|------|----------|--------|</p>
+<p>| <strong>Django-Allauth</strong> | - Django統合<br>- ソーシャル認証対応<br>- 管理画面付き | - Djangoプロジェクト<br>- 迅速な開発 | - Django依存<br>- カスタマイズが複雑 |</p>
+<p>| <strong>FastAPI-Users</strong> | - 非同期対応<br>- 型安全<br>- モダンな設計 | - FastAPIプロジェクト<br>- 高性能API | - 比較的新しい<br>- エコシステムが発展途上 |</p>
+<p>| <strong>Authlib</strong> | - OAuth/OIDC完全実装<br>- フレームワーク非依存<br>- 高品質コード | - 複雑な認証要件<br>- 標準準拠重視 | - 低レベルAPI<br>- ドキュメントが技術的 |</p>
+<p>| <strong>python-jose</strong> | - JWT処理特化<br>- 暗号ライブラリ選択可<br>- 軽量 | - JWT認証のみ<br>- マイクロサービス | - 認証フローは自前実装<br>- セキュリティ設定に注意 |</p><p><strong>実装例：FastAPI-Users</strong></p>
+<pre><code>python
+<p>from fastapi import FastAPI, Depends</p>
+<p>from fastapi_users import FastAPIUsers, BaseUserManager</p>
+<p>from fastapi_users.authentication import JWTStrategy</p>
+<p>from fastapi_users.db import SQLAlchemyUserDatabase</p><p>class UserManager(BaseUserManager[UserCreate, UserDB]):</p>
+<p>    async def on_after_register(self, user: UserDB, request=None):</p>
+<p>        # 登録後の処理</p>
+<p>        await send_welcome_email(user.email)</p>
+    
+<p>    async def on_after_login(self, user: UserDB, request=None):</p>
+<p>        # ログイン後の処理</p>
+<p>        await log_login_event(user.id, request)</p><p>def get_jwt_strategy() -> JWTStrategy:</p>
+<p>    return JWTStrategy(</p>
+<p>        secret=settings.JWT_SECRET,</p>
+<p>        lifetime_seconds=3600,</p>
+<p>        token_audience=["fastapi-users:auth"]</p>
+<p>    )</p><p>fastapi_users = FastAPIUsers(</p>
+<p>    get_user_manager,</p>
+<p>    [auth_backend],</p>
+<p>    UserModel,</p>
+<p>    UserCreateModel,</p>
+<p>    UserUpdateModel,</p>
+<p>    UserDB,</p>
+<p>)</p><p>app = FastAPI()</p>
+<p>app.include_router(</p>
+<p>    fastapi_users.get_auth_router(auth_backend),</p>
+<p>    prefix="/auth",</p>
+<p>    tags=["auth"]</p>
+<p>)</p>
+<p></code></pre></p><h3>A.1.3 Java</h3><p>| ライブラリ | 特徴 | 適用場面 | 注意点 |</p>
+<p>|-----------|------|----------|--------|</p>
+<p>| <strong>Spring Security</strong> | - 包括的セキュリティ<br>- Spring統合<br>- エンタープライズ標準 | - Springアプリケーション<br>- 複雑な要件 | - 設定が複雑<br>- 学習コスト高 |</p>
+<p>| <strong>Apache Shiro</strong> | - シンプルAPI<br>- フレームワーク非依存<br>- セッション管理込み | - 軽量な実装<br>- レガシーシステム | - 機能が限定的<br>- コミュニティ縮小 |</p>
+<p>| <strong>Keycloak Adapter</strong> | - Keycloak連携<br>- 多様なプロトコル<br>- 設定のみで動作 | - Keycloak使用時<br>- SSO要件 | - Keycloak依存<br>- オーバーヘッド |</p>
+<p>| <strong>Pac4j</strong> | - 多プロトコル対応<br>- フレームワーク中立<br>- 軽量 | - 複数認証方式<br>- マイクロサービス | - ドキュメント不足<br>- 日本語情報少 |</p><p><strong>実装例：Spring Security</strong></p>
+<pre><code>java
+<p>@Configuration</p>
+<p>@EnableWebSecurity</p>
+<p>public class SecurityConfig {</p>
+    
+<p>    @Bean</p>
+<p>    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {</p>
+<p>        return http</p>
+<p>            .authorizeHttpRequests(authz -> authz</p>
+<p>                .requestMatchers("/api/public/<em></em>").permitAll()</p>
+<p>                .requestMatchers("/api/admin/<em></em>").hasRole("ADMIN")</p>
+<p>                .anyRequest().authenticated()</p>
+<p>            )</p>
+<p>            .oauth2Login(oauth2 -> oauth2</p>
+<p>                .userInfoEndpoint(userInfo -> userInfo</p>
+<p>                    .userService(customOAuth2UserService())</p>
+<p>                )</p>
+<p>            )</p>
+<p>            .jwt(jwt -> jwt</p>
+<p>                .decoder(jwtDecoder())</p>
+<p>            )</p>
+<p>            .sessionManagement(session -> session</p>
+<p>                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)</p>
+<p>            )</p>
+<p>            .build();</p>
+<p>    }</p>
+    
+<p>    @Bean</p>
+<p>    public JwtDecoder jwtDecoder() {</p>
+<p>        return NimbusJwtDecoder.withPublicKey(publicKey()).build();</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><h2>A.2 IDプロバイダー/SaaSの比較</h2><h3>A.2.1 商用サービス</h3><p>| サービス | 特徴 | 価格帯 | 適用場面 |</p>
+<p>|----------|------|---------|----------|</p>
+<p>| <strong>Auth0</strong> | - 開発者フレンドリー<br>- 豊富な統合<br>- グローバル展開 | 7,000 MAU無料<br>$23~/月 | - スタートアップ<br>- B2C向け<br>- 迅速な開発 |</p>
+<p>| <strong>Okta</strong> | - エンタープライズ向け<br>- 高度な管理機能<br>- コンプライアンス対応 | 要見積もり<br>$2~/user/月 | - 大企業<br>- B2B/B2E<br>- 規制業界 |</p>
+<p>| <strong>AWS Cognito</strong> | - AWS統合<br>- サーバーレス対応<br>- 従量課金 | 50,000 MAU無料<br>$0.0055/MAU | - AWSユーザー<br>- コスト重視<br>- シンプル要件 |</p>
+<p>| <strong>Firebase Auth</strong> | - Google統合<br>- リアルタイムDB連携<br>- モバイル最適化 | 無料枠大<br>$0.06/認証 | - モバイルアプリ<br>- Google生態系<br>- プロトタイプ |</p>
+<p>| <strong>Azure AD B2C</strong> | - Microsoft統合<br>- エンタープライズ機能<br>- ハイブリッドID | 50,000 MAU無料<br>$0.00325/MAU | - Microsoft環境<br>- ハイブリッドクラウド |</p><h3>A.2.2 オープンソース</h3><p>| プロダクト | 特徴 | 運用難易度 | 適用場面 |</p>
+<p>|-----------|------|------------|----------|</p>
+<p>| <strong>Keycloak</strong> | - Red Hat支援<br>- 完全機能<br>- 管理UI充実 | 中 | - オンプレミス要件<br>- カスタマイズ必要<br>- エンタープライズ |</p>
+<p>| <strong>Ory</strong> | - クラウドネイティブ<br>- マイクロサービス<br>- API中心 | 高 | - Kubernetes環境<br>- 高度なカスタマイズ<br>- 開発者向け |</p>
+<p>| <strong>Authelia</strong> | - リバースプロキシ統合<br>- 2FA対応<br>- シンプル | 低 | - ホームラボ<br>- 小規模環境<br>- Traefik/nginx利用 |</p>
+<p>| <strong>Zitadel</strong> | - イベントソーシング<br>- マルチテナント<br>- SaaS版あり | 中 | - B2B SaaS<br>- イベント駆動<br>- 監査重視 |</p><h2>A.3 パスワードハッシュライブラリ</h2><h3>A.3.1 推奨アルゴリズムと実装</h3><p>| アルゴリズム | ライブラリ | 特徴 | 推奨設定 |</p>
+<p>|------------|-----------|------|----------|</p>
+<p>| <strong>Argon2</strong> | argon2-cffi (Python)<br>argon2 (Node.js)<br>Spring Security | - 最新標準<br>- メモリハード<br>- 並列化可能 | memory: 64MB<br>iterations: 3<br>parallelism: 2 |</p>
+<p>| <strong>bcrypt</strong> | bcrypt (各言語)<br>広くサポート | - 実績豊富<br>- 広範なサポート<br>- 固定メモリ | cost factor: 12<br>(2024年基準) |</p>
+<p>| <strong>scrypt</strong> | scrypt (Node.js)<br>hashlib (Python) | - メモリハード<br>- ASIC耐性<br>- 調整可能 | N: 16384<br>r: 8<br>p: 1 |</p>
+<p>| <strong>PBKDF2</strong> | 標準ライブラリ<br>全言語対応 | - 標準化<br>- 軽量<br>- FIPS認証 | iterations: 600,000<br>SHA-256 |</p><p><strong>実装例：Argon2</strong></p>
+<pre><code>python
+<p>from argon2 import PasswordHasher</p>
+<p>from argon2.exceptions import VerifyMismatchError</p><p>class SecurePasswordManager:</p>
+<p>    def __init__(self):</p>
+<p>        self.ph = PasswordHasher(</p>
+<p>            memory_cost=65536,  # 64 MB</p>
+<p>            time_cost=3,        # 3 iterations</p>
+<p>            parallelism=2,      # 2 parallel threads</p>
+<p>            hash_len=32,        # 32 bytes</p>
+<p>            salt_len=16         # 16 bytes</p>
+<p>        )</p>
+    
+<p>    def hash_password(self, password: str) -> str:</p>
+<p>        """パスワードをハッシュ化"""</p>
+<p>        return self.ph.hash(password)</p>
+    
+<p>    def verify_password(self, password: str, hash: str) -> bool:</p>
+<p>        """パスワードを検証"""</p>
+<p>        try:</p>
+<p>            self.ph.verify(hash, password)</p>
+<p>            # 必要に応じてrehash</p>
+<p>            if self.ph.check_needs_rehash(hash):</p>
+<p>                return True, self.ph.hash(password)</p>
+<p>            return True, None</p>
+<p>        except VerifyMismatchError:</p>
+<p>            return False, None</p>
+<p></code></pre></p><h2>A.4 JWT/セッション管理ライブラリ</h2><h3>A.4.1 JWT実装の比較</h3><p>| 言語 | ライブラリ | 特徴 | 注意点 |</p>
+<p>|------|-----------|------|--------|</p>
+<p>| <strong>JavaScript</strong> | jsonwebtoken<br>jose | 標準実装<br>最新仕様対応 | algorithm指定必須<br>JWK対応 |</p>
+<p>| <strong>Python</strong> | PyJWT<br>python-jose | シンプル<br>高機能 | 暗号ライブラリ選択<br>依存関係多 |</p>
+<p>| <strong>Java</strong> | Nimbus JOSE<br>jjwt | 完全実装<br>Android対応 | サイズ大<br>設定複雑 |</p>
+<p>| <strong>Go</strong> | golang-jwt<br>jose2go | 高性能<br>標準準拠 | APIが低レベル<br>v3/v4で破壊的変更 |</p><p><strong>セキュアな実装例</strong></p>
+<pre><code>javascript
+<p>const jwt = require('jsonwebtoken');</p>
+<p>const jwksRsa = require('jwks-rsa');</p><p>class JWTManager {</p>
+<p>    constructor() {</p>
+<p>        // 公開鍵の動的取得</p>
+<p>        this.jwksClient = jwksRsa({</p>
+<p>            cache: true,</p>
+<p>            rateLimit: true,</p>
+<p>            jwksRequestsPerMinute: 5,</p>
+<p>            jwksUri: process.env.JWKS_URI</p>
+<p>        });</p>
+<p>    }</p>
+    
+<p>    async signToken(payload, options = {}) {</p>
+<p>        const defaultOptions = {</p>
+<p>            algorithm: 'RS256',</p>
+<p>            expiresIn: '1h',</p>
+<p>            issuer: process.env.JWT_ISSUER,</p>
+<p>            audience: process.env.JWT_AUDIENCE,</p>
+<p>            keyid: process.env.JWT_KEY_ID</p>
+<p>        };</p>
+        
+<p>        return jwt.sign(</p>
+<p>            payload,</p>
+<p>            process.env.JWT_PRIVATE_KEY,</p>
+<p>            { ...defaultOptions, ...options }</p>
+<p>        );</p>
+<p>    }</p>
+    
+<p>    async verifyToken(token) {</p>
+<p>        const getKey = (header, callback) => {</p>
+<p>            this.jwksClient.getSigningKey(header.kid, (err, key) => {</p>
+<p>                if (err) return callback(err);</p>
+<p>                const signingKey = key.publicKey || key.rsaPublicKey;</p>
+<p>                callback(null, signingKey);</p>
+<p>            });</p>
+<p>        };</p>
+        
+<p>        return new Promise((resolve, reject) => {</p>
+<p>            jwt.verify(token, getKey, {</p>
+<p>                algorithms: ['RS256'],</p>
+<p>                issuer: process.env.JWT_ISSUER,</p>
+<p>                audience: process.env.JWT_AUDIENCE</p>
+<p>            }, (err, decoded) => {</p>
+<p>                if (err) reject(err);</p>
+<p>                else resolve(decoded);</p>
+<p>            });</p>
+<p>        });</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><h2>A.5 WebAuthn/FIDO2実装</h2><p>| ライブラリ | 言語 | 特徴 | 実装難易度 |</p>
+<p>|-----------|------|------|-----------|</p>
+<p>| <strong>SimpleWebAuthn</strong> | TypeScript/JS | - 使いやすいAPI<br>- 充実したドキュメント | 低 |</p>
+<p>| <strong>py_webauthn</strong> | Python | - Python標準<br>- 型アノテーション対応 | 中 |</p>
+<p>| <strong>WebAuthn4J</strong> | Java | - Spring統合<br>- 詳細な検証 | 高 |</p>
+<p>| <strong>go-webauthn</strong> | Go | - Duoメンテナンス<br>- 高性能 | 中 |</p><p><strong>実装例：SimpleWebAuthn</strong></p>
+<pre><code>typescript
+<p>import { </p>
+<p>    generateRegistrationOptions,</p>
+<p>    verifyRegistrationResponse,</p>
+<p>    generateAuthenticationOptions,</p>
+<p>    verifyAuthenticationResponse</p>
+<p>} from '@simplewebauthn/server';</p><p>class WebAuthnService {</p>
+<p>    async startRegistration(user: User) {</p>
+<p>        const options = generateRegistrationOptions({</p>
+<p>            rpName: 'Example Corp',</p>
+<p>            rpID: 'example.com',</p>
+<p>            userID: user.id,</p>
+<p>            userName: user.email,</p>
+<p>            userDisplayName: user.name,</p>
+<p>            attestationType: 'indirect',</p>
+<p>            authenticatorSelection: {</p>
+<p>                authenticatorAttachment: 'platform',</p>
+<p>                userVerification: 'required'</p>
+<p>            }</p>
+<p>        });</p>
+        
+<p>        // チャレンジを保存</p>
+<p>        await this.saveChallenge(user.id, options.challenge);</p>
+        
+<p>        return options;</p>
+<p>    }</p>
+    
+<p>    async completeRegistration(</p>
+<p>        user: User,</p>
+<p>        credential: RegistrationCredentialJSON</p>
+<p>    ) {</p>
+<p>        const expectedChallenge = await this.getChallenge(user.id);</p>
+        
+<p>        const verification = await verifyRegistrationResponse({</p>
+<p>            credential,</p>
+<p>            expectedChallenge,</p>
+<p>            expectedOrigin: 'https://example.com',</p>
+<p>            expectedRPID: 'example.com',</p>
+<p>            requireUserVerification: true</p>
+<p>        });</p>
+        
+<p>        if (verification.verified) {</p>
+<p>            await this.saveCredential(user.id, {</p>
+<p>                credentialID: verification.registrationInfo.credentialID,</p>
+<p>                publicKey: verification.registrationInfo.credentialPublicKey,</p>
+<p>                counter: verification.registrationInfo.counter</p>
+<p>            });</p>
+<p>        }</p>
+        
+<p>        return verification.verified;</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><h2>A.6 選定のためのチェックリスト</h2><h3>技術選定時の評価項目</h3><p><pre><code>yaml</p>
+<p>security_requirements:</p>
+<p>  - [ ] 暗号アルゴリズムの最新性</p>
+<p>  - [ ] 既知の脆弱性の有無</p>
+<p>  - [ ] セキュリティアップデートの頻度</p>
+<p>  - [ ] デフォルト設定の安全性</p><p>compatibility:</p>
+<p>  - [ ] 対象プラットフォームのサポート</p>
+<p>  - [ ] 既存システムとの統合容易性</p>
+<p>  - [ ] 標準規格への準拠度</p>
+<p>  - [ ] バージョン互換性</p><p>performance:</p>
+<p>  - [ ] ベンチマーク結果</p>
+<p>  - [ ] メモリ使用量</p>
+<p>  - [ ] レスポンスタイム</p>
+<p>  - [ ] スケーラビリティ</p><p>maintainability:</p>
+<p>  - [ ] ドキュメントの充実度</p>
+<p>  - [ ] コミュニティの活発さ</p>
+<p>  - [ ] 商用サポートの有無</p>
+<p>  - [ ] ライセンスの適合性</p><p>cost:</p>
+<p>  - [ ] 初期導入コスト</p>
+<p>  - [ ] ランニングコスト</p>
+<p>  - [ ] 隠れたコスト（運用・教育）</p>
+<p>  - [ ] スケール時のコスト予測</p>
+<p></code></pre></p><h3>推奨構成例</h3><p><strong>小規模アプリケーション（〜1万ユーザー）</strong></p>
+<p>- 認証: NextAuth.js or Django-Allauth</p>
+<p>- パスワード: bcrypt (cost=12)</p>
+<p>- セッション: JWTまたはCookieセッション</p>
+<p>- MFA: TOTP (Google Authenticator互換)</p><p><strong>中規模SaaS（〜10万ユーザー）</strong></p>
+<p>- 認証: Auth0 or AWS Cognito</p>
+<p>- パスワード: Argon2id</p>
+<p>- セッション: JWT + Refresh Token</p>
+<p>- MFA: WebAuthn + TOTP fallback</p><p><strong>エンタープライズ（10万ユーザー〜）</strong></p>
+<p>- 認証: Okta or Keycloak</p>
+<p>- パスワード: 段階的にパスワードレスへ</p>
+<p>- セッション: Distributed session with Redis</p>
+<p>- MFA: WebAuthn + 複数バックアップ方式</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

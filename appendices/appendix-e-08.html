@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第8章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第8章 演習問題解答</h1><h2>問題1：要件定義</h2><h3>解答</h3><p><strong>スタートアップSaaSプロダクト（B2B、想定ユーザー1万社）の認証システム要件定義</strong></p><p>#### ビジネス要件</p><p><strong>ユーザーストーリー</strong>
+<pre><code>
+<p>1. 企業管理者として、従業員アカウントを一括管理したい</p>
+<p>   - CSV一括登録機能</p>
+<p>   - 組織階層に応じた権限設定</p>
+<p>   - 利用状況の可視化</p><p>2. 一般ユーザーとして、簡単かつ安全にログインしたい</p>
+<p>   - SSO対応（Google Workspace、Microsoft 365）</p>
+<p>   - パスワードレスオプション</p>
+<p>   - モバイルアプリ対応</p><p>3. セキュリティ管理者として、コンプライアンスを確保したい</p>
+<p>   - 監査ログの完全性</p>
+<p>   - アクセス制御の細粒度設定</p>
+<p>   - 異常検知とアラート</p>
+<p></code></pre></p><p><strong>成功指標</strong></p>
+<p>- 初回ログイン成功率 > 90%</p>
+<p>- 平均ログイン時間 < 3秒</p>
+<p>- パスワードリセット率 < 5%/月</p>
+<p>- セキュリティインシデント 0件/年</p><p>#### セキュリティ要件</p><p><strong>認証要件</strong></p>
+<pre><code>yaml
+<p>authentication:</p>
+<p>  methods:</p>
+<p>    primary:</p>
+<p>      - email_password</p>
+<p>      - sso_saml</p>
+<p>      - sso_oidc</p>
+<p>    mfa:</p>
+<p>      - totp</p>
+<p>      - webauthn</p>
+<p>      - push_notification</p>
+  
+<p>  password_policy:</p>
+<p>    min_length: 10</p>
+<p>    complexity: "NIST SP 800-63B準拠"</p>
+<p>    breach_detection: true</p>
+<p>    rotation: "リスクベース"</p>
+  
+<p>  session:</p>
+<p>    idle_timeout: 30m</p>
+<p>    absolute_timeout: 8h</p>
+<p>    concurrent_limit: 3</p>
+<p></code></pre></p><p><strong>脅威モデル</strong></p>
+<pre><code>
+<p>主要脅威:</p>
+<p>1. アカウント乗っ取り</p>
+<p>   対策: MFA必須化、異常検知、デバイス認証</p>
+<p>2. 内部不正</p>
+<p>   対策: 最小権限、職務分離、監査ログ</p>
+<p>3. API悪用</p>
+<p>   対策: レート制限、APIキー管理、OAuth 2.0</p>
+<p></code></pre></p><p>#### 技術要件</p><p><strong>パフォーマンス要件</strong></p>
+<pre><code>
+<p>- 認証API: p99 < 100ms</p>
+<p>- 同時接続: 10,000セッション</p>
+<p>- 可用性: 99.95%（年間ダウンタイム < 4.5時間）</p>
+<p></code></pre></p><p><strong>スケーラビリティ要件</strong></p>
+<pre><code>
+<p>- 水平スケール対応</p>
+<p>- マルチリージョン展開準備</p>
+<p>- 10倍成長（10万社）への対応</p>
+<p></code></pre></p><p><strong>段階的実装計画</strong></p>
+<pre><code>
+<p>Phase 1 (3ヶ月): MVP</p>
+<p>- 基本的なメール/パスワード認証</p>
+<p>- 企業単位の管理機能</p>
+<p>- 基本的なRBAC</p><p>Phase 2 (3ヶ月): エンタープライズ機能</p>
+<p>- SSO統合（SAML/OIDC）</p>
+<p>- MFA導入</p>
+<p>- 高度な監査機能</p><p>Phase 3 (6ヶ月): 拡張機能</p>
+<p>- API認証（OAuth 2.0）</p>
+<p>- パスワードレス認証</p>
+<p>- AI異常検知</p>
+<p></code></pre></p><h2>問題2：データベース設計</h2><h3>解答</h3><p><strong>マルチテナント対応データベース設計</strong></p><p><pre><code>sql</p>
+<p>-- テナント管理</p>
+<p>CREATE TABLE tenants (</p>
+<p>    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),</p>
+<p>    subdomain VARCHAR(63) UNIQUE NOT NULL,</p>
+<p>    name VARCHAR(255) NOT NULL,</p>
+<p>    plan VARCHAR(50) DEFAULT 'standard',</p>
+    
+<p>    -- コンプライアンス</p>
+<p>    data_residency VARCHAR(2) DEFAULT 'JP',</p>
+<p>    data_retention_days INTEGER DEFAULT 365,</p>
+    
+<p>    -- 状態管理</p>
+<p>    status VARCHAR(20) DEFAULT 'active',</p>
+<p>    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+    
+<p>    -- パーティショニングキー</p>
+<p>    partition_key INTEGER GENERATED ALWAYS AS (abs(hashtext(id::text)) % 100) STORED</p>
+<p>);</p><p>-- ユーザーテーブル（テナント別パーティション）</p>
+<p>CREATE TABLE users (</p>
+<p>    id UUID DEFAULT gen_random_uuid(),</p>
+<p>    tenant_id UUID NOT NULL,</p>
+<p>    email VARCHAR(255) NOT NULL,</p>
+    
+<p>    -- 認証情報</p>
+<p>    password_hash VARCHAR(255),</p>
+<p>    mfa_secret VARCHAR(255),</p>
+    
+<p>    -- GDPR対応</p>
+<p>    personal_data JSONB, -- 暗号化して保存</p>
+<p>    consent_version VARCHAR(20),</p>
+<p>    deletion_requested_at TIMESTAMP,</p>
+    
+<p>    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+    
+<p>    PRIMARY KEY (tenant_id, id),</p>
+<p>    UNIQUE (tenant_id, email)</p>
+<p>) PARTITION BY HASH (tenant_id);</p><p>-- 100個のパーティション作成</p>
+<p>DO $$</p>
+<p>BEGIN</p>
+<p>    FOR i IN 0..99 LOOP</p>
+<p>        EXECUTE format('CREATE TABLE users_%s PARTITION OF users FOR VALUES WITH (modulus 100, remainder %s)', i, i);</p>
+<p>    END LOOP;</p>
+<p>END $$;</p><p>-- 監査ログ（時系列パーティション）</p>
+<p>CREATE TABLE audit_logs (</p>
+<p>    id BIGSERIAL,</p>
+<p>    tenant_id UUID NOT NULL,</p>
+<p>    event_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,</p>
+    
+<p>    -- イベント情報</p>
+<p>    event_type VARCHAR(50) NOT NULL,</p>
+<p>    user_id UUID,</p>
+<p>    resource_type VARCHAR(50),</p>
+<p>    resource_id VARCHAR(255),</p>
+    
+<p>    -- コンテキスト</p>
+<p>    ip_address INET,</p>
+<p>    user_agent TEXT,</p>
+    
+<p>    -- データ</p>
+<p>    event_data JSONB,</p>
+    
+<p>    PRIMARY KEY (event_time, id, tenant_id)</p>
+<p>) PARTITION BY RANGE (event_time);</p><p>-- 月次パーティションの自動作成</p>
+<p>CREATE OR REPLACE FUNCTION create_monthly_partition()</p>
+<p>RETURNS void AS $$</p>
+<p>DECLARE</p>
+<p>    start_date DATE;</p>
+<p>    end_date DATE;</p>
+<p>    partition_name TEXT;</p>
+<p>BEGIN</p>
+<p>    start_date := date_trunc('month', CURRENT_DATE);</p>
+<p>    end_date := start_date + INTERVAL '1 month';</p>
+<p>    partition_name := 'audit_logs_' || to_char(start_date, 'YYYY_MM');</p>
+    
+<p>    EXECUTE format(</p>
+<p>        'CREATE TABLE IF NOT EXISTS %I PARTITION OF audit_logs FOR VALUES FROM (%L) TO (%L)',</p>
+<p>        partition_name, start_date, end_date</p>
+<p>    );</p>
+<p>END;</p>
+<p>$$ LANGUAGE plpgsql;</p><p>-- GDPR準拠機能</p>
+<p>CREATE OR REPLACE FUNCTION anonymize_user_data(p_tenant_id UUID, p_user_id UUID)</p>
+<p>RETURNS void AS $$</p>
+<p>BEGIN</p>
+<p>    UPDATE users SET</p>
+<p>        email = 'deleted_' || extract(epoch from now()) || '@example.com',</p>
+<p>        personal_data = '{"status": "anonymized"}',</p>
+<p>        password_hash = NULL,</p>
+<p>        mfa_secret = NULL</p>
+<p>    WHERE tenant_id = p_tenant_id AND id = p_user_id;</p>
+    
+<p>    -- 監査ログは保持（法的要件）</p>
+<p>    INSERT INTO audit_logs (tenant_id, event_type, user_id, event_data)</p>
+<p>    VALUES (p_tenant_id, 'user_data_anonymized', p_user_id, '{"reason": "gdpr_request"}');</p>
+<p>END;</p>
+<p>$$ LANGUAGE plpgsql;</p><p>-- 高速化のためのインデックス</p>
+<p>CREATE INDEX idx_users_email ON users(tenant_id, email) WHERE status = 'active';</p>
+<p>CREATE INDEX idx_audit_logs_lookup ON audit_logs(tenant_id, user_id, event_time DESC);</p>
+<p>CREATE INDEX idx_audit_logs_type ON audit_logs(tenant_id, event_type, event_time DESC);</p><p>-- 読み取り専用レプリカ用のマテリアライズドビュー</p>
+<p>CREATE MATERIALIZED VIEW user_login_stats AS</p>
+<p>SELECT </p>
+<p>    tenant_id,</p>
+<p>    user_id,</p>
+<p>    date_trunc('day', event_time) as login_date,</p>
+<p>    count(*) as login_count,</p>
+<p>    array_agg(DISTINCT ip_address) as ip_addresses</p>
+<p>FROM audit_logs</p>
+<p>WHERE event_type = 'login_success'</p>
+<p>    AND event_time > CURRENT_DATE - INTERVAL '30 days'</p>
+<p>GROUP BY tenant_id, user_id, date_trunc('day', event_time);</p><p>CREATE INDEX idx_login_stats ON user_login_stats(tenant_id, user_id, login_date);</p>
+<p></code></pre></p><p><strong>スケーラビリティ対策</strong></p>
+<pre><code>yaml
+<p>architecture:</p>
+<p>  primary_db:</p>
+<p>    type: "PostgreSQL 15"</p>
+<p>    specs: "db.r6g.8xlarge"</p>
+<p>    storage: "10TB GP3 SSD"</p>
+    
+<p>  read_replicas:</p>
+<p>    count: 3</p>
+<p>    distribution: "cross-az"</p>
+    
+<p>  caching:</p>
+<p>    redis_cluster:</p>
+<p>      nodes: 6</p>
+<p>      type: "cache.r6g.xlarge"</p>
+    
+<p>  monitoring:</p>
+<p>    - pg_stat_statements</p>
+<p>    - custom_metrics</p>
+<p>    - slow_query_log</p>
+<p></code></pre></p><h2>問題3：API設計</h2><h3>解答</h3><p><strong>企業向けSSO対応認証API設計</strong></p><p><pre><code>yaml</p>
+<p>openapi: 3.0.0</p>
+<p>info:</p>
+<p>  title: Enterprise Authentication API</p>
+<p>  version: 1.0.0</p><p>paths:</p>
+<p>  /auth/login:</p>
+<p>    post:</p>
+<p>      summary: 統一ログインエンドポイント</p>
+<p>      requestBody:</p>
+<p>        content:</p>
+<p>          application/json:</p>
+<p>            schema:</p>
+<p>              oneOf:</p>
+<p>                - $ref: '#/components/schemas/PasswordLogin'</p>
+<p>                - $ref: '#/components/schemas/SSOLogin'</p>
+<p>      responses:</p>
+<p>        200:</p>
+<p>          description: 認証成功</p>
+<p>          content:</p>
+<p>            application/json:</p>
+<p>              schema:</p>
+<p>                $ref: '#/components/schemas/AuthResponse'</p>
+<p>        302:</p>
+<p>          description: SSO認証へのリダイレクト</p>
+<p>          headers:</p>
+<p>            Location:</p>
+<p>              schema:</p>
+<p>                type: string</p>
+<p>              example: https://idp.example.com/saml/auth?SAMLRequest=...</p><p>  /auth/sso/callback:</p>
+<p>    post:</p>
+<p>      summary: SSO認証コールバック</p>
+<p>      requestBody:</p>
+<p>        content:</p>
+<p>          application/x-www-form-urlencoded:</p>
+<p>            schema:</p>
+<p>              type: object</p>
+<p>              properties:</p>
+<p>                SAMLResponse:</p>
+<p>                  type: string</p>
+<p>                RelayState:</p>
+<p>                  type: string</p><p>  /auth/sso/metadata/{tenant_id}:</p>
+<p>    get:</p>
+<p>      summary: SAML SP メタデータ取得</p>
+<p>      parameters:</p>
+<p>        - name: tenant_id</p>
+<p>          in: path</p>
+<p>          required: true</p>
+<p>          schema:</p>
+<p>            type: string</p><p>components:</p>
+<p>  schemas:</p>
+<p>    PasswordLogin:</p>
+<p>      type: object</p>
+<p>      required: [type, email, password]</p>
+<p>      properties:</p>
+<p>        type:</p>
+<p>          type: string</p>
+<p>          enum: [password]</p>
+<p>        email:</p>
+<p>          type: string</p>
+<p>          format: email</p>
+<p>        password:</p>
+<p>          type: string</p>
+<p>        tenant_id:</p>
+<p>          type: string</p><p>    SSOLogin:</p>
+<p>      type: object</p>
+<p>      required: [type, provider]</p>
+<p>      properties:</p>
+<p>        type:</p>
+<p>          type: string</p>
+<p>          enum: [sso]</p>
+<p>        provider:</p>
+<p>          type: string</p>
+<p>          enum: [saml, oidc, google, microsoft]</p>
+<p>        tenant_id:</p>
+<p>          type: string</p>
+<p>        return_url:</p>
+<p>          type: string</p><p>    AuthResponse:</p>
+<p>      type: object</p>
+<p>      properties:</p>
+<p>        access_token:</p>
+<p>          type: string</p>
+<p>        refresh_token:</p>
+<p>          type: string</p>
+<p>        token_type:</p>
+<p>          type: string</p>
+<p>          default: Bearer</p>
+<p>        expires_in:</p>
+<p>          type: integer</p>
+<p>        user:</p>
+<p>          $ref: '#/components/schemas/User'</p>
+<p></code></pre></p><p><strong>実装の統一インターフェース</strong></p><p><pre><code>python</p>
+<p>from abc import ABC, abstractmethod</p>
+<p>from dataclasses import dataclass</p>
+<p>from typing import Optional, Dict, Any</p><p>@dataclass</p>
+<p>class AuthRequest:</p>
+<p>    tenant_id: str</p>
+<p>    return_url: Optional[str] = None</p>
+<p>    session_data: Dict[str, Any] = None</p><p>@dataclass</p>
+<p>class AuthResult:</p>
+<p>    success: bool</p>
+<p>    user_id: Optional[str] = None</p>
+<p>    access_token: Optional[str] = None</p>
+<p>    refresh_token: Optional[str] = None</p>
+<p>    redirect_url: Optional[str] = None</p>
+<p>    error: Optional[str] = None</p><p>class AuthProvider(ABC):</p>
+<p>    @abstractmethod</p>
+<p>    async def authenticate(self, request: AuthRequest) -> AuthResult:</p>
+<p>        pass</p><p>class PasswordAuthProvider(AuthProvider):</p>
+<p>    async def authenticate(self, request: AuthRequest) -> AuthResult:</p>
+<p>        # パスワード認証の実装</p>
+<p>        pass</p><p>class SAMLAuthProvider(AuthProvider):</p>
+<p>    async def authenticate(self, request: AuthRequest) -> AuthResult:</p>
+<p>        # SAML認証の実装</p>
+<p>        pass</p><p>class OIDCAuthProvider(AuthProvider):</p>
+<p>    async def authenticate(self, request: AuthRequest) -> AuthResult:</p>
+<p>        # OIDC認証の実装</p>
+<p>        pass</p><p>class UnifiedAuthService:</p>
+<p>    def __init__(self):</p>
+<p>        self.providers = {</p>
+<p>            'password': PasswordAuthProvider(),</p>
+<p>            'saml': SAMLAuthProvider(),</p>
+<p>            'oidc': OIDCAuthProvider(),</p>
+<p>        }</p>
+    
+<p>    async def authenticate(self, method: str, request: AuthRequest) -> AuthResult:</p>
+<p>        provider = self.providers.get(method)</p>
+<p>        if not provider:</p>
+<p>            return AuthResult(success=False, error="Unsupported auth method")</p>
+        
+<p>        # 共通の前処理</p>
+<p>        await self.pre_auth_checks(request)</p>
+        
+<p>        # プロバイダ固有の認証</p>
+<p>        result = await provider.authenticate(request)</p>
+        
+<p>        # 共通の後処理</p>
+<p>        if result.success:</p>
+<p>            await self.post_auth_process(result, request)</p>
+        
+<p>        return result</p>
+<p></code></pre></p><h2>問題4：エラー設計</h2><h3>解答</h3><p><strong>多言語対応エラーメッセージ体系</strong></p><p><pre><code>python</p>
+<p>from enum import Enum</p>
+<p>from typing import Dict, Optional</p><p>class ErrorCode(Enum):</p>
+<p>    # 認証エラー</p>
+<p>    INVALID_CREDENTIALS = "AUTH001"</p>
+<p>    ACCOUNT_LOCKED = "AUTH002"</p>
+<p>    SESSION_EXPIRED = "AUTH003"</p>
+<p>    MFA_REQUIRED = "AUTH004"</p>
+    
+<p>    # 認可エラー</p>
+<p>    INSUFFICIENT_PERMISSIONS = "AUTHZ001"</p>
+<p>    RESOURCE_NOT_FOUND = "AUTHZ002"</p>
+    
+<p>    # 検証エラー</p>
+<p>    INVALID_EMAIL = "VAL001"</p>
+<p>    WEAK_PASSWORD = "VAL002"</p>
+    
+<p>    # システムエラー</p>
+<p>    INTERNAL_ERROR = "SYS001"</p>
+<p>    SERVICE_UNAVAILABLE = "SYS002"</p><p>class ErrorMessages:</p>
+<p>    messages = {</p>
+<p>        "ja": {</p>
+<p>            ErrorCode.INVALID_CREDENTIALS: {</p>
+<p>                "message": "メールアドレスまたはパスワードが正しくありません",</p>
+<p>                "action": "入力内容を確認してください",</p>
+<p>                "support": False</p>
+<p>            },</p>
+<p>            ErrorCode.ACCOUNT_LOCKED: {</p>
+<p>                "message": "セキュリティ上の理由によりアカウントが一時的にロックされています",</p>
+<p>                "action": "{retry_after}分後に再度お試しください",</p>
+<p>                "support": True</p>
+<p>            },</p>
+<p>            ErrorCode.WEAK_PASSWORD: {</p>
+<p>                "message": "パスワードが安全ではありません",</p>
+<p>                "action": "より強力なパスワードを設定してください",</p>
+<p>                "details": [</p>
+<p>                    "10文字以上で設定してください",</p>
+<p>                    "過去に使用したパスワードは使用できません",</p>
+<p>                    "一般的な単語は避けてください"</p>
+<p>                ],</p>
+<p>                "support": False</p>
+<p>            }</p>
+<p>        },</p>
+<p>        "en": {</p>
+<p>            ErrorCode.INVALID_CREDENTIALS: {</p>
+<p>                "message": "Invalid email or password",</p>
+<p>                "action": "Please check your credentials",</p>
+<p>                "support": False</p>
+<p>            },</p>
+<p>            ErrorCode.ACCOUNT_LOCKED: {</p>
+<p>                "message": "Account temporarily locked for security reasons",</p>
+<p>                "action": "Please try again in {retry_after} minutes",</p>
+<p>                "support": True</p>
+<p>            }</p>
+<p>        },</p>
+<p>        "zh": {</p>
+<p>            ErrorCode.INVALID_CREDENTIALS: {</p>
+<p>                "message": "邮箱或密码不正确",</p>
+<p>                "action": "请检查您的输入",</p>
+<p>                "support": False</p>
+<p>            }</p>
+<p>        }</p>
+<p>    }</p><p>class LocalizedError:</p>
+<p>    def __init__(self, code: ErrorCode, lang: str = "ja", <em></em>kwargs):</p>
+<p>        self.code = code</p>
+<p>        self.lang = lang</p>
+<p>        self.params = kwargs</p>
+        
+<p>    def to_response(self) -> Dict:</p>
+<p>        error_def = ErrorMessages.messages.get(self.lang, {}).get(self.code)</p>
+        
+<p>        if not error_def:</p>
+<p>            # フォールバック</p>
+<p>            error_def = ErrorMessages.messages["en"].get(</p>
+<p>                self.code,</p>
+<p>                {"message": "Unknown error", "action": "Contact support"}</p>
+<p>            )</p>
+        
+<p>        # パラメータ置換</p>
+<p>        message = error_def["message"]</p>
+<p>        action = error_def.get("action", "")</p>
+        
+<p>        for key, value in self.params.items():</p>
+<p>            message = message.replace(f"{{{key}}}", str(value))</p>
+<p>            action = action.replace(f"{{{key}}}", str(value))</p>
+        
+<p>        response = {</p>
+<p>            "error": {</p>
+<p>                "code": self.code.value,</p>
+<p>                "message": message,</p>
+<p>                "action": action,</p>
+<p>                "support_required": error_def.get("support", False),</p>
+<p>                "request_id": self.params.get("request_id")</p>
+<p>            }</p>
+<p>        }</p>
+        
+<p>        if "details" in error_def:</p>
+<p>            response["error"]["details"] = error_def["details"]</p>
+            
+<p>        return response</p><h1>セキュリティを考慮したエラーハンドリング</h1>
+<p>class SecureErrorHandler:</p>
+<p>    @staticmethod</p>
+<p>    def handle_auth_error(error_type: str, request_context: dict) -> LocalizedError:</p>
+<p>        # ログには詳細を記録</p>
+<p>        logger.warning(</p>
+<p>            f"Authentication failed: {error_type}",</p>
+<p>            extra={</p>
+<p>                "user_email": request_context.get("email"),</p>
+<p>                "ip_address": request_context.get("ip"),</p>
+<p>                "user_agent": request_context.get("user_agent")</p>
+<p>            }</p>
+<p>        )</p>
+        
+<p>        # ユーザーには曖昧なエラーを返す</p>
+<p>        if error_type in ["user_not_found", "invalid_password"]:</p>
+<p>            return LocalizedError(</p>
+<p>                ErrorCode.INVALID_CREDENTIALS,</p>
+<p>                request_context.get("lang", "ja")</p>
+<p>            )</p>
+        
+<p>        # アカウントロックは具体的な情報を提供</p>
+<p>        if error_type == "account_locked":</p>
+<p>            return LocalizedError(</p>
+<p>                ErrorCode.ACCOUNT_LOCKED,</p>
+<p>                request_context.get("lang", "ja"),</p>
+<p>                retry_after=5</p>
+<p>            )</p>
+<p></code></pre></p><h2>問題5：パフォーマンス設計</h2><h3>解答</h3><p><strong>秒間1万リクエスト処理可能な認証システムアーキテクチャ</strong></p><p><pre><code>yaml</p>
+<p>architecture:</p>
+<p>  overview: |</p>
+<p>    マルチレイヤーキャッシング + 非同期処理 + 水平スケーリング</p><p>  layers:</p>
+<p>    edge:</p>
+<p>      cdn:</p>
+<p>        provider: "CloudFront"</p>
+<p>        locations: 3</p>
+<p>        cache_strategy:</p>
+<p>          - static_assets: 1h</p>
+<p>          - api_responses: 0s  # 認証APIはキャッシュしない</p>
+      
+<p>      waf:</p>
+<p>        rate_limiting:</p>
+<p>          - global: 100_000/min</p>
+<p>          - per_ip: 1000/min</p>
+<p>          - per_user: 100/min</p>
+    
+<p>    api_gateway:</p>
+<p>      instances: 10</p>
+<p>      type: "Kong Gateway"</p>
+<p>      features:</p>
+<p>        - jwt_validation  # ステートレス認証</p>
+<p>        - rate_limiting</p>
+<p>        - circuit_breaker</p>
+<p>        - request_routing</p>
+      
+<p>    application:</p>
+<p>      auth_service:</p>
+<p>        instances: 20</p>
+<p>        type: "Go microservice"</p>
+<p>        resources:</p>
+<p>          cpu: "4 vCPU"</p>
+<p>          memory: "8GB"</p>
+<p>        optimizations:</p>
+<p>          - connection_pooling</p>
+<p>          - prepared_statements</p>
+<p>          - goroutine_pool: 1000</p>
+      
+<p>      session_cache:</p>
+<p>        type: "Redis Cluster"</p>
+<p>        nodes: 6</p>
+<p>        memory: "64GB each"</p>
+<p>        strategy:</p>
+<p>          - session_data: 30min TTL</p>
+<p>          - jwt_blacklist: 24h TTL</p>
+<p>          - rate_limit_counters: sliding window</p>
+    
+<p>    data_layer:</p>
+<p>      primary_db:</p>
+<p>        type: "PostgreSQL 15"</p>
+<p>        configuration:</p>
+<p>          max_connections: 1000</p>
+<p>          shared_buffers: "32GB"</p>
+<p>          effective_cache_size: "96GB"</p>
+        
+<p>      read_replicas: 5</p>
+      
+<p>      connection_pooler:</p>
+<p>        type: "PgBouncer"</p>
+<p>        instances: 4</p>
+<p>        pool_mode: "transaction"</p>
+<p>        max_client_conn: 10000</p>
+<p></code></pre></p><p><strong>性能最適化実装</strong></p><p><pre><code>go</p>
+<p>package auth</p><p>import (</p>
+<p>    "context"</p>
+<p>    "sync"</p>
+<p>    "time"</p>
+<p>)</p><p>// 認証サービスの最適化実装</p>
+<p>type OptimizedAuthService struct {</p>
+<p>    // コネクションプール</p>
+<p>    dbPool      *sql.DB</p>
+<p>    redisPool   *redis.Client</p>
+    
+<p>    // プリペアドステートメントのキャッシュ</p>
+<p>    stmtCache   map[string]*sql.Stmt</p>
+<p>    stmtMutex   sync.RWMutex</p>
+    
+<p>    // インメモリキャッシュ（短期）</p>
+<p>    userCache   *lru.Cache</p>
+    
+<p>    // バッチ処理用チャネル</p>
+<p>    auditChan   chan AuditLog</p>
+<p>}</p><p>// 最適化された認証処理</p>
+<p>func (s <em>OptimizedAuthService) Authenticate(ctx context.Context, email, password string) (</em>User, error) {</p>
+<p>    // 1. レート制限チェック（Redis）</p>
+<p>    if err := s.checkRateLimit(ctx, email); err != nil {</p>
+<p>        return nil, err</p>
+<p>    }</p>
+    
+<p>    // 2. キャッシュチェック（短期的な再認証対策）</p>
+<p>    if cached := s.checkUserCache(email); cached != nil {</p>
+<p>        if s.verifyPassword(password, cached.PasswordHash) {</p>
+<p>            // 非同期で監査ログ記録</p>
+<p>            s.recordAuditAsync(ctx, "login_success", email)</p>
+<p>            return cached, nil</p>
+<p>        }</p>
+<p>    }</p>
+    
+<p>    // 3. DB検索（プリペアドステートメント使用）</p>
+<p>    user, err := s.getUserByEmail(ctx, email)</p>
+<p>    if err != nil {</p>
+<p>        return nil, err</p>
+<p>    }</p>
+    
+<p>    // 4. パスワード検証（CPU intensive - ワーカープールで実行）</p>
+<p>    valid := s.verifyPasswordConcurrent(password, user.PasswordHash)</p>
+<p>    if !valid {</p>
+<p>        s.recordAuditAsync(ctx, "login_failure", email)</p>
+<p>        return nil, ErrInvalidCredentials</p>
+<p>    }</p>
+    
+<p>    // 5. セッション作成（Redis）</p>
+<p>    session, err := s.createSession(ctx, user)</p>
+<p>    if err != nil {</p>
+<p>        return nil, err</p>
+<p>    }</p>
+    
+<p>    // 6. キャッシュ更新</p>
+<p>    s.updateUserCache(user)</p>
+    
+<p>    // 7. 非同期処理</p>
+<p>    s.recordAuditAsync(ctx, "login_success", email)</p>
+    
+<p>    return user, nil</p>
+<p>}</p><p>// バッチ監査ログ記録</p>
+<p>func (s *OptimizedAuthService) auditLogger() {</p>
+<p>    batch := make([]AuditLog, 0, 100)</p>
+<p>    ticker := time.NewTicker(100 * time.Millisecond)</p>
+    
+<p>    for {</p>
+<p>        select {</p>
+<p>        case log := <-s.auditChan:</p>
+<p>            batch = append(batch, log)</p>
+            
+<p>            if len(batch) >= 100 {</p>
+<p>                s.flushAuditLogs(batch)</p>
+<p>                batch = batch[:0]</p>
+<p>            }</p>
+            
+<p>        case <-ticker.C:</p>
+<p>            if len(batch) > 0 {</p>
+<p>                s.flushAuditLogs(batch)</p>
+<p>                batch = batch[:0]</p>
+<p>            }</p>
+<p>        }</p>
+<p>    }</p>
+<p>}</p><p>// 段階的なスケーリング計画</p>
+<p>type ScalingPlan struct {</p>
+<p>    Phases []Phase</p>
+<p>}</p><p>type Phase struct {</p>
+<p>    Load        int</p>
+<p>    Duration    string</p>
+<p>    Changes     []string</p>
+<p>    Cost        string</p>
+<p>}</p><p>var scalingPlan = ScalingPlan{</p>
+<p>    Phases: []Phase{</p>
+<p>        {</p>
+<p>            Load:     1000,</p>
+<p>            Duration: "現在",</p>
+<p>            Changes:  []string{"ベースライン構成"},</p>
+<p>            Cost:     "$500/月",</p>
+<p>        },</p>
+<p>        {</p>
+<p>            Load:     5000,</p>
+<p>            Duration: "6ヶ月後",</p>
+<p>            Changes: []string{</p>
+<p>                "アプリケーションサーバー 5→10台",</p>
+<p>                "Redis クラスター導入",</p>
+<p>                "Read Replica 追加",</p>
+<p>            },</p>
+<p>            Cost: "$2,000/月",</p>
+<p>        },</p>
+<p>        {</p>
+<p>            Load:     10000,</p>
+<p>            Duration: "1年後",</p>
+<p>            Changes: []string{</p>
+<p>                "マルチリージョン展開",</p>
+<p>                "専用DBクラスター",</p>
+<p>                "エッジキャッシング",</p>
+<p>            },</p>
+<p>            Cost: "$5,000/月",</p>
+<p>        },</p>
+<p>    },</p>
+<p>}</p>
+<p></code></pre></p><p><strong>コスト最適化</strong></p><p><pre><code>yaml</p>
+<p>cost_optimization:</p>
+<p>  strategies:</p>
+<p>    - auto_scaling:</p>
+<p>        min_instances: 5</p>
+<p>        max_instances: 50</p>
+<p>        scale_up_threshold: "CPU > 70%"</p>
+<p>        scale_down_threshold: "CPU < 30%"</p>
+    
+<p>    - spot_instances:</p>
+<p>        percentage: 50</p>
+<p>        fallback: on_demand</p>
+    
+<p>    - reserved_instances:</p>
+<p>        database: 3_year_term</p>
+<p>        redis: 1_year_term</p>
+    
+<p>    - data_lifecycle:</p>
+<p>        audit_logs:</p>
+<p>          hot: 7_days      # SSD</p>
+<p>          warm: 30_days    # HDD  </p>
+<p>          cold: 365_days   # S3</p>
+<p>          archive: 7_years # Glacier</p>
+  
+<p>  monitoring:</p>
+<p>    - cost_alerts:</p>
+<p>        daily_threshold: $200</p>
+<p>        monthly_threshold: $5000</p>
+    
+<p>    - performance_vs_cost:</p>
+<p>        target_cost_per_request: $0.0001</p>
+<p>        acceptable_latency: 100ms</p>
+<p></code></pre></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

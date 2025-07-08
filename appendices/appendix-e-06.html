@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第6章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第6章 演習問題解答</h1><h2>問題1：OAuth 2.0クライアントの実装</h2><h3>解答</h3><p><pre><code>python
+<p>import secrets</p>
+<p>import hashlib</p>
+<p>import base64</p>
+<p>import time</p>
+<p>import asyncio</p>
+<p>import aiohttp</p>
+<p>from typing import Dict, Optional, List, Tuple</p>
+<p>from urllib.parse import urlencode, urlparse, parse_qs</p>
+<p>import jwt</p>
+<p>from cryptography.fernet import Fernet</p><p>class SecureOAuth2Client:</p>
+<p>    """</p>
+<p>    セキュアなOAuth 2.0クライアント実装</p>
+<p>    - Authorization Code Grant with PKCE</p>
+<p>    - 自動トークンリフレッシュ</p>
+<p>    - セキュアなトークン保存</p>
+<p>    """</p>
+    
+<p>    def __init__(self, client_id: str, client_secret: Optional[str] = None,</p>
+<p>                 auth_endpoint: str = None, token_endpoint: str = None,</p>
+<p>                 is_public_client: bool = False):</p>
+<p>        self.client_id = client_id</p>
+<p>        self.client_secret = client_secret</p>
+<p>        self.auth_endpoint = auth_endpoint</p>
+<p>        self.token_endpoint = token_endpoint</p>
+<p>        self.is_public_client = is_public_client</p>
+        
+<p>        # トークン暗号化用のキー</p>
+<p>        self.encryption_key = Fernet.generate_key()</p>
+<p>        self.fernet = Fernet(self.encryption_key)</p>
+        
+<p>        # メモリ内トークン管理</p>
+<p>        self._access_token = None</p>
+<p>        self._token_expiry = None</p>
+<p>        self._refresh_token_encrypted = None</p>
+        
+<p>        # リフレッシュ用のロック</p>
+<p>        self._refresh_lock = asyncio.Lock()</p>
+        
+<p>        # セッション管理</p>
+<p>        self._sessions = {}</p>
+        
+<p>    def generate_pkce_pair(self) -> Tuple[str, str]:</p>
+<p>        """PKCE用のcode_verifierとcode_challengeを生成"""</p>
+        
+<p>        # Code Verifier: 43-128文字のランダム文字列</p>
+<p>        code_verifier = base64.urlsafe_b64encode(</p>
+<p>            secrets.token_bytes(32)</p>
+<p>        ).decode('utf-8').rstrip('=')</p>
+        
+<p>        # Code Challenge: S256 method</p>
+<p>        challenge_bytes = hashlib.sha256(</p>
+<p>            code_verifier.encode('utf-8')</p>
+<p>        ).digest()</p>
+<p>        code_challenge = base64.urlsafe_b64encode(</p>
+<p>            challenge_bytes</p>
+<p>        ).decode('utf-8').rstrip('=')</p>
+        
+<p>        return code_verifier, code_challenge</p>
+    
+<p>    def create_authorization_url(self, redirect_uri: str, </p>
+<p>                               scope: List[str],</p>
+<p>                               <em></em>kwargs) -> Tuple[str, str]:</p>
+<p>        """認可URLの生成（PKCE対応）"""</p>
+        
+<p>        # State生成（CSRF対策）</p>
+<p>        state = secrets.token_urlsafe(32)</p>
+        
+<p>        # PKCE生成</p>
+<p>        code_verifier, code_challenge = self.generate_pkce_pair()</p>
+        
+<p>        # セッションに保存</p>
+<p>        session_id = secrets.token_urlsafe(16)</p>
+<p>        self._sessions[session_id] = {</p>
+<p>            'state': state,</p>
+<p>            'code_verifier': code_verifier,</p>
+<p>            'redirect_uri': redirect_uri,</p>
+<p>            'created_at': time.time()</p>
+<p>        }</p>
+        
+<p>        # パラメータ構築</p>
+<p>        params = {</p>
+<p>            'response_type': 'code',</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'redirect_uri': redirect_uri,</p>
+<p>            'scope': ' '.join(scope),</p>
+<p>            'state': state,</p>
+<p>            'code_challenge': code_challenge,</p>
+<p>            'code_challenge_method': 'S256'</p>
+<p>        }</p>
+        
+<p>        # 追加パラメータ</p>
+<p>        params.update(kwargs)</p>
+        
+<p>        auth_url = f"{self.auth_endpoint}?{urlencode(params)}"</p>
+        
+<p>        return auth_url, session_id</p>
+    
+<p>    async def exchange_code_for_token(self, authorization_response: str,</p>
+<p>                                    session_id: str) -> Dict:</p>
+<p>        """認可コードをトークンに交換"""</p>
+        
+<p>        # URLパース</p>
+<p>        parsed = urlparse(authorization_response)</p>
+<p>        params = parse_qs(parsed.query)</p>
+        
+<p>        # エラーチェック</p>
+<p>        if 'error' in params:</p>
+<p>            error = params['error'][0]</p>
+<p>            error_description = params.get('error_description', [''])[0]</p>
+<p>            raise OAuthError(f"Authorization failed: {error} - {error_description}")</p>
+        
+<p>        # 必須パラメータチェック</p>
+<p>        if 'code' not in params or 'state' not in params:</p>
+<p>            raise OAuthError("Missing required parameters")</p>
+        
+<p>        code = params['code'][0]</p>
+<p>        state = params['state'][0]</p>
+        
+<p>        # セッション取得と検証</p>
+<p>        session = self._sessions.get(session_id)</p>
+<p>        if not session:</p>
+<p>            raise SecurityError("Session not found")</p>
+        
+<p>        # セッション有効期限チェック（10分）</p>
+<p>        if time.time() - session['created_at'] > 600:</p>
+<p>            del self._sessions[session_id]</p>
+<p>            raise SecurityError("Session expired")</p>
+        
+<p>        # State検証</p>
+<p>        if state != session['state']:</p>
+<p>            raise SecurityError("State mismatch - possible CSRF attack")</p>
+        
+<p>        # トークンリクエスト</p>
+<p>        token_data = {</p>
+<p>            'grant_type': 'authorization_code',</p>
+<p>            'code': code,</p>
+<p>            'redirect_uri': session['redirect_uri'],</p>
+<p>            'code_verifier': session['code_verifier']</p>
+<p>        }</p>
+        
+<p>        # コンフィデンシャルクライアントの場合</p>
+<p>        if not self.is_public_client and self.client_secret:</p>
+<p>            token_data['client_id'] = self.client_id</p>
+<p>            token_data['client_secret'] = self.client_secret</p>
+<p>        else:</p>
+<p>            token_data['client_id'] = self.client_id</p>
+        
+<p>        # セッション削除（一度だけ使用）</p>
+<p>        del self._sessions[session_id]</p>
+        
+<p>        # トークンエンドポイントへのリクエスト</p>
+<p>        async with aiohttp.ClientSession() as session:</p>
+<p>            async with session.post(</p>
+<p>                self.token_endpoint,</p>
+<p>                data=token_data,</p>
+<p>                headers={'Accept': 'application/json'}</p>
+<p>            ) as response:</p>
+<p>                if response.status != 200:</p>
+<p>                    error_data = await response.json()</p>
+<p>                    raise OAuthError(f"Token exchange failed: {error_data}")</p>
+                
+<p>                tokens = await response.json()</p>
+        
+<p>        # トークンの保存</p>
+<p>        await self._store_tokens(tokens)</p>
+        
+<p>        return tokens</p>
+    
+<p>    async def _store_tokens(self, tokens: Dict):</p>
+<p>        """トークンの安全な保存"""</p>
+        
+<p>        # アクセストークンはメモリに保持</p>
+<p>        self._access_token = tokens['access_token']</p>
+        
+<p>        # 有効期限の計算</p>
+<p>        expires_in = tokens.get('expires_in', 3600)</p>
+<p>        self._token_expiry = time.time() + expires_in</p>
+        
+<p>        # リフレッシュトークンは暗号化して保存</p>
+<p>        if 'refresh_token' in tokens:</p>
+<p>            refresh_bytes = tokens['refresh_token'].encode()</p>
+<p>            self._refresh_token_encrypted = self.fernet.encrypt(refresh_bytes)</p>
+        
+<p>        # 自動リフレッシュのスケジューリング</p>
+<p>        if expires_in > 300:  # 5分以上の有効期限</p>
+<p>            refresh_time = expires_in - 300  # 5分前にリフレッシュ</p>
+<p>            asyncio.create_task(self._schedule_refresh(refresh_time))</p>
+    
+<p>    async def _schedule_refresh(self, delay: float):</p>
+<p>        """自動リフレッシュのスケジューリング"""</p>
+<p>        await asyncio.sleep(delay)</p>
+<p>        try:</p>
+<p>            await self.refresh_access_token()</p>
+<p>        except Exception as e:</p>
+<p>            print(f"Auto-refresh failed: {e}")</p>
+    
+<p>    async def get_access_token(self) -> str:</p>
+<p>        """有効なアクセストークンの取得"""</p>
+        
+<p>        # トークンの有効性チェック</p>
+<p>        if self._should_refresh():</p>
+<p>            await self.refresh_access_token()</p>
+        
+<p>        if not self._access_token:</p>
+<p>            raise AuthenticationRequired("No valid access token")</p>
+        
+<p>        return self._access_token</p>
+    
+<p>    def _should_refresh(self) -> bool:</p>
+<p>        """リフレッシュが必要かチェック"""</p>
+        
+<p>        if not self._access_token or not self._token_expiry:</p>
+<p>            return True</p>
+        
+<p>        # 1分のバッファを持ってチェック</p>
+<p>        return time.time() >= (self._token_expiry - 60)</p>
+    
+<p>    async def refresh_access_token(self):</p>
+<p>        """アクセストークンのリフレッシュ"""</p>
+        
+<p>        # 重複リフレッシュ防止</p>
+<p>        async with self._refresh_lock:</p>
+<p>            # 再度チェック（別のコルーチンがリフレッシュ済みかも）</p>
+<p>            if not self._should_refresh():</p>
+<p>                return</p>
+            
+<p>            if not self._refresh_token_encrypted:</p>
+<p>                raise AuthenticationRequired("No refresh token available")</p>
+            
+<p>            # リフレッシュトークンの復号</p>
+<p>            refresh_token = self.fernet.decrypt(</p>
+<p>                self._refresh_token_encrypted</p>
+<p>            ).decode()</p>
+            
+<p>            # リフレッシュリクエスト</p>
+<p>            refresh_data = {</p>
+<p>                'grant_type': 'refresh_token',</p>
+<p>                'refresh_token': refresh_token</p>
+<p>            }</p>
+            
+<p>            if not self.is_public_client and self.client_secret:</p>
+<p>                refresh_data['client_id'] = self.client_id</p>
+<p>                refresh_data['client_secret'] = self.client_secret</p>
+<p>            else:</p>
+<p>                refresh_data['client_id'] = self.client_id</p>
+            
+<p>            async with aiohttp.ClientSession() as session:</p>
+<p>                async with session.post(</p>
+<p>                    self.token_endpoint,</p>
+<p>                    data=refresh_data,</p>
+<p>                    headers={'Accept': 'application/json'}</p>
+<p>                ) as response:</p>
+<p>                    if response.status == 401:</p>
+<p>                        # リフレッシュトークンが無効</p>
+<p>                        self._clear_tokens()</p>
+<p>                        raise AuthenticationRequired("Refresh token invalid")</p>
+                    
+<p>                    if response.status != 200:</p>
+<p>                        error_data = await response.json()</p>
+<p>                        raise OAuthError(f"Token refresh failed: {error_data}")</p>
+                    
+<p>                    tokens = await response.json()</p>
+            
+<p>            # 新しいトークンの保存</p>
+<p>            await self._store_tokens(tokens)</p>
+    
+<p>    async def make_authenticated_request(self, url: str, method: str = 'GET',</p>
+<p>                                       <em></em>kwargs) -> aiohttp.ClientResponse:</p>
+<p>        """認証付きHTTPリクエスト"""</p>
+        
+<p>        # トークン取得</p>
+<p>        access_token = await self.get_access_token()</p>
+        
+<p>        # ヘッダー設定</p>
+<p>        headers = kwargs.get('headers', {})</p>
+<p>        headers['Authorization'] = f'Bearer {access_token}'</p>
+<p>        kwargs['headers'] = headers</p>
+        
+<p>        async with aiohttp.ClientSession() as session:</p>
+<p>            async with session.request(method, url, <em></em>kwargs) as response:</p>
+<p>                # 401の場合は一度だけリトライ</p>
+<p>                if response.status == 401:</p>
+<p>                    await self.refresh_access_token()</p>
+<p>                    access_token = await self.get_access_token()</p>
+<p>                    headers['Authorization'] = f'Bearer {access_token}'</p>
+                    
+<p>                    # リトライ</p>
+<p>                    async with session.request(method, url, <em></em>kwargs) as retry_response:</p>
+<p>                        return retry_response</p>
+                
+<p>                return response</p>
+    
+<p>    def _clear_tokens(self):</p>
+<p>        """トークンのクリア"""</p>
+<p>        self._access_token = None</p>
+<p>        self._token_expiry = None</p>
+<p>        self._refresh_token_encrypted = None</p>
+    
+<p>    def logout(self):</p>
+<p>        """ログアウト処理"""</p>
+<p>        self._clear_tokens()</p>
+<p>        self._sessions.clear()</p><h1>カスタム例外</h1>
+<p>class OAuthError(Exception):</p>
+<p>    pass</p><p>class SecurityError(Exception):</p>
+<p>    pass</p><p>class AuthenticationRequired(Exception):</p>
+<p>    pass</p><h1>使用例</h1>
+<p>async def main():</p>
+<p>    # クライアント初期化</p>
+<p>    client = SecureOAuth2Client(</p>
+<p>        client_id='your-client-id',</p>
+<p>        client_secret=None,  # パブリッククライアント</p>
+<p>        auth_endpoint='https://auth.example.com/authorize',</p>
+<p>        token_endpoint='https://auth.example.com/token',</p>
+<p>        is_public_client=True</p>
+<p>    )</p>
+    
+<p>    # 認可URLの生成</p>
+<p>    auth_url, session_id = client.create_authorization_url(</p>
+<p>        redirect_uri='https://app.example.com/callback',</p>
+<p>        scope=['read', 'write']</p>
+<p>    )</p>
+    
+<p>    print(f"Visit: {auth_url}")</p>
+    
+<p>    # コールバック処理（実際はWebフレームワークで処理）</p>
+<p>    callback_url = input("Enter callback URL: ")</p>
+    
+<p>    # トークン取得</p>
+<p>    tokens = await client.exchange_code_for_token(callback_url, session_id)</p>
+<p>    print(f"Access token obtained: {tokens['access_token'][:20]}...")</p>
+    
+<p>    # API呼び出し</p>
+<p>    response = await client.make_authenticated_request(</p>
+<p>        'https://api.example.com/user/profile'</p>
+<p>    )</p>
+<p>    data = await response.json()</p>
+<p>    print(f"User data: {data}")</p><p>if __name__ == "__main__":</p>
+<p>    asyncio.run(main())</p>
+<p></code></pre></p><h3>実装のポイント</h3><p>1. <strong>PKCE実装</strong>：S256メソッドでcode_challengeを生成</p>
+<p>2. <strong>自動リフレッシュ</strong>：有効期限の5分前に自動更新</p>
+<p>3. <strong>セキュアなトークン保存</strong>：</p>
+<p>   - アクセストークン：メモリのみ</p>
+<p>   - リフレッシュトークン：暗号化して保存</p>
+<p>4. <strong>エラーハンドリング</strong>：</p>
+<p>   - 適切な例外クラス</p>
+<p>   - 401エラーでの自動リトライ</p>
+<p>   - セッションタイムアウト</p><h2>問題2：脆弱性の発見と修正</h2><h3>提供されたコード（脆弱性あり）</h3><p><pre><code>python</p>
+<h1>脆弱なOAuth実装</h1>
+<p>class VulnerableOAuthClient:</p>
+<p>    def __init__(self):</p>
+<p>        self.client_id = "my-client-id"</p>
+<p>        self.client_secret = "my-secret-123"  # ハードコード</p>
+        
+<p>    def create_auth_url(self, redirect_uri):</p>
+<p>        # state なし</p>
+<p>        return f"https://auth.example.com/authorize?client_id={self.client_id}&redirect_uri={redirect_uri}&response_type=code"</p>
+    
+<p>    def handle_callback(self, request):</p>
+<p>        code = request.args.get('code')</p>
+        
+<p>        # HTTPでトークンリクエスト</p>
+<p>        response = requests.post('http://auth.example.com/token', data={</p>
+<p>            'grant_type': 'authorization_code',</p>
+<p>            'code': code,</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'client_secret': self.client_secret</p>
+<p>        })</p>
+        
+<p>        tokens = response.json()</p>
+        
+<p>        # LocalStorageに保存</p>
+<p>        return f"""</p>
+<p>        <script></p>
+<p>        localStorage.setItem('access_token', '{tokens['access_token']}');</p>
+<p>        localStorage.setItem('refresh_token', '{tokens['refresh_token']}');</p>
+<p>        </script></p>
+<p>        """</p>
+    
+<p>    def call_api(self, token):</p>
+<p>        # URLにトークン</p>
+<p>        return requests.get(f"https://api.example.com/data?access_token={token}")</p>
+<p></code></pre></p><h3>脆弱性と修正案</h3><p><pre><code>python</p>
+<p>class SecureOAuthClient:</p>
+<p>    """脆弱性を修正したOAuth実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        # 修正1: 環境変数から読み込み</p>
+<p>        self.client_id = os.environ.get('OAUTH_CLIENT_ID')</p>
+<p>        self.client_secret = os.environ.get('OAUTH_CLIENT_SECRET')</p>
+        
+<p>        if not self.client_id:</p>
+<p>            raise ValueError("OAUTH_CLIENT_ID not configured")</p>
+    
+<p>    def create_auth_url(self, redirect_uri, session):</p>
+<p>        # 修正2: CSRF対策のstate追加</p>
+<p>        state = secrets.token_urlsafe(32)</p>
+<p>        session['oauth_state'] = state</p>
+<p>        session['oauth_timestamp'] = time.time()</p>
+        
+<p>        # 修正3: PKCE追加</p>
+<p>        verifier, challenge = self.generate_pkce_pair()</p>
+<p>        session['pkce_verifier'] = verifier</p>
+        
+<p>        # 修正4: redirect_uriの検証</p>
+<p>        if not self._validate_redirect_uri(redirect_uri):</p>
+<p>            raise ValueError("Invalid redirect URI")</p>
+        
+<p>        params = {</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'redirect_uri': redirect_uri,</p>
+<p>            'response_type': 'code',</p>
+<p>            'state': state,</p>
+<p>            'code_challenge': challenge,</p>
+<p>            'code_challenge_method': 'S256'</p>
+<p>        }</p>
+        
+<p>        return f"https://auth.example.com/authorize?{urlencode(params)}"</p>
+    
+<p>    def handle_callback(self, request, session):</p>
+<p>        code = request.args.get('code')</p>
+<p>        state = request.args.get('state')</p>
+        
+<p>        # 修正5: state検証</p>
+<p>        if not state or state != session.get('oauth_state'):</p>
+<p>            raise SecurityError("Invalid state - possible CSRF attack")</p>
+        
+<p>        # 修正6: stateの有効期限チェック</p>
+<p>        if time.time() - session.get('oauth_timestamp', 0) > 600:</p>
+<p>            raise SecurityError("State expired")</p>
+        
+<p>        # セッションから削除</p>
+<p>        session.pop('oauth_state', None)</p>
+<p>        verifier = session.pop('pkce_verifier', None)</p>
+        
+<p>        # 修正7: HTTPSを使用</p>
+<p>        response = requests.post('https://auth.example.com/token', </p>
+<p>            data={</p>
+<p>                'grant_type': 'authorization_code',</p>
+<p>                'code': code,</p>
+<p>                'client_id': self.client_id,</p>
+<p>                'client_secret': self.client_secret,</p>
+<p>                'code_verifier': verifier</p>
+<p>            },</p>
+<p>            # 修正8: タイムアウト設定</p>
+<p>            timeout=10</p>
+<p>        )</p>
+        
+<p>        if response.status_code != 200:</p>
+<p>            # 修正9: 詳細なエラー情報を隠す</p>
+<p>            app.logger.error(f"Token exchange failed: {response.text}")</p>
+<p>            raise OAuthError("Token exchange failed")</p>
+        
+<p>        tokens = response.json()</p>
+        
+<p>        # 修正10: セキュアなトークン保存</p>
+<p>        # リフレッシュトークンはHttpOnly Cookieに</p>
+<p>        resp = make_response(redirect('/dashboard'))</p>
+<p>        resp.set_cookie(</p>
+<p>            'refresh_token',</p>
+<p>            value=tokens['refresh_token'],</p>
+<p>            httponly=True,</p>
+<p>            secure=True,</p>
+<p>            samesite='Lax',</p>
+<p>            max_age=2592000  # 30日</p>
+<p>        )</p>
+        
+<p>        # アクセストークンはセッションに（サーバー側）</p>
+<p>        session['access_token'] = tokens['access_token']</p>
+<p>        session['token_expiry'] = time.time() + tokens.get('expires_in', 3600)</p>
+        
+<p>        return resp</p>
+    
+<p>    def call_api(self, session):</p>
+<p>        # 修正11: Authorizationヘッダーを使用</p>
+<p>        token = session.get('access_token')</p>
+<p>        if not token:</p>
+<p>            raise AuthenticationRequired()</p>
+        
+<p>        # 修正12: 有効期限チェック</p>
+<p>        if time.time() >= session.get('token_expiry', 0):</p>
+<p>            # リフレッシュが必要</p>
+<p>            self.refresh_token(session)</p>
+<p>            token = session['access_token']</p>
+        
+<p>        response = requests.get(</p>
+<p>            "https://api.example.com/data",</p>
+<p>            headers={</p>
+<p>                'Authorization': f'Bearer {token}',</p>
+<p>                'X-Request-ID': str(uuid.uuid4())  # トレーサビリティ</p>
+<p>            },</p>
+<p>            timeout=10</p>
+<p>        )</p>
+        
+<p>        return response</p>
+    
+<p>    def _validate_redirect_uri(self, uri):</p>
+<p>        """redirect_uriの検証"""</p>
+<p>        allowed_uris = [</p>
+<p>            'https://app.example.com/callback',</p>
+<p>            'https://localhost:3000/callback'  # 開発環境</p>
+<p>        ]</p>
+<p>        return uri in allowed_uris</p>
+<p></code></pre></p><h3>発見された脆弱性一覧</h3><p>1. <strong>ハードコードされた認証情報</strong></p>
+<p>   - 影響：ソースコード漏洩時に認証情報も漏洩</p>
+<p>   - 修正：環境変数使用</p><p>2. <strong>CSRF対策の欠如</strong></p>
+<p>   - 影響：認可コードインジェクション攻撃</p>
+<p>   - 修正：stateパラメータの実装</p><p>3. <strong>PKCEの未実装</strong></p>
+<p>   - 影響：認可コード横取り攻撃</p>
+<p>   - 修正：PKCEの実装</p><p>4. <strong>HTTPの使用</strong></p>
+<p>   - 影響：中間者攻撃によるトークン窃取</p>
+<p>   - 修正：HTTPSの強制</p><p>5. <strong>トークンのLocalStorage保存</strong></p>
+<p>   - 影響：XSS攻撃によるトークン窃取</p>
+<p>   - 修正：HttpOnly Cookieとサーバーセッション</p><p>6. <strong>URLでのトークン送信</strong></p>
+<p>   - 影響：ログやリファラーでの漏洩</p>
+<p>   - 修正：Authorizationヘッダー使用</p><p>7. <strong>redirect_uriの検証不足</strong></p>
+<p>   - 影響：オープンリダイレクト</p>
+<p>   - 修正：ホワイトリスト検証</p><p>8. <strong>エラー情報の詳細開示</strong></p>
+<p>   - 影響：攻撃者への情報提供</p>
+<p>   - 修正：最小限のエラー情報</p><h2>問題3：グラントタイプの選択</h2><h3>解答</h3><p>#### 1. モバイルアプリからのAPI利用</p><p><strong>選択：Authorization Code Grant + PKCE</strong></p><p><strong>理由：</strong></p>
+<p>- モバイルアプリはパブリッククライアント（client_secretを安全に保存できない）</p>
+<p>- PKCEにより認可コード横取り攻撃を防止</p>
+<p>- ユーザーコンテキストが必要</p>
+<p>- リフレッシュトークンによる長期アクセス可能</p><p><strong>実装例：</strong></p>
+<pre><code>swift
+<p>// iOS実装例</p>
+<p>class OAuthManager {</p>
+<p>    func authenticate() {</p>
+<p>        // PKCE生成</p>
+<p>        let verifier = generateCodeVerifier()</p>
+<p>        let challenge = generateCodeChallenge(verifier)</p>
+        
+<p>        // 認可URLを構築してSafariViewControllerで開く</p>
+<p>        let authURL = buildAuthURL(</p>
+<p>            codeChallenge: challenge,</p>
+<p>            redirectURI: "myapp://callback"</p>
+<p>        )</p>
+        
+<p>        // カスタムURLスキームでコールバック処理</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><p>#### 2. 定期バッチ処理</p><p><strong>選択：Client Credentials Grant</strong></p><p><strong>理由：</strong></p>
+<p>- ユーザーコンテキスト不要（システム間通信）</p>
+<p>- サーバー環境でclient_secretを安全に管理可能</p>
+<p>- 非対話的な処理に適している</p>
+<p>- シンプルなフロー</p><p><strong>実装例：</strong></p>
+<pre><code>python
+<p>class BatchProcessor:</p>
+<p>    async def get_system_token(self):</p>
+<p>        """システム用トークンの取得"""</p>
+<p>        response = await self.http_client.post(</p>
+<p>            'https://auth.example.com/token',</p>
+<p>            data={</p>
+<p>                'grant_type': 'client_credentials',</p>
+<p>                'client_id': self.client_id,</p>
+<p>                'client_secret': self.client_secret,</p>
+<p>                'scope': 'batch:process'</p>
+<p>            }</p>
+<p>        )</p>
+<p>        return response.json()['access_token']</p>
+<p></code></pre></p><p>#### 3. シングルページアプリケーション（SPA）</p><p><strong>選択：Authorization Code Grant + PKCE（Implicit Grantは非推奨）</strong></p><p><strong>理由：</strong></p>
+<p>- Implicit Grantはトークンがブラウザ履歴に残るリスク</p>
+<p>- Authorization Code + PKCEでセキュリティ向上</p>
+<p>- BFF（Backend for Frontend）パターンも検討</p>
+<p>- トークンはメモリ内管理</p><p><strong>実装例：</strong></p>
+<pre><code>javascript
+<p>class SPAAuthManager {</p>
+<p>    async authenticate() {</p>
+<p>        // PKCE対応</p>
+<p>        const codeVerifier = this.generateCodeVerifier();</p>
+<p>        const codeChallenge = await this.generateCodeChallenge(codeVerifier);</p>
+        
+<p>        // セッションストレージに一時保存</p>
+<p>        sessionStorage.setItem('pkce_verifier', codeVerifier);</p>
+        
+<p>        // 認可エンドポイントへリダイレクト</p>
+<p>        window.location.href = this.buildAuthURL({</p>
+<p>            response_type: 'code',</p>
+<p>            code_challenge: codeChallenge,</p>
+<p>            code_challenge_method: 'S256'</p>
+<p>        });</p>
+<p>    }</p>
+    
+<p>    async handleCallback() {</p>
+<p>        const code = new URLSearchParams(window.location.search).get('code');</p>
+<p>        const verifier = sessionStorage.getItem('pkce_verifier');</p>
+        
+<p>        // トークン取得</p>
+<p>        const tokens = await this.exchangeCode(code, verifier);</p>
+        
+<p>        // メモリに保存（LocalStorageは使わない）</p>
+<p>        this.tokenManager.setTokens(tokens);</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><p>#### 4. IoTデバイスの認証</p><p><strong>選択：Device Authorization Grant (RFC 8628)</strong></p><p><strong>理由：</strong></p>
+<p>- キーボード入力が困難または不可能</p>
+<p>- 画面が小さいまたは存在しない</p>
+<p>- QRコードや短いコードで認証可能</p>
+<p>- ユーザーは別デバイス（スマホ等）で認証</p><p><strong>実装例：</strong></p>
+<pre><code>python
+<p>class IoTDeviceAuth:</p>
+<p>    async def start_device_flow(self):</p>
+<p>        """デバイスフローの開始"""</p>
+<p>        response = await self.http_client.post(</p>
+<p>            'https://auth.example.com/device/code',</p>
+<p>            data={</p>
+<p>                'client_id': self.device_id,</p>
+<p>                'scope': 'device:control'</p>
+<p>            }</p>
+<p>        )</p>
+        
+<p>        device_code = response.json()</p>
+        
+<p>        # ユーザーに表示</p>
+<p>        print(f"Please visit: {device_code['verification_uri']}")</p>
+<p>        print(f"Enter code: {device_code['user_code']}")</p>
+        
+<p>        # ポーリング開始</p>
+<p>        return await self.poll_for_token(device_code['device_code'])</p>
+<p></code></pre></p><h3>選択基準のまとめ</h3><p>| シナリオ | グラントタイプ | 主な理由 |</p>
+<p>|---------|--------------|---------|</p>
+<p>| モバイルアプリ | Authorization Code + PKCE | パブリッククライアント、ユーザーコンテキスト必要 |</p>
+<p>| バッチ処理 | Client Credentials | システム間通信、ユーザー不在 |</p>
+<p>| SPA | Authorization Code + PKCE | Implicitは非推奨、セキュリティ重視 |</p>
+<p>| IoTデバイス | Device Authorization | 入力制限、別デバイスでの認証 |</p><h2>問題4：PKCEの実装</h2><h3>解答</h3><p>#### サーバー側実装</p><p><pre><code>python</p>
+<p>from flask import Flask, request, jsonify, session</p>
+<p>import secrets</p>
+<p>import hashlib</p>
+<p>import base64</p>
+<p>import time</p>
+<p>import redis</p>
+<p>import jwt</p><p>app = Flask(__name__)</p>
+<p>redis_client = redis.Redis()</p><p>class PKCEAuthorizationServer:</p>
+<p>    """PKCE対応の認可サーバー実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.redis = redis_client</p>
+<p>        self.signing_key = "your-signing-key"  # 実際は安全に管理</p>
+        
+<p>    @app.route('/authorize', methods=['GET'])</p>
+<p>    def authorize(self):</p>
+<p>        """認可エンドポイント"""</p>
+        
+<p>        # 必須パラメータの検証</p>
+<p>        required_params = ['client_id', 'redirect_uri', 'response_type', </p>
+<p>                          'code_challenge', 'code_challenge_method']</p>
+        
+<p>        for param in required_params:</p>
+<p>            if param not in request.args:</p>
+<p>                return jsonify({'error': 'invalid_request', </p>
+<p>                              'error_description': f'Missing {param}'}), 400</p>
+        
+<p>        client_id = request.args.get('client_id')</p>
+<p>        redirect_uri = request.args.get('redirect_uri')</p>
+<p>        code_challenge = request.args.get('code_challenge')</p>
+<p>        code_challenge_method = request.args.get('code_challenge_method')</p>
+        
+<p>        # クライアント検証</p>
+<p>        if not self._validate_client(client_id, redirect_uri):</p>
+<p>            return jsonify({'error': 'invalid_client'}), 401</p>
+        
+<p>        # PKCE検証</p>
+<p>        if code_challenge_method != 'S256':</p>
+<p>            return jsonify({'error': 'invalid_request',</p>
+<p>                          'error_description': 'Only S256 supported'}), 400</p>
+        
+<p>        # code_challengeの形式検証（Base64URL）</p>
+<p>        if not self._is_valid_base64url(code_challenge):</p>
+<p>            return jsonify({'error': 'invalid_request',</p>
+<p>                          'error_description': 'Invalid code_challenge'}), 400</p>
+        
+<p>        # ユーザー認証（実際の実装では認証画面を表示）</p>
+<p>        user_id = self._authenticate_user()</p>
+<p>        if not user_id:</p>
+<p>            return jsonify({'error': 'access_denied'}), 403</p>
+        
+<p>        # 認可コード生成</p>
+<p>        auth_code = secrets.token_urlsafe(32)</p>
+        
+<p>        # 認可コード情報を保存（10分間有効）</p>
+<p>        auth_code_data = {</p>
+<p>            'client_id': client_id,</p>
+<p>            'user_id': user_id,</p>
+<p>            'redirect_uri': redirect_uri,</p>
+<p>            'code_challenge': code_challenge,</p>
+<p>            'code_challenge_method': code_challenge_method,</p>
+<p>            'scope': request.args.get('scope', ''),</p>
+<p>            'created_at': time.time()</p>
+<p>        }</p>
+        
+<p>        self.redis.setex(</p>
+<p>            f'auth_code:{auth_code}',</p>
+<p>            600,  # 10分</p>
+<p>            json.dumps(auth_code_data)</p>
+<p>        )</p>
+        
+<p>        # リダイレクト</p>
+<p>        state = request.args.get('state', '')</p>
+<p>        redirect_params = {</p>
+<p>            'code': auth_code,</p>
+<p>            'state': state</p>
+<p>        }</p>
+        
+<p>        redirect_url = f"{redirect_uri}?{urlencode(redirect_params)}"</p>
+<p>        return redirect(redirect_url)</p>
+    
+<p>    @app.route('/token', methods=['POST'])</p>
+<p>    def token(self):</p>
+<p>        """トークンエンドポイント"""</p>
+        
+<p>        grant_type = request.form.get('grant_type')</p>
+        
+<p>        if grant_type != 'authorization_code':</p>
+<p>            return jsonify({'error': 'unsupported_grant_type'}), 400</p>
+        
+<p>        # 必須パラメータ</p>
+<p>        code = request.form.get('code')</p>
+<p>        code_verifier = request.form.get('code_verifier')</p>
+<p>        client_id = request.form.get('client_id')</p>
+        
+<p>        if not all([code, code_verifier, client_id]):</p>
+<p>            return jsonify({'error': 'invalid_request'}), 400</p>
+        
+<p>        # 認可コード情報の取得</p>
+<p>        auth_code_key = f'auth_code:{code}'</p>
+<p>        auth_code_data = self.redis.get(auth_code_key)</p>
+        
+<p>        if not auth_code_data:</p>
+<p>            return jsonify({'error': 'invalid_grant',</p>
+<p>                          'error_description': 'Invalid or expired code'}), 400</p>
+        
+<p>        auth_code_info = json.loads(auth_code_data)</p>
+        
+<p>        # 認可コードの削除（一度だけ使用可能）</p>
+<p>        self.redis.delete(auth_code_key)</p>
+        
+<p>        # クライアントID検証</p>
+<p>        if auth_code_info['client_id'] != client_id:</p>
+<p>            return jsonify({'error': 'invalid_client'}), 401</p>
+        
+<p>        # redirect_uri検証（提供された場合）</p>
+<p>        redirect_uri = request.form.get('redirect_uri')</p>
+<p>        if redirect_uri and redirect_uri != auth_code_info['redirect_uri']:</p>
+<p>            return jsonify({'error': 'invalid_grant',</p>
+<p>                          'error_description': 'redirect_uri mismatch'}), 400</p>
+        
+<p>        # PKCE検証</p>
+<p>        if not self._verify_pkce(code_verifier, auth_code_info['code_challenge']):</p>
+<p>            return jsonify({'error': 'invalid_grant',</p>
+<p>                          'error_description': 'PKCE verification failed'}), 400</p>
+        
+<p>        # トークン生成</p>
+<p>        access_token = self._generate_access_token(</p>
+<p>            auth_code_info['user_id'],</p>
+<p>            auth_code_info['client_id'],</p>
+<p>            auth_code_info['scope']</p>
+<p>        )</p>
+        
+<p>        refresh_token = self._generate_refresh_token(</p>
+<p>            auth_code_info['user_id'],</p>
+<p>            auth_code_info['client_id']</p>
+<p>        )</p>
+        
+<p>        # レスポンス</p>
+<p>        return jsonify({</p>
+<p>            'access_token': access_token,</p>
+<p>            'token_type': 'Bearer',</p>
+<p>            'expires_in': 3600,</p>
+<p>            'refresh_token': refresh_token,</p>
+<p>            'scope': auth_code_info['scope']</p>
+<p>        })</p>
+    
+<p>    def _verify_pkce(self, verifier: str, challenge: str) -> bool:</p>
+<p>        """PKCE検証"""</p>
+        
+<p>        # S256: BASE64URL(SHA256(verifier)) == challenge</p>
+<p>        verifier_bytes = verifier.encode('utf-8')</p>
+<p>        calculated_challenge = base64.urlsafe_b64encode(</p>
+<p>            hashlib.sha256(verifier_bytes).digest()</p>
+<p>        ).decode('utf-8').rstrip('=')</p>
+        
+<p>        return calculated_challenge == challenge</p>
+    
+<p>    def _is_valid_base64url(self, value: str) -> bool:</p>
+<p>        """Base64URL形式の検証"""</p>
+        
+<p>        # Base64URL文字のみ</p>
+<p>        import re</p>
+<p>        return bool(re.match(r'^[A-Za-z0-9_-]+$', value))</p>
+    
+<p>    def _generate_access_token(self, user_id: str, client_id: str, </p>
+<p>                              scope: str) -> str:</p>
+<p>        """アクセストークン生成"""</p>
+        
+<p>        payload = {</p>
+<p>            'sub': user_id,</p>
+<p>            'client_id': client_id,</p>
+<p>            'scope': scope,</p>
+<p>            'iat': int(time.time()),</p>
+<p>            'exp': int(time.time() + 3600)</p>
+<p>        }</p>
+        
+<p>        return jwt.encode(payload, self.signing_key, algorithm='HS256')</p><h1>サーバー初期化</h1>
+<p>auth_server = PKCEAuthorizationServer()</p>
+<p></code></pre></p><p>#### クライアント側実装</p><p><pre><code>python</p>
+<p>class PKCEClient:</p>
+<p>    """PKCE対応のOAuth 2.0クライアント"""</p>
+    
+<p>    def __init__(self, client_id: str, auth_endpoint: str, </p>
+<p>                 token_endpoint: str, redirect_uri: str):</p>
+<p>        self.client_id = client_id</p>
+<p>        self.auth_endpoint = auth_endpoint</p>
+<p>        self.token_endpoint = token_endpoint</p>
+<p>        self.redirect_uri = redirect_uri</p>
+        
+<p>    def generate_code_verifier(self) -> str:</p>
+<p>        """Code Verifierの生成（43-128文字）"""</p>
+        
+<p>        # 32バイト = 256ビット、Base64URLエンコードで約43文字</p>
+<p>        random_bytes = secrets.token_bytes(32)</p>
+<p>        code_verifier = base64.urlsafe_b64encode(random_bytes).decode('utf-8')</p>
+<p>        return code_verifier.rstrip('=')</p>
+    
+<p>    def generate_code_challenge(self, verifier: str) -> str:</p>
+<p>        """Code Challengeの生成（S256）"""</p>
+        
+<p>        # SHA256ハッシュ</p>
+<p>        challenge_bytes = hashlib.sha256(verifier.encode('utf-8')).digest()</p>
+        
+<p>        # Base64URLエンコード</p>
+<p>        code_challenge = base64.urlsafe_b64encode(challenge_bytes).decode('utf-8')</p>
+<p>        return code_challenge.rstrip('=')</p>
+    
+<p>    def create_authorization_url(self, scope: List[str], </p>
+<p>                               state: Optional[str] = None) -> Dict[str, str]:</p>
+<p>        """認可URLの生成"""</p>
+        
+<p>        # PKCE生成</p>
+<p>        code_verifier = self.generate_code_verifier()</p>
+<p>        code_challenge = self.generate_code_challenge(code_verifier)</p>
+        
+<p>        # State生成（CSRF対策）</p>
+<p>        if not state:</p>
+<p>            state = secrets.token_urlsafe(32)</p>
+        
+<p>        # パラメータ構築</p>
+<p>        params = {</p>
+<p>            'response_type': 'code',</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'redirect_uri': self.redirect_uri,</p>
+<p>            'scope': ' '.join(scope),</p>
+<p>            'state': state,</p>
+<p>            'code_challenge': code_challenge,</p>
+<p>            'code_challenge_method': 'S256'</p>
+<p>        }</p>
+        
+<p>        auth_url = f"{self.auth_endpoint}?{urlencode(params)}"</p>
+        
+<p>        return {</p>
+<p>            'url': auth_url,</p>
+<p>            'state': state,</p>
+<p>            'code_verifier': code_verifier</p>
+<p>        }</p>
+    
+<p>    async def exchange_code_for_token(self, code: str, state: str,</p>
+<p>                                    stored_state: str, </p>
+<p>                                    code_verifier: str) -> Dict:</p>
+<p>        """認可コードをトークンに交換"""</p>
+        
+<p>        # State検証</p>
+<p>        if state != stored_state:</p>
+<p>            raise SecurityError("State mismatch - possible CSRF attack")</p>
+        
+<p>        # トークンリクエスト</p>
+<p>        token_data = {</p>
+<p>            'grant_type': 'authorization_code',</p>
+<p>            'code': code,</p>
+<p>            'redirect_uri': self.redirect_uri,</p>
+<p>            'client_id': self.client_id,</p>
+<p>            'code_verifier': code_verifier</p>
+<p>        }</p>
+        
+<p>        async with aiohttp.ClientSession() as session:</p>
+<p>            async with session.post(</p>
+<p>                self.token_endpoint,</p>
+<p>                data=token_data,</p>
+<p>                headers={'Accept': 'application/json'}</p>
+<p>            ) as response:</p>
+<p>                if response.status != 200:</p>
+<p>                    error_data = await response.json()</p>
+<p>                    raise OAuthError(f"Token exchange failed: {error_data}")</p>
+                
+<p>                return await response.json()</p>
+    
+<p>    def verify_pkce_implementation(self):</p>
+<p>        """PKCE実装の検証テスト"""</p>
+        
+<p>        # 正常なケース</p>
+<p>        verifier = self.generate_code_verifier()</p>
+<p>        challenge = self.generate_code_challenge(verifier)</p>
+        
+<p>        # 検証</p>
+<p>        recalculated = self.generate_code_challenge(verifier)</p>
+<p>        assert challenge == recalculated, "PKCE calculation mismatch"</p>
+        
+<p>        # 異なるverifierでは一致しない</p>
+<p>        different_verifier = self.generate_code_verifier()</p>
+<p>        different_challenge = self.generate_code_challenge(different_verifier)</p>
+<p>        assert challenge != different_challenge, "Different verifiers produced same challenge"</p>
+        
+<p>        print("PKCE implementation verified successfully")</p><h1>使用例</h1>
+<p>async def main():</p>
+<p>    client = PKCEClient(</p>
+<p>        client_id='my-spa-app',</p>
+<p>        auth_endpoint='https://auth.example.com/authorize',</p>
+<p>        token_endpoint='https://auth.example.com/token',</p>
+<p>        redirect_uri='https://app.example.com/callback'</p>
+<p>    )</p>
+    
+<p>    # 認可フロー開始</p>
+<p>    auth_data = client.create_authorization_url(['read', 'write'])</p>
+<p>    print(f"Visit: {auth_data['url']}")</p>
+    
+<p>    # ブラウザで認可後、コールバックを処理</p>
+<p>    # callback?code=AUTH_CODE&state=STATE</p>
+    
+<p>    # トークン交換</p>
+<p>    tokens = await client.exchange_code_for_token(</p>
+<p>        code='AUTH_CODE',</p>
+<p>        state='STATE',</p>
+<p>        stored_state=auth_data['state'],</p>
+<p>        code_verifier=auth_data['code_verifier']</p>
+<p>    )</p>
+    
+<p>    print(f"Access token: {tokens['access_token']}")</p>
+<p></code></pre></p><h3>実装のポイント</h3><p>1. <strong>Code Verifierの生成</strong>：暗号学的に安全な乱数を使用</p>
+<p>2. <strong>Code Challengeの計算</strong>：S256メソッド（SHA256）を使用</p>
+<p>3. <strong>一度だけ使用可能</strong>：認可コードは使用後即座に削除</p>
+<p>4. <strong>タイミング攻撃対策</strong>：PKCE検証で定数時間比較</p><h2>問題5：セキュリティ監査</h2><h3>既存のOAuth 2.0実装の監査結果</h3><p><pre><code>python</p>
+<p>class OAuthSecurityAudit:</p>
+<p>    """OAuth 2.0実装のセキュリティ監査"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.vulnerabilities = []</p>
+<p>        self.risk_scores = {}</p>
+        
+<p>    def audit_implementation(self, codebase):</p>
+<p>        """包括的なセキュリティ監査"""</p>
+        
+<p>        # 1. 設定の監査</p>
+<p>        self._audit_configuration()</p>
+        
+<p>        # 2. 実装の監査  </p>
+<p>        self._audit_implementation()</p>
+        
+<p>        # 3. 運用の監査</p>
+<p>        self._audit_operations()</p>
+        
+<p>        return self.generate_report()</p>
+    
+<p>    def _audit_configuration(self):</p>
+<p>        """設定面の監査"""</p>
+        
+<p>        findings = [</p>
+<p>            {</p>
+<p>                'id': 'CONF-001',</p>
+<p>                'title': 'Implicit Grant有効化',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'description': 'Implicit Grantが有効になっている',</p>
+<p>                'evidence': '''</p>
+<p>                ALLOWED_GRANT_TYPES = [</p>
+<p>                    'authorization_code',</p>
+<p>                    'implicit',  # セキュリティリスク</p>
+<p>                    'client_credentials'</p>
+<p>                ]</p>
+<p>                ''',</p>
+<p>                'risk': 'トークンがブラウザ履歴に残る、リファラー漏洩',</p>
+<p>                'recommendation': 'Implicit Grantを無効化し、Authorization Code + PKCEを使用'</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'id': 'CONF-002', </p>
+<p>                'title': 'アクセストークンの有効期限が長い',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'description': '24時間の有効期限は長すぎる',</p>
+<p>                'evidence': 'ACCESS_TOKEN_LIFETIME = 86400  # 24時間',</p>
+<p>                'risk': 'トークン漏洩時の影響期間が長い',</p>
+<p>                'recommendation': '15分〜1時間に短縮'</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'id': 'CONF-003',</p>
+<p>                'title': 'HTTPS強制なし',</p>
+<p>                'severity': 'CRITICAL',</p>
+<p>                'description': 'HTTP通信が許可されている',</p>
+<p>                'evidence': 'app.config["REQUIRE_HTTPS"] = False',</p>
+<p>                'risk': '中間者攻撃によるトークン窃取',</p>
+<p>                'recommendation': 'すべてのエンドポイントでHTTPS必須化'</p>
+<p>            }</p>
+<p>        ]</p>
+        
+<p>        self.vulnerabilities.extend(findings)</p>
+    
+<p>    def _audit_implementation(self):</p>
+<p>        """実装面の監査"""</p>
+        
+<p>        findings = [</p>
+<p>            {</p>
+<p>                'id': 'IMPL-001',</p>
+<p>                'title': 'redirect_uriの検証不足',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'description': '部分一致での検証は危険',</p>
+<p>                'evidence': '''</p>
+<p>                def validate_redirect_uri(uri, registered_uri):</p>
+<p>                    return uri.startswith(registered_uri)  # 危険！</p>
+<p>                ''',</p>
+<p>                'risk': 'オープンリダイレクト攻撃',</p>
+<p>                'recommendation': '''</p>
+<p>                def validate_redirect_uri(uri, registered_uris):</p>
+<p>                    return uri in registered_uris  # 完全一致</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'id': 'IMPL-002',</p>
+<p>                'title': 'PKCE未実装',</p>
+<p>                'severity': 'HIGH',</p>
+<p>                'description': 'パブリッククライアントでPKCEなし',</p>
+<p>                'evidence': 'SPAクライアントでPKCEパラメータなし',</p>
+<p>                'risk': '認可コード横取り攻撃',</p>
+<p>                'recommendation': 'すべてのパブリッククライアントでPKCE必須化'</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'id': 'IMPL-003',</p>
+<p>                'title': 'エラー情報の過剰開示',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'description': 'スタックトレースが返される',</p>
+<p>                'evidence': '''</p>
+<p>                except Exception as e:</p>
+<p>                    return {"error": str(e), "trace": traceback.format_exc()}</p>
+<p>                ''',</p>
+<p>                'risk': '内部構造の情報漏洩',</p>
+<p>                'recommendation': '本番環境では最小限のエラー情報のみ返す'</p>
+<p>            }</p>
+<p>        ]</p>
+        
+<p>        self.vulnerabilities.extend(findings)</p>
+    
+<p>    def _audit_operations(self):</p>
+<p>        """運用面の監査"""</p>
+        
+<p>        findings = [</p>
+<p>            {</p>
+<p>                'id': 'OPS-001',</p>
+<p>                'title': 'トークン無効化機能なし',</p>
+<p>                'severity': 'MEDIUM',</p>
+<p>                'description': 'ログアウト時のトークン無効化未実装',</p>
+<p>                'evidence': 'logout()関数でトークン無効化処理なし',</p>
+<p>                'risk': 'ログアウト後もトークンが有効',</p>
+<p>                'recommendation': 'トークンブラックリストまたは短い有効期限の実装'</p>
+<p>            },</p>
+            
+<p>            {</p>
+<p>                'id': 'OPS-002',</p>
+<p>                'title': '監査ログ不足',</p>
+<p>                'severity': 'LOW',</p>
+<p>                'description': '認証イベントのログが不十分',</p>
+<p>                'evidence': '失敗した認証試行がログされていない',</p>
+<p>                'risk': '攻撃の検知が困難',</p>
+<p>                'recommendation': '包括的な監査ログの実装'</p>
+<p>            }</p>
+<p>        ]</p>
+        
+<p>        self.vulnerabilities.extend(findings)</p>
+    
+<p>    def calculate_risk_scores(self):</p>
+<p>        """リスクスコアの計算"""</p>
+        
+<p>        severity_scores = {</p>
+<p>            'CRITICAL': 10,</p>
+<p>            'HIGH': 7,</p>
+<p>            'MEDIUM': 4,</p>
+<p>            'LOW': 1</p>
+<p>        }</p>
+        
+<p>        total_score = 0</p>
+<p>        for vuln in self.vulnerabilities:</p>
+<p>            score = severity_scores[vuln['severity']]</p>
+<p>            total_score += score</p>
+            
+<p>        return {</p>
+<p>            'total_score': total_score,</p>
+<p>            'risk_level': self._get_risk_level(total_score),</p>
+<p>            'severity_breakdown': {</p>
+<p>                'CRITICAL': len([v for v in self.vulnerabilities if v['severity'] == 'CRITICAL']),</p>
+<p>                'HIGH': len([v for v in self.vulnerabilities if v['severity'] == 'HIGH']),</p>
+<p>                'MEDIUM': len([v for v in self.vulnerabilities if v['severity'] == 'MEDIUM']),</p>
+<p>                'LOW': len([v for v in self.vulnerabilities if v['severity'] == 'LOW'])</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def _get_risk_level(self, score):</p>
+<p>        if score >= 30:</p>
+<p>            return 'CRITICAL'</p>
+<p>        elif score >= 20:</p>
+<p>            return 'HIGH'</p>
+<p>        elif score >= 10:</p>
+<p>            return 'MEDIUM'</p>
+<p>        else:</p>
+<p>            return 'LOW'</p>
+    
+<p>    def generate_report(self):</p>
+<p>        """監査レポートの生成"""</p>
+        
+<p>        risk_scores = self.calculate_risk_scores()</p>
+        
+<p>        return {</p>
+<p>            'executive_summary': {</p>
+<p>                'overall_risk': risk_scores['risk_level'],</p>
+<p>                'total_findings': len(self.vulnerabilities),</p>
+<p>                'critical_findings': risk_scores['severity_breakdown']['CRITICAL'],</p>
+<p>                'immediate_action_required': risk_scores['risk_level'] in ['CRITICAL', 'HIGH']</p>
+<p>            },</p>
+            
+<p>            'findings': self.vulnerabilities,</p>
+            
+<p>            'remediation_priority': [</p>
+<p>                {</p>
+<p>                    'phase': 'Immediate (1 week)',</p>
+<p>                    'items': [v['id'] for v in self.vulnerabilities if v['severity'] == 'CRITICAL'],</p>
+<p>                    'focus': 'セキュリティクリティカルな問題の修正'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'phase': 'Short-term (1 month)',</p>
+<p>                    'items': [v['id'] for v in self.vulnerabilities if v['severity'] == 'HIGH'],</p>
+<p>                    'focus': '主要な脆弱性の対処'</p>
+<p>                },</p>
+<p>                {</p>
+<p>                    'phase': 'Medium-term (3 months)',</p>
+<p>                    'items': [v['id'] for v in self.vulnerabilities if v['severity'] in ['MEDIUM', 'LOW']],</p>
+<p>                    'focus': '運用改善とベストプラクティスの適用'</p>
+<p>                }</p>
+<p>            ],</p>
+            
+<p>            'recommendations': {</p>
+<p>                'immediate': [</p>
+<p>                    'HTTPS強制の有効化',</p>
+<p>                    'Implicit Grantの無効化',</p>
+<p>                    'PKCEの実装'</p>
+<p>                ],</p>
+<p>                'short_term': [</p>
+<p>                    'アクセストークン有効期限の短縮',</p>
+<p>                    'redirect_uri検証の強化',</p>
+<p>                    'エラーハンドリングの改善'</p>
+<p>                ],</p>
+<p>                'long_term': [</p>
+<p>                    'トークン無効化システムの実装',</p>
+<p>                    '包括的な監査ログ',</p>
+<p>                    'セキュリティテストの自動化'</p>
+<p>                ]</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>監査結果サマリー</h3><p>#### 発見された脆弱性</p><p>1. <strong>CRITICAL（2件）</strong></p>
+<p>   - HTTPS非強制</p>
+<p>   - （その他の重大な問題）</p><p>2. <strong>HIGH（3件）</strong></p>
+<p>   - Implicit Grant有効</p>
+<p>   - redirect_uri検証不足</p>
+<p>   - PKCE未実装</p><p>3. <strong>MEDIUM（2件）</strong></p>
+<p>   - トークン有効期限が長い</p>
+<p>   - エラー情報の過剰開示</p><p>4. <strong>LOW（1件）</strong></p>
+<p>   - 監査ログ不足</p><p>#### リスク評価</p><p>- <strong>総合リスクレベル：HIGH</strong></p>
+<p>- <strong>即時対応必要：YES</strong></p>
+<p>- <strong>推定修正期間：3ヶ月</strong></p><p>#### 実装改善案</p><p><pre><code>python</p>
+<h1>改善実装例</h1>
+<p>class ImprovedOAuth2Implementation:</p>
+<p>    def __init__(self):</p>
+<p>        # セキュアな設定</p>
+<p>        self.config = {</p>
+<p>            'require_https': True,</p>
+<p>            'allowed_grant_types': ['authorization_code'],</p>
+<p>            'require_pkce': True,</p>
+<p>            'access_token_lifetime': 900,  # 15分</p>
+<p>            'refresh_token_lifetime': 2592000,  # 30日</p>
+<p>            'enable_token_revocation': True</p>
+<p>        }</p>
+        
+<p>    def validate_client_request(self, request):</p>
+<p>        """改善されたリクエスト検証"""</p>
+        
+<p>        # HTTPS強制</p>
+<p>        if not request.is_secure and not self._is_localhost(request):</p>
+<p>            raise SecurityError("HTTPS required")</p>
+        
+<p>        # PKCEチェック</p>
+<p>        if self.config['require_pkce']:</p>
+<p>            if not request.args.get('code_challenge'):</p>
+<p>                raise ValueError("PKCE required")</p>
+        
+<p>        return True</p>
+<p></code></pre></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

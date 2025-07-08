@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>付録B トラブルシューティングガイド - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>付録B トラブルシューティングガイド</h1><h2>B.1 認証が失敗する場合</h2><h3>B.1.1 パスワード認証の問題</h3><p>#### 症状：正しいパスワードでもログインできない</p><p><strong>確認ポイント</strong>：</p><p><pre><code>python
+<h1>デバッグコード例</h1>
+<p>def debug_password_auth(username, password):</p>
+<p>    print(f"1. ユーザー検索: {username}")</p>
+<p>    user = User.find_by_username(username)</p>
+<p>    if not user:</p>
+<p>        print("   → ユーザーが見つかりません")</p>
+<p>        return</p>
+    
+<p>    print(f"2. アカウント状態: active={user.is_active}")</p>
+<p>    if not user.is_active:</p>
+<p>        print("   → アカウントが無効化されています")</p>
+<p>        return</p>
+    
+<p>    print(f"3. パスワードハッシュ形式: {user.password_hash[:20]}...")</p>
+    
+<p>    # ハッシュアルゴリズムの確認</p>
+<p>    if user.password_hash.startswith("$2b$"):</p>
+<p>        print("   → bcrypt形式")</p>
+<p>    elif user.password_hash.startswith("$argon2"):</p>
+<p>        print("   → Argon2形式")</p>
+    
+<p>    print(f"4. パスワード検証実行")</p>
+<p>    is_valid = verify_password(password, user.password_hash)</p>
+<p>    print(f"   → 結果: {is_valid}")</p>
+<p></code></pre></p><p><strong>よくある原因と対策</strong>：</p><p>| 原因 | 対策 | 確認方法 |</p>
+<p>|------|------|----------|</p>
+<p>| 文字エンコーディング不一致 | UTF-8統一 | <code>password.encode('utf-8')</code> |</p>
+<p>| ハッシュアルゴリズム不一致 | 移行処理実装 | ハッシュプレフィックス確認 |</p>
+<p>| 空白文字の扱い | trim()処理統一 | 前後空白の有無確認 |</p>
+<p>| 大文字小文字の扱い | 仕様明確化 | ポリシー文書化 |</p><p>#### 症状：パスワードリセットが機能しない</p><p><strong>チェックリスト</strong>：</p><p><pre><code>yaml</p>
+<p>email_configuration:</p>
+<p>  - [ ] SMTPサーバー接続確認</p>
+<p>  - [ ] 送信元メールアドレスのSPF/DKIM設定</p>
+<p>  - [ ] メールテンプレートの変数展開</p>
+<p>  - [ ] リンクの有効期限設定</p><p>token_generation:</p>
+<p>  - [ ] トークンの一意性</p>
+<p>  - [ ] 適切な有効期限（推奨：1-2時間）</p>
+<p>  - [ ] 使用済みトークンの無効化</p>
+<p>  - [ ] タイムゾーンの扱い</p><p>security_checks:</p>
+<p>  - [ ] レート制限の実装</p>
+<p>  - [ ] 同一ユーザーの複数リクエスト制御</p>
+<p>  - [ ] トークンの暗号学的安全性</p>
+<p>  - [ ] HTTPSでのみ送信</p>
+<p></code></pre></p><h3>B.1.2 多要素認証の問題</h3><p>#### 症状：TOTP認証で時刻ずれエラー</p><p><strong>診断スクリプト</strong>：</p><p><pre><code>python</p>
+<p>import pyotp</p>
+<p>import time</p>
+<p>from datetime import datetime, timezone</p><p>def diagnose_totp_issue(secret, user_input_code):</p>
+<p>    """TOTP問題の診断"""</p>
+<p>    totp = pyotp.TOTP(secret)</p>
+    
+<p>    # 現在時刻での正しいコード</p>
+<p>    current_time = time.time()</p>
+<p>    correct_code = totp.at(current_time)</p>
+    
+<p>    print(f"サーバー時刻: {datetime.now(timezone.utc)}")</p>
+<p>    print(f"正しいコード: {correct_code}")</p>
+<p>    print(f"入力コード: {user_input_code}")</p>
+    
+<p>    # 時間窓での検証</p>
+<p>    for offset in range(-3, 4):  # ±90秒</p>
+<p>        time_at_offset = current_time + (offset * 30)</p>
+<p>        code_at_offset = totp.at(time_at_offset)</p>
+        
+<p>        if code_at_offset == user_input_code:</p>
+<p>            print(f"✓ コードは{offset * 30}秒のずれで一致")</p>
+<p>            return True</p>
+    
+<p>    print("✗ 時間窓内で一致するコードなし")</p>
+    
+<p>    # よくある問題の確認</p>
+<p>    if len(user_input_code) != 6:</p>
+<p>        print("! コードの桁数が正しくありません")</p>
+    
+<p>    if not user_input_code.isdigit():</p>
+<p>        print("! コードに数字以外が含まれています")</p>
+    
+<p>    return False</p>
+<p></code></pre></p><p><strong>対策実装</strong>：</p><p><pre><code>python</p>
+<p>class FlexibleTOTPVerifier:</p>
+<p>    def __init__(self, window=1, future_window=0):</p>
+<p>        """</p>
+<p>        window: 過去方向の許容ステップ数</p>
+<p>        future_window: 未来方向の許容ステップ数</p>
+<p>        """</p>
+<p>        self.window = window</p>
+<p>        self.future_window = future_window</p>
+    
+<p>    def verify(self, secret, token, for_time=None):</p>
+<p>        """柔軟なTOTP検証"""</p>
+<p>        if for_time is None:</p>
+<p>            for_time = time.time()</p>
+        
+<p>        # pyotpのverifyメソッドを使用（時間窓対応）</p>
+<p>        totp = pyotp.TOTP(secret)</p>
+        
+<p>        # 通常の検証</p>
+<p>        if totp.verify(token, for_time, valid_window=self.window):</p>
+<p>            return True, 0</p>
+        
+<p>        # 未来方向の検証（クライアント時刻が進んでいる場合）</p>
+<p>        if self.future_window > 0:</p>
+<p>            for i in range(1, self.future_window + 1):</p>
+<p>                future_time = for_time + (i * 30)</p>
+<p>                if totp.verify(token, future_time, valid_window=0):</p>
+<p>                    return True, i * 30</p>
+        
+<p>        return False, None</p>
+<p></code></pre></p><h3>B.1.3 WebAuthn/FIDO2の問題</h3><p>#### 症状：ブラウザが認証器を認識しない</p><p><strong>ブラウザ互換性チェック</strong>：</p><p><pre><code>javascript</p>
+<p>async function checkWebAuthnSupport() {</p>
+<p>    const report = {</p>
+<p>        supported: false,</p>
+<p>        create: false,</p>
+<p>        get: false,</p>
+<p>        platformAuthenticator: false,</p>
+<p>        conditionalMediation: false,</p>
+<p>        userVerifying: false</p>
+<p>    };</p>
+    
+<p>    // 基本的なサポート</p>
+<p>    if (window.PublicKeyCredential) {</p>
+<p>        report.supported = true;</p>
+        
+<p>        // create/getの確認</p>
+<p>        report.create = typeof navigator.credentials.create === 'function';</p>
+<p>        report.get = typeof navigator.credentials.get === 'function';</p>
+        
+<p>        // プラットフォーム認証器</p>
+<p>        if (PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {</p>
+<p>            report.platformAuthenticator = </p>
+<p>                await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();</p>
+<p>        }</p>
+        
+<p>        // Conditional Mediation (パスキー自動入力)</p>
+<p>        if (PublicKeyCredential.isConditionalMediationAvailable) {</p>
+<p>            report.conditionalMediation = </p>
+<p>                await PublicKeyCredential.isConditionalMediationAvailable();</p>
+<p>        }</p>
+<p>    }</p>
+    
+<p>    console.table(report);</p>
+<p>    return report;</p>
+<p>}</p><p>// HTTPS確認</p>
+<p>if (location.protocol !== 'https:' && location.hostname !== 'localhost') {</p>
+<p>    console.error('WebAuthnはHTTPS環境でのみ動作します');</p>
+<p>}</p>
+<p></code></pre></p><p><strong>一般的なエラーと対処法</strong>：</p><p><pre><code>javascript</p>
+<p>class WebAuthnErrorHandler {</p>
+<p>    handleError(error) {</p>
+<p>        const errorMap = {</p>
+<p>            'NotAllowedError': {</p>
+<p>                message: 'ユーザーが認証をキャンセルしました',</p>
+<p>                action: 'retry',</p>
+<p>                userMessage: 'もう一度お試しください'</p>
+<p>            },</p>
+<p>            'InvalidStateError': {</p>
+<p>                message: '認証器がすでに登録されています',</p>
+<p>                action: 'use_existing',</p>
+<p>                userMessage: 'この認証器は登録済みです'</p>
+<p>            },</p>
+<p>            'NotSupportedError': {</p>
+<p>                message: 'この認証器タイプはサポートされていません',</p>
+<p>                action: 'fallback',</p>
+<p>                userMessage: '別の認証方法をお試しください'</p>
+<p>            },</p>
+<p>            'SecurityError': {</p>
+<p>                message: 'セキュリティ要件を満たしていません',</p>
+<p>                action: 'check_https',</p>
+<p>                userMessage: 'HTTPS接続を確認してください'</p>
+<p>            },</p>
+<p>            'AbortError': {</p>
+<p>                message: '操作がタイムアウトしました',</p>
+<p>                action: 'retry',</p>
+<p>                userMessage: '時間内に認証を完了してください'</p>
+<p>            }</p>
+<p>        };</p>
+        
+<p>        const errorInfo = errorMap[error.name] || {</p>
+<p>            message: error.message,</p>
+<p>            action: 'contact_support',</p>
+<p>            userMessage: 'エラーが発生しました'</p>
+<p>        };</p>
+        
+<p>        console.error(<code>WebAuthn Error: ${error.name}</code>, error);</p>
+<p>        return errorInfo;</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><h2>B.2 セッション管理の問題</h2><h3>B.2.1 セッションが維持されない</h3><p>#### 症状：ログイン直後にセッションが切れる</p><p><strong>診断手順</strong>：</p><p><pre><code>python</p>
+<p>def diagnose_session_issue(request, response):</p>
+<p>    """セッション問題の診断"""</p>
+<p>    issues = []</p>
+    
+<p>    # 1. Cookieの設定確認</p>
+<p>    set_cookie_header = response.headers.get('Set-Cookie', '')</p>
+    
+<p>    if 'SameSite=None' in set_cookie_header and 'Secure' not in set_cookie_header:</p>
+<p>        issues.append("SameSite=NoneにはSecure属性が必須")</p>
+    
+<p>    if 'HttpOnly' not in set_cookie_header:</p>
+<p>        issues.append("HttpOnly属性が設定されていません（XSS脆弱性）")</p>
+    
+<p>    # 2. ドメイン設定の確認</p>
+<p>    cookie_domain = extract_domain_from_cookie(set_cookie_header)</p>
+<p>    request_host = request.headers.get('Host', '')</p>
+    
+<p>    if cookie_domain and not request_host.endswith(cookie_domain):</p>
+<p>        issues.append(f"Cookieドメイン({cookie_domain})とリクエストホスト({request_host})が不一致")</p>
+    
+<p>    # 3. パス設定の確認</p>
+<p>    cookie_path = extract_path_from_cookie(set_cookie_header)</p>
+<p>    if cookie_path != '/':</p>
+<p>        issues.append(f"Cookieパスが制限されています: {cookie_path}")</p>
+    
+<p>    # 4. プロキシ設定の確認</p>
+<p>    x_forwarded_proto = request.headers.get('X-Forwarded-Proto')</p>
+<p>    if x_forwarded_proto == 'http' and 'Secure' in set_cookie_header:</p>
+<p>        issues.append("プロキシ背後でHTTP通信しているがSecure Cookieを設定")</p>
+    
+<p>    return issues</p>
+<p></code></pre></p><p><strong>Cookieトラブルシューティング表</strong>：</p><p>| 問題 | 原因 | 解決策 |</p>
+<p>|------|------|--------|</p>
+<p>| Safari/iOSで動作しない | SameSite=None未設定 | 明示的に設定 + Secure必須 |</p>
+<p>| サブドメイン間で共有されない | Domain属性なし | <code>.example.com</code>形式で設定 |</p>
+<p>| APIコールで送信されない | CORS設定不備 | <code>credentials: 'include'</code> |</p>
+<p>| 開発環境で動作しない | Secure属性 | localhost例外処理追加 |</p><h3>B.2.2 分散環境でのセッション不整合</h3><p>#### 症状：ロードバランサー配下でログイン状態が安定しない</p><p><strong>セッションストレージ診断</strong>：</p><p><pre><code>python</p>
+<p>class SessionStorageDiagnostics:</p>
+<p>    def __init__(self, redis_clients):</p>
+<p>        self.redis_clients = redis_clients  # 複数のRedisノード</p>
+    
+<p>    async def check_session_replication(self, session_id):</p>
+<p>        """セッションレプリケーションの確認"""</p>
+<p>        results = {}</p>
+        
+<p>        for node_name, client in self.redis_clients.items():</p>
+<p>            try:</p>
+<p>                # セッションデータの取得</p>
+<p>                session_data = await client.get(f"session:{session_id}")</p>
+                
+<p>                if session_data:</p>
+<p>                    results[node_name] = {</p>
+<p>                        'exists': True,</p>
+<p>                        'size': len(session_data),</p>
+<p>                        'ttl': await client.ttl(f"session:{session_id}")</p>
+<p>                    }</p>
+<p>                else:</p>
+<p>                    results[node_name] = {'exists': False}</p>
+                    
+<p>            except Exception as e:</p>
+<p>                results[node_name] = {'error': str(e)}</p>
+        
+<p>        # 整合性チェック</p>
+<p>        unique_sessions = set(</p>
+<p>            r.get('size', 0) for r in results.values() </p>
+<p>            if r.get('exists')</p>
+<p>        )</p>
+        
+<p>        if len(unique_sessions) > 1:</p>
+<p>            print("警告: ノード間でセッションデータのサイズが異なります")</p>
+        
+<p>        return results</p>
+    
+<p>    async def test_session_persistence(self):</p>
+<p>        """セッション永続性テスト"""</p>
+<p>        test_session_id = f"test_{uuid.uuid4()}"</p>
+<p>        test_data = {"user": "test", "timestamp": time.time()}</p>
+        
+<p>        # 書き込みテスト</p>
+<p>        write_results = {}</p>
+<p>        for node_name, client in self.redis_clients.items():</p>
+<p>            start = time.time()</p>
+<p>            try:</p>
+<p>                await client.setex(</p>
+<p>                    f"session:{test_session_id}",</p>
+<p>                    300,  # 5分</p>
+<p>                    json.dumps(test_data)</p>
+<p>                )</p>
+<p>                write_results[node_name] = {</p>
+<p>                    'success': True,</p>
+<p>                    'latency': time.time() - start</p>
+<p>                }</p>
+<p>            except Exception as e:</p>
+<p>                write_results[node_name] = {</p>
+<p>                    'success': False,</p>
+<p>                    'error': str(e)</p>
+<p>                }</p>
+        
+<p>        # レプリケーション待機</p>
+<p>        await asyncio.sleep(0.5)</p>
+        
+<p>        # 読み取りテスト</p>
+<p>        read_results = await self.check_session_replication(test_session_id)</p>
+        
+<p>        return {</p>
+<p>            'write_results': write_results,</p>
+<p>            'read_results': read_results,</p>
+<p>            'replication_ok': all(r.get('exists') for r in read_results.values())</p>
+<p>        }</p>
+<p></code></pre></p><h2>B.3 パフォーマンス問題</h2><h3>B.3.1 認証処理が遅い</h3><p>#### 症状：ログインに数秒かかる</p><p><strong>パフォーマンスプロファイリング</strong>：</p><p><pre><code>python</p>
+<p>import cProfile</p>
+<p>import pstats</p>
+<p>from io import StringIO</p><p>class AuthPerformanceProfiler:</p>
+<p>    def profile_authentication(self, username, password):</p>
+<p>        """認証処理のプロファイリング"""</p>
+<p>        pr = cProfile.Profile()</p>
+<p>        pr.enable()</p>
+        
+<p>        # 認証処理の実行</p>
+<p>        try:</p>
+<p>            result = authenticate_user(username, password)</p>
+<p>        finally:</p>
+<p>            pr.disable()</p>
+        
+<p>        # 結果の解析</p>
+<p>        s = StringIO()</p>
+<p>        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')</p>
+<p>        ps.print_stats(20)  # 上位20個の関数</p>
+        
+<p>        # ボトルネックの特定</p>
+<p>        profile_data = s.getvalue()</p>
+        
+<p>        # パスワードハッシュ処理の時間</p>
+<p>        bcrypt_time = self._extract_time(profile_data, 'bcrypt')</p>
+<p>        db_time = self._extract_time(profile_data, 'database')</p>
+        
+<p>        recommendations = []</p>
+        
+<p>        if bcrypt_time > 0.5:</p>
+<p>            recommendations.append({</p>
+<p>                'issue': 'bcryptコストファクターが高すぎる',</p>
+<p>                'current': bcrypt_time,</p>
+<p>                'recommendation': 'コストファクターを12に調整'</p>
+<p>            })</p>
+        
+<p>        if db_time > 0.1:</p>
+<p>            recommendations.append({</p>
+<p>                'issue': 'データベースクエリが遅い',</p>
+<p>                'current': db_time,</p>
+<p>                'recommendation': 'インデックスの追加、コネクションプーリング'</p>
+<p>            })</p>
+        
+<p>        return {</p>
+<p>            'total_time': pr.total_tt,</p>
+<p>            'profile': profile_data,</p>
+<p>            'recommendations': recommendations</p>
+<p>        }</p>
+<p></code></pre></p><p><strong>最適化チェックリスト</strong>：</p><p><pre><code>yaml</p>
+<p>database_optimization:</p>
+<p>  - [ ] ユーザーテーブルのインデックス</p>
+<p>    - username/emailカラム</p>
+<p>    - 複合インデックスの検討</p>
+<p>  - [ ] N+1クエリの解消</p>
+<p>    - 権限情報の事前読み込み</p>
+<p>    - JOINまたはバッチ取得</p>
+<p>  - [ ] コネクションプーリング</p>
+<p>    - 適切なプールサイズ</p>
+<p>    - コネクション再利用</p><p>caching_strategy:</p>
+<p>  - [ ] ユーザー情報のキャッシュ</p>
+<p>    - TTL: 5-10分</p>
+<p>    - 更新時の無効化</p>
+<p>  - [ ] 権限情報のキャッシュ</p>
+<p>    - TTL: 1時間</p>
+<p>    - 役割変更時の無効化</p>
+<p>  - [ ] セッションストアの最適化</p>
+<p>    - Redisパイプライニング</p>
+<p>    - バッチ操作</p><p>hash_optimization:</p>
+<p>  - [ ] 適切なコストファクター</p>
+<p>    - bcrypt: 10-12</p>
+<p>    - argon2: メモリとCPUのバランス</p>
+<p>  - [ ] ハッシュ処理の非同期化</p>
+<p>    - ワーカースレッド使用</p>
+<p>    - イベントループのブロッキング回避</p>
+<p></code></pre></p><h3>B.3.2 大量ログイン時の障害</h3><p>#### 症状：朝のラッシュ時にシステムダウン</p><p><strong>負荷シミュレーション</strong>：</p><p><pre><code>python</p>
+<p>import asyncio</p>
+<p>import aiohttp</p>
+<p>import time</p>
+<p>from datetime import datetime, timedelta</p><p>class LoadTestSimulator:</p>
+<p>    def __init__(self, base_url, total_users=10000):</p>
+<p>        self.base_url = base_url</p>
+<p>        self.total_users = total_users</p>
+<p>        self.results = []</p>
+    
+<p>    async def simulate_morning_rush(self):</p>
+<p>        """朝のログインラッシュをシミュレート"""</p>
+<p>        # 7:00-9:00の2時間で、ピークは8:00</p>
+<p>        async def user_login(user_id, delay):</p>
+<p>            await asyncio.sleep(delay)</p>
+            
+<p>            start_time = time.time()</p>
+<p>            async with aiohttp.ClientSession() as session:</p>
+<p>                try:</p>
+<p>                    async with session.post(</p>
+<p>                        f"{self.base_url}/auth/login",</p>
+<p>                        json={</p>
+<p>                            "username": f"user{user_id}",</p>
+<p>                            "password": "password"</p>
+<p>                        },</p>
+<p>                        timeout=aiohttp.ClientTimeout(total=30)</p>
+<p>                    ) as response:</p>
+<p>                        end_time = time.time()</p>
+                        
+<p>                        self.results.append({</p>
+<p>                            'user_id': user_id,</p>
+<p>                            'status': response.status,</p>
+<p>                            'response_time': end_time - start_time,</p>
+<p>                            'timestamp': datetime.now()</p>
+<p>                        })</p>
+                        
+<p>                except asyncio.TimeoutError:</p>
+<p>                    self.results.append({</p>
+<p>                        'user_id': user_id,</p>
+<p>                        'status': 'timeout',</p>
+<p>                        'response_time': 30,</p>
+<p>                        'timestamp': datetime.now()</p>
+<p>                    })</p>
+<p>                except Exception as e:</p>
+<p>                    self.results.append({</p>
+<p>                        'user_id': user_id,</p>
+<p>                        'status': 'error',</p>
+<p>                        'error': str(e),</p>
+<p>                        'timestamp': datetime.now()</p>
+<p>                    })</p>
+        
+<p>        # 正規分布でログイン時刻を分散</p>
+<p>        tasks = []</p>
+<p>        for i in range(self.total_users):</p>
+<p>            # 平均60分（8:00）、標準偏差20分</p>
+<p>            delay = max(0, np.random.normal(60, 20) * 60)</p>
+<p>            tasks.append(user_login(i, delay))</p>
+        
+<p>        start_time = time.time()</p>
+<p>        await asyncio.gather(*tasks)</p>
+<p>        total_time = time.time() - start_time</p>
+        
+<p>        # 結果の分析</p>
+<p>        successful = sum(1 for r in self.results if r.get('status') == 200)</p>
+<p>        failed = len(self.results) - successful</p>
+<p>        avg_response = np.mean([</p>
+<p>            r['response_time'] for r in self.results </p>
+<p>            if r.get('status') == 200</p>
+<p>        ])</p>
+        
+<p>        return {</p>
+<p>            'total_users': self.total_users,</p>
+<p>            'successful_logins': successful,</p>
+<p>            'failed_logins': failed,</p>
+<p>            'success_rate': successful / self.total_users * 100,</p>
+<p>            'average_response_time': avg_response,</p>
+<p>            'total_test_time': total_time,</p>
+<p>            'requests_per_second': self.total_users / total_time</p>
+<p>        }</p>
+<p></code></pre></p><p><strong>スケーリング対策</strong>：</p><p><pre><code>python</p>
+<p>class AutoScalingStrategy:</p>
+<p>    def __init__(self):</p>
+<p>        self.metrics_history = []</p>
+<p>        self.scaling_decisions = []</p>
+    
+<p>    def analyze_and_recommend(self, current_metrics):</p>
+<p>        """メトリクスに基づくスケーリング推奨"""</p>
+<p>        recommendations = []</p>
+        
+<p>        # CPU使用率ベース</p>
+<p>        if current_metrics['cpu_usage'] > 80:</p>
+<p>            recommendations.append({</p>
+<p>                'type': 'scale_out',</p>
+<p>                'reason': 'CPU使用率が80%を超過',</p>
+<p>                'action': 'インスタンスを2台追加',</p>
+<p>                'priority': 'high'</p>
+<p>            })</p>
+        
+<p>        # レスポンスタイムベース</p>
+<p>        if current_metrics['p95_response_time'] > 1000:  # 1秒</p>
+<p>            recommendations.append({</p>
+<p>                'type': 'optimize',</p>
+<p>                'reason': 'レスポンスタイムが遅い',</p>
+<p>                'action': 'キャッシュ層の追加',</p>
+<p>                'priority': 'medium'</p>
+<p>            })</p>
+        
+<p>        # エラー率ベース</p>
+<p>        if current_metrics['error_rate'] > 0.01:  # 1%</p>
+<p>            recommendations.append({</p>
+<p>                'type': 'investigate',</p>
+<p>                'reason': 'エラー率が高い',</p>
+<p>                'action': 'ログ分析とデバッグ',</p>
+<p>                'priority': 'high'</p>
+<p>            })</p>
+        
+<p>        # 予測的スケーリング</p>
+<p>        if self._predict_traffic_spike(current_metrics['timestamp']):</p>
+<p>            recommendations.append({</p>
+<p>                'type': 'pre_scale',</p>
+<p>                'reason': '過去のパターンから負荷増大を予測',</p>
+<p>                'action': '30分前にインスタンス追加',</p>
+<p>                'priority': 'medium'</p>
+<p>            })</p>
+        
+<p>        return recommendations</p>
+<p></code></pre></p><h2>B.4 セキュリティインシデント対応</h2><h3>B.4.1 不正アクセスの検知と対応</h3><p>#### 症状：異常なログイン試行の増加</p><p><strong>リアルタイム検知システム</strong>：</p><p><pre><code>python</p>
+<p>class SecurityIncidentDetector:</p>
+<p>    def __init__(self):</p>
+<p>        self.thresholds = {</p>
+<p>            'failed_login_rate': 10,  # 5分間で10回</p>
+<p>            'geo_velocity': 1000,     # km/h</p>
+<p>            'concurrent_sessions': 5,  # 同時セッション数</p>
+<p>            'unusual_hour_login': (0, 5)  # 深夜帯</p>
+<p>        }</p>
+    
+<p>    async def analyze_login_attempt(self, event):</p>
+<p>        """ログイン試行の分析"""</p>
+<p>        user_id = event['user_id']</p>
+        
+<p>        # 1. ブルートフォース検知</p>
+<p>        recent_failures = await self.get_recent_failures(user_id)</p>
+<p>        if len(recent_failures) >= self.thresholds['failed_login_rate']:</p>
+<p>            return {</p>
+<p>                'risk_level': 'critical',</p>
+<p>                'threat_type': 'brute_force',</p>
+<p>                'action': 'block_and_notify',</p>
+<p>                'details': f'{len(recent_failures)}回の失敗'</p>
+<p>            }</p>
+        
+<p>        # 2. 地理的異常検知</p>
+<p>        last_location = await self.get_last_login_location(user_id)</p>
+<p>        if last_location:</p>
+<p>            velocity = self.calculate_velocity(</p>
+<p>                last_location, </p>
+<p>                event['location'],</p>
+<p>                event['timestamp'] - last_location['timestamp']</p>
+<p>            )</p>
+            
+<p>            if velocity > self.thresholds['geo_velocity']:</p>
+<p>                return {</p>
+<p>                    'risk_level': 'high',</p>
+<p>                    'threat_type': 'impossible_travel',</p>
+<p>                    'action': 'require_2fa',</p>
+<p>                    'details': f'移動速度: {velocity}km/h'</p>
+<p>                }</p>
+        
+<p>        # 3. 同時セッション検知</p>
+<p>        active_sessions = await self.get_active_sessions(user_id)</p>
+<p>        if len(active_sessions) >= self.thresholds['concurrent_sessions']:</p>
+<p>            return {</p>
+<p>                'risk_level': 'medium',</p>
+<p>                'threat_type': 'concurrent_sessions',</p>
+<p>                'action': 'notify_user',</p>
+<p>                'details': f'{len(active_sessions)}個の同時セッション'</p>
+<p>            }</p>
+        
+<p>        return {'risk_level': 'low', 'action': 'allow'}</p>
+<p></code></pre></p><p><strong>インシデント対応プレイブック</strong>：</p><p><pre><code>yaml</p>
+<p>incident_response_playbook:</p>
+<p>  brute_force_attack:</p>
+<p>    detection:</p>
+<p>      - threshold: "10 failed attempts in 5 minutes"</p>
+<p>      - pattern: "Sequential username attempts"</p>
+    
+<p>    immediate_actions:</p>
+<p>      - block_ip_address:</p>
+<p>          duration: "24 hours"</p>
+<p>          scope: "application_level"</p>
+<p>      - enable_captcha:</p>
+<p>          affected_ips: "attacking_ip_range"</p>
+<p>      - notify_security_team:</p>
+<p>          priority: "high"</p>
+<p>          channels: ["slack", "pagerduty"]</p>
+    
+<p>    investigation:</p>
+<p>      - check_logs:</p>
+<p>          timeframe: "last_24_hours"</p>
+<p>          focus: ["source_ips", "user_agents", "attempted_usernames"]</p>
+<p>      - analyze_pattern:</p>
+<p>          type: ["credential_stuffing", "dictionary_attack", "targeted"]</p>
+    
+<p>    mitigation:</p>
+<p>      - implement_rate_limiting:</p>
+<p>          limit: "3 attempts per 5 minutes"</p>
+<p>      - enforce_account_lockout:</p>
+<p>          threshold: "5 failed attempts"</p>
+<p>          duration: "30 minutes"</p>
+<p>      - consider_ip_reputation:</p>
+<p>          service: "abuseipdb"</p>
+          
+<p>  account_takeover:</p>
+<p>    detection:</p>
+<p>      - indicators: ["unusual_location", "new_device", "suspicious_activity"]</p>
+    
+<p>    immediate_actions:</p>
+<p>      - suspend_account:</p>
+<p>          grace_period: "0"</p>
+<p>      - invalidate_all_sessions:</p>
+<p>          except: "verified_devices"</p>
+<p>      - force_password_reset:</p>
+<p>          method: "secure_email_link"</p>
+      
+<p>    user_communication:</p>
+<p>      - send_notification:</p>
+<p>          channels: ["email", "sms", "push"]</p>
+<p>          template: "security_alert"</p>
+<p>      - provide_instructions:</p>
+<p>          content: ["verify_recent_activity", "secure_account", "contact_support"]</p>
+<p></code></pre></p><h3>B.4.2 データ漏洩の痕跡</h3><p>#### 症状：異常なデータアクセスパターン</p><p><strong>フォレンジック分析ツール</strong>：</p><p><pre><code>python</p>
+<p>class AuthForensicsAnalyzer:</p>
+<p>    def __init__(self, log_sources):</p>
+<p>        self.log_sources = log_sources</p>
+        
+<p>    async def analyze_user_activity(self, user_id, timeframe):</p>
+<p>        """ユーザーアクティビティの詳細分析"""</p>
+        
+<p>        # すべてのログソースから情報収集</p>
+<p>        auth_logs = await self.log_sources['auth'].query(user_id, timeframe)</p>
+<p>        access_logs = await self.log_sources['access'].query(user_id, timeframe)</p>
+<p>        audit_logs = await self.log_sources['audit'].query(user_id, timeframe)</p>
+        
+<p>        # タイムライン構築</p>
+<p>        timeline = self.build_timeline(auth_logs, access_logs, audit_logs)</p>
+        
+<p>        # 異常パターンの検出</p>
+<p>        anomalies = []</p>
+        
+<p>        # 1. 大量データアクセス</p>
+<p>        data_access_volume = self.calculate_data_access_volume(access_logs)</p>
+<p>        if data_access_volume > self.get_user_baseline(user_id) * 10:</p>
+<p>            anomalies.append({</p>
+<p>                'type': 'excessive_data_access',</p>
+<p>                'severity': 'high',</p>
+<p>                'volume': data_access_volume,</p>
+<p>                'timeframe': self.identify_peak_period(access_logs)</p>
+<p>            })</p>
+        
+<p>        # 2. 異常なアクセスパターン</p>
+<p>        access_pattern = self.analyze_access_pattern(access_logs)</p>
+<p>        if access_pattern['is_automated']:</p>
+<p>            anomalies.append({</p>
+<p>                'type': 'automated_access',</p>
+<p>                'severity': 'critical',</p>
+<p>                'indicators': access_pattern['indicators'],</p>
+<p>                'confidence': access_pattern['confidence']</p>
+<p>            })</p>
+        
+<p>        # 3. 権限昇格の痕跡</p>
+<p>        privilege_changes = self.detect_privilege_escalation(audit_logs)</p>
+<p>        if privilege_changes:</p>
+<p>            anomalies.append({</p>
+<p>                'type': 'privilege_escalation',</p>
+<p>                'severity': 'critical',</p>
+<p>                'changes': privilege_changes</p>
+<p>            })</p>
+        
+<p>        return {</p>
+<p>            'user_id': user_id,</p>
+<p>            'timeframe': timeframe,</p>
+<p>            'timeline': timeline,</p>
+<p>            'anomalies': anomalies,</p>
+<p>            'risk_score': self.calculate_risk_score(anomalies),</p>
+<p>            'recommendations': self.generate_recommendations(anomalies)</p>
+<p>        }</p>
+    
+<p>    def generate_forensics_report(self, analysis_results):</p>
+<p>        """フォレンジックレポートの生成"""</p>
+<p>        return {</p>
+<p>            'executive_summary': self.create_executive_summary(analysis_results),</p>
+<p>            'technical_details': {</p>
+<p>                'timeline': analysis_results['timeline'],</p>
+<p>                'anomalies': analysis_results['anomalies'],</p>
+<p>                'evidence': self.collect_evidence(analysis_results)</p>
+<p>            },</p>
+<p>            'impact_assessment': self.assess_impact(analysis_results),</p>
+<p>            'remediation_steps': self.recommend_remediation(analysis_results),</p>
+<p>            'legal_considerations': self.identify_legal_requirements(analysis_results)</p>
+<p>        }</p>
+<p></code></pre></p><h2>B.5 一般的なエラーメッセージと対処法</h2><h3>B.5.1 エラーメッセージ対応表</h3><p>| エラーメッセージ | 考えられる原因 | 対処法 |</p>
+<p>|-----------------|---------------|--------|</p>
+<p>| "Invalid CSRF token" | セッション切れ、Cookie無効 | ページリロード、Cookie設定確認 |</p>
+<p>| "Token signature verification failed" | 秘密鍵不一致、改ざん | 鍵設定確認、トークン再発行 |</p>
+<p>| "Rate limit exceeded" | 短時間の多数リクエスト | レート制限値の調整、分散処理 |</p>
+<p>| "Session expired" | タイムアウト、Redis接続断 | セッション延長、Redis監視 |</p>
+<p>| "Invalid state parameter" | OAuth state不一致 | セッション設定、CSRF対策確認 |</p>
+<p>| "Authenticator not found" | WebAuthn登録なし | 登録フロー案内、フォールバック |</p><h3>B.5.2 デバッグ用ユーティリティ</h3><p><pre><code>python</p>
+<p>class AuthDebugger:</p>
+<p>    """認証デバッグ用ユーティリティ"""</p>
+    
+<p>    @staticmethod</p>
+<p>    def decode_jwt_unsafe(token):</p>
+<p>        """JWTをデコード（検証なし、デバッグ用のみ）"""</p>
+<p>        try:</p>
+<p>            parts = token.split('.')</p>
+<p>            header = json.loads(base64.urlsafe_b64decode(parts[0] + '=='))</p>
+<p>            payload = json.loads(base64.urlsafe_b64decode(parts[1] + '=='))</p>
+            
+<p>            return {</p>
+<p>                'header': header,</p>
+<p>                'payload': payload,</p>
+<p>                'signature': parts[2],</p>
+<p>                'expires_at': datetime.fromtimestamp(payload.get('exp', 0)),</p>
+<p>                'issued_at': datetime.fromtimestamp(payload.get('iat', 0))</p>
+<p>            }</p>
+<p>        except Exception as e:</p>
+<p>            return {'error': str(e)}</p>
+    
+<p>    @staticmethod</p>
+<p>    def test_password_encoding(password):</p>
+<p>        """パスワードエンコーディングのテスト"""</p>
+<p>        encodings = {</p>
+<p>            'utf-8': password.encode('utf-8'),</p>
+<p>            'latin-1': password.encode('latin-1', errors='ignore'),</p>
+<p>            'ascii': password.encode('ascii', errors='ignore')</p>
+<p>        }</p>
+        
+<p>        results = {}</p>
+<p>        for encoding, encoded in encodings.items():</p>
+<p>            results[encoding] = {</p>
+<p>                'bytes': encoded,</p>
+<p>                'hex': encoded.hex(),</p>
+<p>                'length': len(encoded)</p>
+<p>            }</p>
+        
+<p>        return results</p>
+    
+<p>    @staticmethod</p>
+<p>    def verify_system_time():</p>
+<p>        """システム時刻の確認"""</p>
+<p>        import ntplib</p>
+        
+<p>        try:</p>
+<p>            ntp_client = ntplib.NTPClient()</p>
+<p>            response = ntp_client.request('pool.ntp.org')</p>
+            
+<p>            local_time = time.time()</p>
+<p>            ntp_time = response.tx_time</p>
+<p>            diff = local_time - ntp_time</p>
+            
+<p>            return {</p>
+<p>                'local_time': datetime.fromtimestamp(local_time),</p>
+<p>                'ntp_time': datetime.fromtimestamp(ntp_time),</p>
+<p>                'difference_seconds': diff,</p>
+<p>                'synchronized': abs(diff) < 5</p>
+<p>            }</p>
+<p>        except Exception as e:</p>
+<p>            return {'error': str(e)}</p>
+<p></code></pre></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

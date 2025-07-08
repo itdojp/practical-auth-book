@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章 演習問題解答 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第1章 演習問題解答</h1><h2>問題1：認証と認可の区別</h2><h3>解答</h3><p>1. <strong>認証</strong> - メールアドレスとパスワードによる本人確認
+<p>2. <strong>認可</strong> - アクセス権限の判定</p>
+<p>3. <strong>認証</strong> - 生体情報による本人確認</p>
+<p>4. <strong>認可</strong> - リソースへのアクセス制御</p>
+<p>5. <strong>認証</strong> - 追加の本人確認手段（多要素認証の一部）</p><h3>解説</h3><p>認証と認可の見分け方：</p>
+<p>- 「誰であるか」を確認 → <strong>認証</strong></p>
+<p>- 「何ができるか」を判定 → <strong>認可</strong></p><p>覚え方のコツ：</p>
+<p>- Authen<strong>N</strong> = ideNtity（身元確認）</p>
+<p>- Authori<strong>Z</strong>ation = 権限（permiZZion）</p><h2>問題2：セキュリティインシデントの分析</h2><h3>解答</h3><p><strong>根本原因：</strong></p><p>1. <strong>アカウント管理プロセスの不備</strong></p>
+<p>   - 退職時のアカウント無効化が実施されていない</p>
+<p>   - 定期的なアカウント棚卸しの欠如</p><p>2. <strong>認証方式の脆弱性</strong></p>
+<p>   - パスワードのみの単一要素認証</p>
+<p>   - パスワード変更ポリシーの不在</p><p>3. <strong>監査・監視の不足</strong></p>
+<p>   - 異常なアクセスパターンの検知機能なし</p>
+<p>   - アクセスログの定期レビュー未実施</p><p><strong>対策：</strong></p><p>1. <strong>即時対応</strong></p>
+<p>   <pre><code></p>
+<p>   - 該当アカウントの即時無効化</p>
+<p>   - 全従業員のパスワード強制変更</p>
+<p>   - アクセスログの詳細調査</p>
+<p>   </code></pre></p><p>2. <strong>プロセス改善</strong></p>
+<p>   <pre><code></p>
+<p>   退職時チェックリスト：</p>
+<p>   □ ADアカウントの無効化</p>
+<p>   □ メールアカウントの停止</p>
+<p>   □ VPNアクセスの削除</p>
+<p>   □ 物理的なアクセスカードの回収</p>
+<p>   □ 各システムの権限削除</p>
+<p>   </code></pre></p><p>3. <strong>技術的対策</strong></p>
+<p>   <pre><code>python</p>
+<p>   # アカウント自動無効化の実装例</p>
+<p>   def check_employee_status():</p>
+<p>       for user in get_all_users():</p>
+<p>           if user.employment_status == "terminated":</p>
+<p>               if days_since_termination(user) >= 0:</p>
+<p>                   disable_account(user)</p>
+<p>                   log_action(f"Account disabled: {user.id}")</p>
+<p>   </code></pre></p><p>4. <strong>継続的な改善</strong></p>
+<p>   - 四半期ごとのアカウント棚卸し</p>
+<p>   - 多要素認証の導入</p>
+<p>   - SIEM（Security Information and Event Management）の導入</p><h2>問題3：技術選択の判断</h2><h3>シナリオA：社内業務システム</h3><p><strong>推奨する認証方式：</strong></p>
+<p>- <strong>基本認証</strong>：Active Directory連携によるSSO</p>
+<p>- <strong>追加認証</strong>：スマートフォンアプリによるMFA（TOTP）</p><p><strong>理由：</strong></p>
+<p>1. <strong>利便性</strong>：1日複数回アクセスするため、SSOで認証回数を削減</p>
+<p>2. <strong>セキュリティ</strong>：人事・給与情報は機密性が高いため、MFA必須</p>
+<p>3. <strong>コスト効率</strong>：既存のAD基盤を活用、TOTPは無料で実装可能</p>
+<p>4. <strong>管理性</strong>：500名規模なら、AD中心の管理が最適</p><p><strong>実装例：</strong></p>
+<pre><code>yaml
+<h1>認証フロー設定</h1>
+<p>authentication:</p>
+<p>  primary:</p>
+<p>    type: "active_directory"</p>
+<p>    server: "ldap://ad.company.local"</p>
+<p>  mfa:</p>
+<p>    type: "totp"</p>
+<p>    required_for:</p>
+<p>      - "/hr/*"</p>
+<p>      - "/payroll/*"</p>
+<p>    grace_period: "8_hours"</p>
+<p></code></pre></p><h3>シナリオB：一般消費者向けECサイト</h3><p><strong>推奨する認証方式：</strong></p>
+<p>- <strong>基本認証</strong>：メールアドレス + パスワード</p>
+<p>- <strong>オプション</strong>：ソーシャルログイン（Google、Facebook）</p>
+<p>- <strong>リスクベース認証</strong>：異常検知時のみ追加認証</p><p><strong>理由：</strong></p>
+<p>1. <strong>利便性最優先</strong>：月1-2回の利用では、複雑な認証は離脱要因</p>
+<p>2. <strong>段階的セキュリティ</strong>：通常は簡単に、決済時は厳格に</p>
+<p>3. <strong>コスト配慮</strong>：100万ユーザーでのMFA必須はコスト高</p>
+<p>4. <strong>転換率</strong>：ソーシャルログインで新規登録のハードルを下げる</p><p><strong>実装例：</strong></p>
+<pre><code>javascript
+<p>// リスクベース認証の実装</p>
+<p>async function assessRisk(request, user) {</p>
+<p>    const riskFactors = {</p>
+<p>        newDevice: await isNewDevice(request, user),</p>
+<p>        unusualLocation: await isUnusualLocation(request, user),</p>
+<p>        highValueTransaction: request.amount > 50000,</p>
+<p>        rapidRequests: await checkVelocity(user)</p>
+<p>    };</p>
+    
+<p>    const riskScore = calculateScore(riskFactors);</p>
+    
+<p>    if (riskScore > 70) {</p>
+<p>        return { action: "require_2fa" };</p>
+<p>    } else if (riskScore > 40) {</p>
+<p>        return { action: "require_captcha" };</p>
+<p>    }</p>
+<p>    return { action: "allow" };</p>
+<p>}</p>
+<p></code></pre></p><h2>問題4：実装計画の作成</h2><h3>実装計画</h3><p>#### Phase 1：基本認証（2週間）</p>
+<pre><code>
+<p>Week 1-2:</p>
+<p>- ユーザー登録機能</p>
+<p>- パスワードハッシュ化（bcrypt）</p>
+<p>- ログイン/ログアウト</p>
+<p>- セッション管理</p>
+<p></code></pre></p><p>#### Phase 2：セキュリティ強化（2週間）</p>
+<pre><code>
+<p>Week 3-4:</p>
+<p>- パスワードポリシー実装</p>
+<p>- アカウントロックアウト機能</p>
+<p>- HTTPS必須化</p>
+<p>- CSRF対策</p>
+<p></code></pre></p><p>#### Phase 3：利便性向上（1週間）</p>
+<pre><code>
+<p>Week 5:</p>
+<p>- パスワードリセット機能</p>
+<p>- Remember Me機能</p>
+<p>- ログイン履歴表示</p>
+<p></code></pre></p><p>#### Phase 4：高度な機能（2週間）</p>
+<pre><code>
+<p>Week 6-7:</p>
+<p>- MFA導入（TOTP）</p>
+<p>- OAuth2.0連携準備</p>
+<p>- 管理者向け機能</p>
+<p></code></pre></p><h3>セキュリティ考慮事項</h3><p><pre><code>python</p>
+<h1>セキュリティ設定の例</h1>
+<p>SECURITY_CONFIG = {</p>
+<p>    # パスワードポリシー</p>
+<p>    "password": {</p>
+<p>        "min_length": 12,</p>
+<p>        "require_uppercase": True,</p>
+<p>        "require_lowercase": True,</p>
+<p>        "require_numbers": True,</p>
+<p>        "require_special": True,</p>
+<p>        "history_count": 5,  # 過去5回のパスワードは再利用不可</p>
+<p>        "max_age_days": 90</p>
+<p>    },</p>
+    
+<p>    # セッション設定</p>
+<p>    "session": {</p>
+<p>        "timeout_minutes": 30,</p>
+<p>        "absolute_timeout_hours": 8,</p>
+<p>        "secure_cookie": True,</p>
+<p>        "http_only": True,</p>
+<p>        "same_site": "Strict"</p>
+<p>    },</p>
+    
+<p>    # ロックアウト設定</p>
+<p>    "lockout": {</p>
+<p>        "max_attempts": 5,</p>
+<p>        "lockout_duration_minutes": 30,</p>
+<p>        "reset_window_minutes": 15</p>
+<p>    }</p>
+<p>}</p>
+<p></code></pre></p><h3>将来の拡張性</h3><p>1. <strong>データベース設計</strong>：</p>
+<pre><code>sql
+<p>-- 拡張可能な認証情報テーブル</p>
+<p>CREATE TABLE auth_methods (</p>
+<p>    user_id INT,</p>
+<p>    method_type VARCHAR(50),  -- 'password', 'totp', 'webauthn'</p>
+<p>    method_data JSON,</p>
+<p>    created_at TIMESTAMP,</p>
+<p>    PRIMARY KEY (user_id, method_type)</p>
+<p>);</p>
+<p></code></pre></p><p>2. <strong>APIの設計</strong>：</p>
+<pre><code>
+<p>POST   /api/auth/register</p>
+<p>POST   /api/auth/login</p>
+<p>POST   /api/auth/logout</p>
+<p>POST   /api/auth/refresh</p>
+<p>GET    /api/auth/methods     # 利用可能な認証方式</p>
+<p>POST   /api/auth/mfa/setup   # MFA設定</p>
+<p>DELETE /api/auth/mfa         # MFA解除</p>
+<p></code></pre></p><h2>問題5：用語の説明</h2><h3>シングルサインオン（SSO）</h3><p><strong>経営層向け説明：</strong></p>
+<p>「SSOは、会社の建物に入る際の『統合IDカード』のようなものです。1枚のカードで、正門、各フロア、会議室、すべてにアクセスできるように、1回のログインで複数のシステムが使えるようになります。従業員の生産性が向上し、パスワード忘れによるヘルプデスク対応も削減できます。」</p><h3>多要素認証（MFA）</h3><p><strong>経営層向け説明：</strong></p>
+<p>「銀行のATMをイメージしてください。キャッシュカード（持ち物）と暗証番号（知識）の2つが必要ですね。MFAも同じで、パスワードに加えて、スマートフォンに送られるコードなど、複数の要素で本人確認をします。これにより、パスワードが漏れても、不正アクセスを防げます。」</p><h3>セッション管理</h3><p><strong>経営層向け説明：</strong></p>
+<p>「ホテルのチェックインに例えられます。一度フロントで本人確認をしたら、滞在中は部屋の鍵だけで出入りできますね。Webシステムも同じで、最初にログインしたら、その『滞在期間』中は再度パスワードを入力せずに作業できます。ただし、安全のため一定時間で『チェックアウト』させる仕組みも必要です。」</p><h3>トークンベース認証</h3><p><strong>経営層向け説明：</strong></p>
+<p>「遊園地の『1日パスポート』のようなものです。入場時に本人確認をして発行されたパスポートを見せれば、各アトラクションで再度身分証明する必要はありません。デジタルの世界でも、最初の認証後に発行される『デジタルパスポート』（トークン）を使って、効率的にサービスを利用できます。」</p><h2>チャレンジ問題：脅威モデリング</h2><h3>想定される脅威</h3><p>1. <strong>内部不正アクセス</strong></p>
+<p>   - <strong>脅威</strong>：医療従事者による権限外の患者情報閲覧</p>
+<p>   - <strong>影響度</strong>：高（プライバシー侵害、信頼失墜）</p>
+<p>   - <strong>発生可能性</strong>：中</p>
+<p>   - <strong>対策</strong>：</p>
+<p>     <pre><code></p>
+<p>     - 職種別の厳格なRBAC実装</p>
+<p>     - アクセスログの全件記録</p>
+<p>     - 異常アクセスのリアルタイム検知</p>
+<p>     </code></pre></p><p>2. <strong>認証情報の窃取</strong></p>
+<p>   - <strong>脅威</strong>：フィッシングによるID/パスワード詐取</p>
+<p>   - <strong>影響度</strong>：高（なりすましによる情報漏洩）</p>
+<p>   - <strong>発生可能性</strong>：高</p>
+<p>   - <strong>対策</strong>：</p>
+<p>     <pre><code></p>
+<p>     - 医療従事者向けMFA必須化</p>
+<p>     - フィッシング対策訓練</p>
+<p>     - 異常ログインの検知とアラート</p>
+<p>     </code></pre></p><p>3. <strong>患者による他患者情報へのアクセス</strong></p>
+<p>   - <strong>脅威</strong>：URLパラメータ改ざん等による他者情報閲覧</p>
+<p>   - <strong>影響度</strong>：高（個人情報漏洩）</p>
+<p>   - <strong>発生可能性</strong>：中</p>
+<p>   - <strong>対策</strong>：</p>
+<p>     <pre><code>python</p>
+<p>     # オブジェクトレベルの認可チェック</p>
+<p>     def get_patient_record(user, patient_id):</p>
+<p>         if user.role == "patient" and user.patient_id != patient_id:</p>
+<p>             raise AuthorizationError("Access denied")</p>
+<p>         return fetch_record(patient_id)</p>
+<p>     </code></pre></p><p>4. <strong>外部連携における情報漏洩</strong></p>
+<p>   - <strong>脅威</strong>：薬局システムとの通信経路での情報窃取</p>
+<p>   - <strong>影響度</strong>：高（処方箋情報の漏洩）</p>
+<p>   - <strong>発生可能性</strong>：低</p>
+<p>   - <strong>対策</strong>：</p>
+<p>     <pre><code></p>
+<p>     - API間のmTLS実装</p>
+<p>     - JWTによる情報の最小化</p>
+<p>     - 監査ログの相互保存</p>
+<p>     </code></pre></p><p>5. <strong>長期間の不正アクセス</strong></p>
+<p>   - <strong>脅威</strong>：退職者アカウントの放置による継続的アクセス</p>
+<p>   - <strong>影響度</strong>：高（長期的な情報収集）</p>
+<p>   - <strong>発生可能性</strong>：中</p>
+<p>   - <strong>対策</strong>：</p>
+<p>     <pre><code></p>
+<p>     - HRシステムとの自動連携</p>
+<p>     - 定期的なアクセス権限の棚卸し</p>
+<p>     - 最終ログイン日時によるアカウント自動無効化</p>
+<p>     </code></pre></p><h3>リスク評価マトリクス</h3><p><pre><code></p>
+<p>影響度</p>
+<p>  高│ [1,2,3] │ [4,5]  │        │</p>
+<p>  中│         │        │        │</p>
+<p>  低│         │        │   [4]  │</p>
+<p>    └─────────┴────────┴────────┘</p>
+<p>      低        中        高</p>
+<p>                発生可能性</p>
+<p></code></pre></p><h3>残存リスクの評価</h3><p>すべての対策を実施しても、以下のリスクが残存：</p><p>1. <strong>ソーシャルエンジニアリング</strong>：技術的対策では完全に防げない</p>
+<p>2. <strong>ゼロデイ攻撃</strong>：未知の脆弱性は対策不可能</p>
+<p>3. <strong>内部共謀</strong>：複数人による組織的な不正</p><p>これらに対しては、継続的な教育、監視強化、インシデント対応体制の整備が必要。</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

