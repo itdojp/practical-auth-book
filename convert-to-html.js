@@ -16,10 +16,14 @@ const htmlTemplate = (title, content, basePath = '') => `<!DOCTYPE html>
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
+            overflow-x: hidden;
+            width: 100%;
         }
         .book-layout {
             display: flex;
             min-height: 100vh;
+            width: 100%;
+            position: relative;
         }
         .book-sidebar {
             width: 280px;
@@ -120,12 +124,17 @@ const htmlTemplate = (title, content, basePath = '') => `<!DOCTYPE html>
                 margin-left: 0;
                 padding: 15px;
                 max-width: 100%;
+                width: 100%;
+                overflow-x: hidden;
             }
             .container {
-                padding: 20px;
+                padding: 15px;
                 margin: 0;
                 box-shadow: none;
                 border-radius: 0;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
             }
             h1 {
                 font-size: 1.8rem;
@@ -150,6 +159,8 @@ const htmlTemplate = (title, content, basePath = '') => `<!DOCTYPE html>
                 line-height: 1.4;
                 white-space: pre;
                 word-wrap: normal;
+                max-width: 100%;
+                margin: 1rem 0;
             }
             code {
                 font-size: 0.85rem;
@@ -189,6 +200,11 @@ const htmlTemplate = (title, content, basePath = '') => `<!DOCTYPE html>
             p {
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                max-width: 100%;
+            }
+            /* ボックスモデルの調整 */
+            * {
+                box-sizing: border-box;
             }
             /* フォントサイズの調整 */
             body {

@@ -6,6 +6,9 @@
     <title>実践 認証認可システム設計</title>
     <link rel="stylesheet" href="/practical-auth-book/assets/css/main.css">
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
@@ -13,6 +16,8 @@
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
+            overflow-x: hidden;
+            width: 100%;
         }
         .book-layout {
             display: flex;
@@ -167,8 +172,16 @@
             }
             .book-main {
                 margin-left: 0;
-                padding: 20px;
+                padding: 15px;
                 padding-top: 80px;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            .container {
+                padding: 15px;
+                margin: 0;
+                max-width: 100%;
             }
         }
     </style>
