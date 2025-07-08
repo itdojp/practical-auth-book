@@ -38,24 +38,62 @@
 {% assign next_item = nil %}
 {% assign current_index = nil %}
 
+{% comment %} Debug mode - only shows in development {% endcomment %}
+{% if jekyll.environment == "development" or site.debug_navigation %}
+<!-- Navigation Debug Info -->
+<!-- Current page URL: {{ page.url }} -->
+<!-- Total navigation items: {{ all_pages.size }} -->
+{% endif %}
+
 {% for item in all_pages %}
     <!-- Normalize URLs for comparison -->
-    {% assign item_path_clean = item.path | remove_first: "/" | remove: "index.html" | remove: ".html" %}
-    {% assign page_url_clean = page.url | remove_first: "/" | remove: "index.html" | remove: ".html" %}
+    <!-- Remove leading slash from both paths -->
+    {% assign item_path_clean = item.path | remove_first: "/" %}
+    {% assign page_url_clean = page.url | remove_first: "/" %}
     
-    <!-- Ensure trailing slash for directory paths -->
-    {% unless item_path_clean contains "." %}
-        {% assign item_path_clean = item_path_clean | append: "/" %}
-    {% endunless %}
-    {% unless page_url_clean contains "." %}
-        {% assign page_url_clean = page_url_clean | append: "/" %}
-    {% endunless %}
+    <!-- Handle .html files vs directory paths separately -->
+    {% if item_path_clean contains ".html" %}
+        {% assign normalized_item_path = item_path_clean %}
+    {% else %}
+        <!-- Directory path - ensure trailing slash -->
+        {% assign normalized_item_path = item_path_clean | append: "/" | replace: "//", "/" %}
+    {% endif %}
     
-    {% if page_url_clean == item_path_clean %}
+    {% if page_url_clean contains ".html" %}
+        {% assign normalized_page_url = page_url_clean %}
+    {% else %}
+        <!-- Directory path - ensure trailing slash -->
+        {% assign normalized_page_url = page_url_clean | append: "/" | replace: "//", "/" %}
+    {% endif %}
+    
+    {% if jekyll.environment == "development" or site.debug_navigation %}
+    <!-- Debug item {{ forloop.index }}: path="{{ item.path }}" clean="{{ item_path_clean }}" normalized="{{ normalized_item_path }}" -->
+    <!-- Page URL clean="{{ page_url_clean }}" normalized="{{ normalized_page_url }}" -->
+    {% endif %}
+    
+    {% if normalized_page_url == normalized_item_path %}
         {% assign current_index = forloop.index0 %}
+        {% if jekyll.environment == "development" or site.debug_navigation %}
+        <!-- ✓ MATCH FOUND at index {{ current_index }} -->
+        {% endif %}
         {% break %}
     {% endif %}
 {% endfor %}
+
+{% if jekyll.environment == "development" or site.debug_navigation %}
+<!-- Current page index: {{ current_index | default: 'NOT_FOUND' }} -->
+{% if current_index %}
+<!-- Previous item: {{ prev_item.title | default: 'NONE' }} (index: {{ current_index | minus: 1 }}) -->
+<!-- Next item: {{ next_item.title | default: 'NONE' }} (index: {{ current_index | plus: 1 }}) -->
+{% else %}
+<!-- ⚠️ WARNING: Current page not found in navigation! -->
+<!-- Possible reasons: -->
+<!-- 1. Page URL doesn't match any path in navigation.yml -->
+<!-- 2. URL normalization issue (check .html extensions) -->
+<!-- 3. Missing page in navigation.yml -->
+{% endif %}
+<!-- End Debug Info -->
+{% endif %}
 
 {% if current_index %}
     {% assign prev_index = current_index | minus: 1 %}

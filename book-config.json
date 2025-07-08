@@ -1,12 +1,14 @@
 {
   "book": {
-    "title": "Book Publishing Template v3.0 サンプル",
-    "description": "モダンデザインシステムを使用した技術書籍テンプレートのサンプル",
+    "title": "実践 認証認可システム設計 -- ゼロから学ぶアイデンティティ管理の実装",
+    "title_en": "Practical Authentication and Authorization -- Building Modern Identity Systems",
+    "description": "認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書",
     "author": {
-      "name": "Book Publishing Template",
-      "email": "example@example.com"
+      "name": "ITDO Inc.",
+      "email": "info@itdo.jp",
+      "github": "itdojp"
     },
-    "version": "3.0.0",
+    "version": "1.0.0",
     "language": "ja"
   },
   "contentSections": [

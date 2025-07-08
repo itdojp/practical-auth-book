@@ -1,17 +1,19 @@
-# Jekyll設定 - 書籍作成時にこれらの値を更新してください
-title: "書籍タイトル"
-description: "書籍の説明文"
+# Jekyll設定 - 書籍作成時に以下の値を必ず変更してください
+# ⚠️ 警告: デフォルト値のままでは正しく動作しません
+
+title: "実践 認証認可システム設計"
+description: "ゼロから学ぶアイデンティティ管理の実装"
 author: 
-  name: ITDO Inc. (株式会社アイティードゥ)
-  github: itdojp
-  email: info@itdo.jp
-baseurl: "/your-book-repository-name"
+  name: "ITDO Inc."
+  github: "itdojp"
+  email: "info@itdo.jp"
+baseurl: "/practical-auth-book"
 url: "https://itdojp.github.io"
 
-# Repository settings for links - 書籍作成時に更新してください  
+# Repository settings for links
 repository:
-  github: itdojp/your-book-repository-name  # GitHub repository path
-  zenn: books/your-book-repository-name      # Zenn book path
+  github: https://github.com/itdojp/practical-auth-book
+  zenn: books/practical-auth-book
 
 # テーマ
 remote_theme: pages-themes/minimal@v0.2.0
