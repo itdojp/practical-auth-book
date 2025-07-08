@@ -6,7 +6,7 @@ description: "ゼロから学ぶアイデンティティ管理の実装"
 author: 
   name: "ITDO Inc."
   github: "itdojp"
-  email: "info@itdo.jp"
+  email: "knowledge@itdo.jp"
 baseurl: "/practical-auth-book"
 url: "https://itdojp.github.io"
 
