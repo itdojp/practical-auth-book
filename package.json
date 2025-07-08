@@ -1,0 +1,60 @@
+{
+  "name": "book-publishing-template-improved",
+  "version": "2.0.0",
+  "description": "Improved Book Publishing Template with Easy Setup",
+  "author": "Book Publishing Template Contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "setup": "node easy-setup.js",
+    "build": "node scripts/build-simple.js",
+    "build:safe": "node scripts/build-with-conflict-detection.js",
+    "build:full": "node scripts/build.js",
+    "preview": "npm run build && npx http-server public -p 8080 --silent",
+    "clean-nav": "node scripts/navigation-cleaner.js",
+    "deploy": "bash scripts/deploy.sh",
+    "clean": "rm -rf public output temp",
+    "configure:workflows": "node scripts/configure-workflows.js",
+    "check-conflicts": "node scripts/jekyll-conflict-detector.js src --dry-run",
+    "fix-conflicts": "node scripts/jekyll-conflict-detector.js src --fix",
+    "lint:light": "markdownlint 'src/**/*.md' --ignore node_modules",
+    "test:light": "npm run lint:light && npm run build",
+    "test:conflicts": "npm run check-conflicts",
+    "check-links": "node scripts/check-links.js",
+    "build:validate": "npm run build && npm run check-links",
+    "setup:hooks": "./scripts/setup-pre-commit.sh",
+    "validate:config": "./scripts/validate-config.sh",
+    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run build:safe - Build with conflict detection\n  npm run build:validate - Build and check links\n  npm run check-conflicts - Check Jekyll conflicts\n  npm run fix-conflicts - Auto-fix Jekyll conflicts\n  npm run check-links - Validate internal links\n  npm run setup:hooks - Install pre-commit hooks\n  npm run validate:config - Validate configuration files\n  npm run preview - Local preview\n  npm run configure:workflows - Disable problematic workflows\n  npm run deploy - Deploy to GitHub Pages'"
+  },
+  "dependencies": {
+    "fs-extra": "^11.3.0",
+    "gray-matter": "^4.0.3",
+    "glob": "^10.3.10"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "markdownlint-cli": "^0.33.0"
+  },
+  "optionalDependencies": {
+    "puppeteer": "^21.0.0",
+    "sharp": "^0.34.2"
+  },
+  "keywords": [
+    "book",
+    "publishing",
+    "markdown",
+    "github-pages",
+    "template",
+    "easy-setup"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itdojp/book-publishing-template2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/itdojp/book-publishing-template2/issues"
+  },
+  "homepage": "https://github.com/itdojp/book-publishing-template2#readme"
+}

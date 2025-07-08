@@ -1,0 +1,63 @@
+# Pre-commit hooks configuration
+# Install: pip install pre-commit && pre-commit install
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^docs/|\.md$
+      - id: end-of-file-fixer
+        exclude: ^docs/
+      - id: check-yaml
+        exclude: ^docs/_data/
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+        exclude: ^docs/|^templates/
+
+  # Custom validation hooks
+  - repo: local
+    hooks:
+      # Configuration validation
+      - id: validate-config
+        name: Validate configuration files
+        entry: scripts/validate-config.sh
+        language: script
+        files: '(_config\.yml|book-config\.json)$'
+        pass_filenames: false
+
+      # Jekyll conflict check
+      - id: check-jekyll-conflicts
+        name: Check Jekyll Liquid conflicts
+        entry: node scripts/jekyll-conflict-detector.js
+        language: system
+        files: '\.(md|markdown)$'
+        args: [--check]
+        exclude: ^docs/
+
+      # Placeholder detection
+      - id: detect-placeholders
+        name: Detect placeholder values
+        entry: scripts/detect-placeholders.sh
+        language: script
+        files: '(_config\.yml|book-config\.json)$'
+        pass_filenames: false
+
+      # Navigation validation
+      - id: validate-navigation
+        name: Validate navigation structure
+        entry: scripts/validate-navigation.sh
+        language: script
+        files: 'navigation\.yml$'
+        pass_filenames: false

@@ -1,0 +1,63 @@
+name: Validate Build
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check for Jekyll conflicts
+      run: npm run check-conflicts
+      
+    - name: Build book
+      run: npm run build
+      
+    - name: Validate configuration
+      run: |
+        echo "Checking for placeholder values..."
+        if grep -r "YOUR_.*_HERE" docs/_config.yml 2>/dev/null; then
+          echo "::warning::Configuration contains placeholder values"
+        fi
+        
+    - name: Check internal links
+      run: npm run check-links
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-output
+        path: docs/
+        retention-days: 7
+        
+    - name: Test preview server
+      run: |
+        npx http-server docs -p 8080 &
+        sleep 5
+        curl -f http://localhost:8080 || exit 1
+        echo "Preview server is working"
+        
+    - name: Summary
+      if: always()
+      run: |
+        echo "## Build Validation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Jekyll Conflicts: Checked ✓" >> $GITHUB_STEP_SUMMARY
+        echo "- Link Validation: Completed ✓" >> $GITHUB_STEP_SUMMARY
+        echo "- Preview Server: Tested ✓" >> $GITHUB_STEP_SUMMARY
