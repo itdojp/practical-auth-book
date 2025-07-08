@@ -109,18 +109,144 @@
             color: #6c757d;
             text-align: center;
         }
+        .mobile-nav-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .mobile-nav-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            padding: 80px 20px 20px;
+        }
+        .mobile-nav-menu.open {
+            left: 0;
+        }
+        .mobile-nav-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
         @media (max-width: 768px) {
+            .mobile-nav-toggle {
+                display: block;
+            }
             .book-sidebar {
                 display: none;
             }
             .book-main {
                 margin-left: 0;
                 padding: 20px;
+                padding-top: 80px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Mobile Navigation Toggle -->
+    <button class="mobile-nav-toggle" id="mobile-nav-toggle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+
+    <!-- Mobile Navigation Menu -->
+    <div class="mobile-nav-menu" id="mobile-nav-menu">
+        <button class="mobile-nav-close" id="mobile-nav-close">&times;</button>
+        <div class="sidebar-title" style="margin-bottom: 20px;">実践 認証認可システム設計</div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <ul class="nav-list">
+                    <li><a href="/practical-auth-book/introduction" class="nav-link">はじめに</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">第I部: 基礎概念編</h3>
+                <ul class="nav-list">
+                    <li><a href="/practical-auth-book/chapters/chapter-01-overview" class="nav-link">第1章: 認証認可の全体像</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-02-authentication" class="nav-link">第2章: 認証の基礎</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-03-authorization" class="nav-link">第3章: 認可の基礎</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">第II部: プロトコルと標準編</h3>
+                <ul class="nav-list">
+                    <li><a href="/practical-auth-book/chapters/chapter-04-session" class="nav-link">第4章: セッション管理</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-05-token-auth" class="nav-link">第5章: トークンベース認証</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-06-oauth2" class="nav-link">第6章: OAuth 2.0</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-07-oidc-saml" class="nav-link">第7章: OpenID ConnectとSAML</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">第III部: 実装編</h3>
+                <ul class="nav-list">
+                    <li><a href="/practical-auth-book/chapters/chapter-08-auth-system-design" class="nav-link">第8章: 認証システムの設計</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-09-microservices-auth" class="nav-link">第9章: マイクロサービスでの認証認可</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-10-implementation-patterns" class="nav-link">第10章: 実装パターンとベストプラクティス</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">第IV部: 応用編</h3>
+                <ul class="nav-list">
+                    <li><a href="/practical-auth-book/chapters/chapter-11-security-threats" class="nav-link">第11章: セキュリティ脅威と対策</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-12-performance" class="nav-link">第12章: パフォーマンス最適化</a></li>
+                    <li><a href="/practical-auth-book/chapters/chapter-13-future" class="nav-link">第13章: 認証技術の未来</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">付録</h3>
+                <ul class="nav-list">
+                    <li><a href="/practical-auth-book/appendices/appendix-a-libraries" class="nav-link">付録A: 主要ライブラリ・ツール一覧</a></li>
+                    <li><a href="/practical-auth-book/appendices/appendix-b-troubleshooting" class="nav-link">付録B: トラブルシューティングガイド</a></li>
+                    <li><a href="/practical-auth-book/appendices/appendix-c-glossary" class="nav-link">付録C: 用語集</a></li>
+                    <li><a href="/practical-auth-book/appendices/appendix-d-references" class="nav-link">付録D: 参考文献・リソース</a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
     <div class="book-layout">
         <!-- Sidebar Navigation -->
         <aside class="book-sidebar">
@@ -218,5 +344,35 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // Mobile navigation functionality
+        const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+        const mobileNavMenu = document.getElementById('mobile-nav-menu');
+        const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
+        const mobileNavClose = document.getElementById('mobile-nav-close');
+
+        function openMobileNav() {
+            mobileNavMenu.classList.add('open');
+            mobileNavOverlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileNav() {
+            mobileNavMenu.classList.remove('open');
+            mobileNavOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        mobileNavToggle.addEventListener('click', openMobileNav);
+        mobileNavClose.addEventListener('click', closeMobileNav);
+        mobileNavOverlay.addEventListener('click', closeMobileNav);
+
+        // Close mobile nav when clicking on a link
+        const mobileNavLinks = mobileNavMenu.querySelectorAll('.nav-link');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', closeMobileNav);
+        });
+    </script>
 </body>
 </html>
