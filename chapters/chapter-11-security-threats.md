@@ -1045,7 +1045,7 @@ class AuthenticationPenetrationTesting:
                         
                         # GraphQLでの試行
                         user2.post('/graphql', json={
-                            'query': f'{% raw %}{{ resource(id: "{resource.id}") {{ content }} }}{% endraw %}'
+                            'query': f'{{{{ resource(id: "{resource.id}") {{{{ content }}}} }}}}'
                         })
                     ]
                     

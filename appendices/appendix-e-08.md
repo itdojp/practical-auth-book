@@ -539,8 +539,8 @@ class LocalizedError:
         action = error_def.get("action", "")
         
         for key, value in self.params.items():
-            message = message.replace(f"{{% raw %}}{{{key}}}{% endraw %}}", str(value))
-            action = action.replace(f"{{% raw %}}{{{key}}}{% endraw %}}", str(value))
+            message = message.replace(f"{{{{key}}}}", str(value))
+            action = action.replace(f"{{{{key}}}}", str(value))
         
         response = {
             "error": {
