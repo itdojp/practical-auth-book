@@ -63,9 +63,9 @@
 #### 問題パターン
 ```markdown
 # 競合する例
-{{.Container}}      # Dockerコンテナ形式
-{{ .Values.name }}  # Kubernetes形式
-{%range%}          # Prometheus形式
+&#123;&#123;.Container&#125;&#125;      # Dockerコンテナ形式
+&#123;&#123; .Values.name &#125;&#125;  # Kubernetes形式
+&#123;%range%&#125;          # Prometheus形式
 ```
 
 #### 解決策
