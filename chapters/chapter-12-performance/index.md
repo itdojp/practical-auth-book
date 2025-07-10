@@ -483,7 +483,7 @@ groups:
           severity: warning
         annotations:
           summary: "High authentication failure rate detected"
-          description: "Authentication failure rate is {{ $value | humanizePercentage }}"
+          description: "Authentication failure rate is &#123;&#123; $value | humanizePercentage &#125;&#125;"
       
       # 認証遅延
       - alert: SlowAuthentication
@@ -494,7 +494,7 @@ groups:
           severity: critical
         annotations:
           summary: "Authentication is slow"
-          description: "95th percentile authentication time is {{ $value }}s"
+          description: "95th percentile authentication time is &#123;&#123; $value &#125;&#125;s"
       
       # セッション数の異常
       - alert: AbnormalSessionCount
@@ -505,7 +505,7 @@ groups:
           severity: warning
         annotations:
           summary: "Abnormal session count change"
-          description: "Session count changed by {{ $value }} in 10 minutes"
+          description: "Session count changed by &#123;&#123; $value &#125;&#125; in 10 minutes"
 ```
 
 ### 12.4.3 分散トレーシングの実装
