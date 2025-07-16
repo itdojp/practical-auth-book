@@ -788,7 +788,857 @@ class AuthorizationAttacks:
         }
 ```
 
-## 11.2 ペネトレーションテスト
+## 11.2 AI/ML駆動の脅威検知システム
+
+### 11.2.1 機械学習による異常検知
+
+```python
+class MLDrivenThreatDetection:
+    """機械学習駆動の脅威検知システム"""
+    
+    def anomaly_detection_system(self):
+        """異常検知システムの実装"""
+        
+        return {
+            'user_behavior_analytics': '''
+            import numpy as np
+            from sklearn.ensemble import IsolationForest
+            from sklearn.preprocessing import StandardScaler
+            import tensorflow as tf
+            from typing import Dict, List, Tuple
+            
+            class UserBehaviorAnalytics:
+                """ユーザー行動分析による異常検知"""
+                
+                def __init__(self):
+                    self.isolation_forest = IsolationForest(
+                        contamination=0.1,
+                        random_state=42,
+                        n_estimators=100
+                    )
+                    self.scaler = StandardScaler()
+                    self.lstm_model = self._build_lstm_model()
+                    self.feature_extractors = self._init_feature_extractors()
+                
+                def _build_lstm_model(self):
+                    """時系列異常検知のためのLSTMモデル"""
+                    model = tf.keras.Sequential([
+                        tf.keras.layers.LSTM(128, return_sequences=True, input_shape=(None, 15)),
+                        tf.keras.layers.LSTM(64, return_sequences=True),
+                        tf.keras.layers.LSTM(32),
+                        tf.keras.layers.Dense(16, activation='relu'),
+                        tf.keras.layers.Dense(1, activation='sigmoid')
+                    ])
+                    
+                    model.compile(
+                        optimizer='adam',
+                        loss='binary_crossentropy',
+                        metrics=['accuracy', 'precision', 'recall']
+                    )
+                    
+                    return model
+                
+                def extract_behavior_features(self, user_session: UserSession) -> np.ndarray:
+                    """ユーザーセッションから行動特徴を抽出"""
+                    
+                    features = {
+                        # 時間的特徴
+                        'login_hour': user_session.login_time.hour,
+                        'login_day_of_week': user_session.login_time.weekday(),
+                        'session_duration': (user_session.logout_time - user_session.login_time).seconds,
+                        'time_since_last_login': user_session.time_since_last_login,
+                        
+                        # アクセスパターン
+                        'unique_ip_count': len(user_session.ip_addresses),
+                        'location_changes': user_session.location_change_count,
+                        'device_switches': user_session.device_switch_count,
+                        'user_agent_changes': user_session.user_agent_change_count,
+                        
+                        # 行動パターン
+                        'page_views': user_session.page_view_count,
+                        'api_calls': user_session.api_call_count,
+                        'failed_attempts': user_session.failed_auth_attempts,
+                        'resource_access_rate': user_session.resource_access_rate,
+                        
+                        # セキュリティイベント
+                        'privilege_escalation_attempts': user_session.privilege_escalation_attempts,
+                        'suspicious_endpoints_accessed': user_session.suspicious_endpoint_count,
+                        'data_export_volume': user_session.data_export_mb
+                    }
+                    
+                    return np.array(list(features.values()))
+                
+                async def detect_anomalies(self, user_id: str) -> AnomalyDetectionResult:
+                    """リアルタイム異常検知"""
+                    
+                    # 現在のセッションデータ取得
+                    current_session = await self.get_current_session(user_id)
+                    current_features = self.extract_behavior_features(current_session)
+                    
+                    # 過去の行動履歴取得
+                    historical_sessions = await self.get_historical_sessions(user_id, days=30)
+                    historical_features = np.array([
+                        self.extract_behavior_features(session) 
+                        for session in historical_sessions
+                    ])
+                    
+                    # Isolation Forestによる異常スコア計算
+                    if len(historical_features) > 10:
+                        self.isolation_forest.fit(historical_features)
+                        anomaly_score = self.isolation_forest.decision_function([current_features])[0]
+                        is_anomaly = self.isolation_forest.predict([current_features])[0] == -1
+                    else:
+                        anomaly_score = 0
+                        is_anomaly = False
+                    
+                    # LSTMによる時系列異常検知
+                    sequence_data = await self.prepare_sequence_data(user_id)
+                    lstm_prediction = self.lstm_model.predict(sequence_data)[0][0]
+                    
+                    # 総合的な脅威スコア計算
+                    threat_score = self.calculate_threat_score(
+                        anomaly_score=anomaly_score,
+                        lstm_prediction=lstm_prediction,
+                        current_features=current_features
+                    )
+                    
+                    # 詳細な分析結果
+                    analysis = await self.analyze_anomaly_details(
+                        user_id=user_id,
+                        current_session=current_session,
+                        threat_score=threat_score
+                    )
+                    
+                    return AnomalyDetectionResult(
+                        user_id=user_id,
+                        is_anomaly=is_anomaly,
+                        threat_score=threat_score,
+                        anomaly_score=anomaly_score,
+                        lstm_confidence=float(lstm_prediction),
+                        analysis=analysis,
+                        recommended_actions=self.get_recommended_actions(threat_score)
+                    )
+                
+                def calculate_threat_score(
+                    self, 
+                    anomaly_score: float, 
+                    lstm_prediction: float,
+                    current_features: np.ndarray
+                ) -> float:
+                    """複合的な脅威スコアの計算"""
+                    
+                    # 基本スコア（0-1の範囲に正規化）
+                    base_score = (1 - anomaly_score) * 0.4 + lstm_prediction * 0.4
+                    
+                    # リスク要因による調整
+                    risk_multipliers = {
+                        'multiple_locations': 1.5 if current_features[5] > 2 else 1.0,
+                        'failed_auth': 1.3 if current_features[10] > 3 else 1.0,
+                        'privilege_escalation': 2.0 if current_features[12] > 0 else 1.0,
+                        'unusual_time': 1.2 if current_features[0] < 6 or current_features[0] > 22 else 1.0
+                    }
+                    
+                    # 最終スコア計算
+                    final_score = base_score
+                    for multiplier in risk_multipliers.values():
+                        final_score *= multiplier
+                    
+                    return min(final_score, 1.0)
+            ''',
+            
+            'authentication_pattern_analysis': '''
+            class AuthenticationPatternAnalysis:
+                """認証パターンの分析"""
+                
+                def __init__(self):
+                    self.pattern_models = {}
+                    self.anomaly_thresholds = {
+                        'velocity': 0.85,
+                        'geolocation': 0.90,
+                        'device_fingerprint': 0.75,
+                        'behavioral': 0.80
+                    }
+                
+                async def analyze_velocity_anomalies(self, user_id: str) -> VelocityAnalysis:
+                    """速度異常の分析（不可能な移動の検出）"""
+                    
+                    recent_logins = await self.get_recent_logins(user_id, hours=24)
+                    
+                    anomalies = []
+                    for i in range(1, len(recent_logins)):
+                        prev_login = recent_logins[i-1]
+                        curr_login = recent_logins[i]
+                        
+                        # 地理的距離と時間差から速度を計算
+                        distance_km = self.calculate_distance(
+                            prev_login.location, 
+                            curr_login.location
+                        )
+                        time_diff_hours = (curr_login.timestamp - prev_login.timestamp).seconds / 3600
+                        
+                        if time_diff_hours > 0:
+                            velocity_kmh = distance_km / time_diff_hours
+                            
+                            # 物理的に不可能な速度（飛行機の速度を考慮）
+                            if velocity_kmh > 1000:
+                                anomalies.append({
+                                    'type': 'impossible_travel',
+                                    'severity': 'HIGH',
+                                    'details': {
+                                        'from': prev_login.location,
+                                        'to': curr_login.location,
+                                        'distance_km': distance_km,
+                                        'time_hours': time_diff_hours,
+                                        'velocity_kmh': velocity_kmh
+                                    }
+                                })
+                    
+                    return VelocityAnalysis(
+                        user_id=user_id,
+                        anomalies=anomalies,
+                        risk_score=self.calculate_velocity_risk_score(anomalies)
+                    )
+                
+                async def analyze_device_fingerprint_anomalies(self, user_id: str) -> DeviceAnalysis:
+                    """デバイスフィンガープリントの異常分析"""
+                    
+                    current_fingerprint = await self.get_current_device_fingerprint()
+                    historical_fingerprints = await self.get_user_device_history(user_id)
+                    
+                    # デバイス特徴のベクトル化
+                    features = self.extract_device_features(current_fingerprint)
+                    
+                    # 既知のデバイスとの類似度計算
+                    max_similarity = 0
+                    most_similar_device = None
+                    
+                    for hist_fp in historical_fingerprints:
+                        hist_features = self.extract_device_features(hist_fp)
+                        similarity = self.calculate_similarity(features, hist_features)
+                        
+                        if similarity > max_similarity:
+                            max_similarity = similarity
+                            most_similar_device = hist_fp
+                    
+                    # 新しいデバイスかどうかの判定
+                    is_new_device = max_similarity < self.anomaly_thresholds['device_fingerprint']
+                    
+                    # リスク要因の分析
+                    risk_factors = []
+                    if is_new_device:
+                        risk_factors.append({
+                            'factor': 'new_device',
+                            'severity': 'MEDIUM',
+                            'confidence': 1 - max_similarity
+                        })
+                    
+                    # 疑わしい特徴の検出
+                    suspicious_features = self.detect_suspicious_device_features(current_fingerprint)
+                    risk_factors.extend(suspicious_features)
+                    
+                    return DeviceAnalysis(
+                        user_id=user_id,
+                        is_new_device=is_new_device,
+                        similarity_score=max_similarity,
+                        risk_factors=risk_factors,
+                        device_trust_score=self.calculate_device_trust_score(
+                            max_similarity, 
+                            risk_factors
+                        )
+                    )
+                
+                def extract_device_features(self, fingerprint: DeviceFingerprint) -> np.ndarray:
+                    """デバイスフィンガープリントから特徴量抽出"""
+                    
+                    features = []
+                    
+                    # ブラウザ/OS特徴
+                    features.extend([
+                        hash(fingerprint.user_agent) % 1000,
+                        fingerprint.screen_resolution[0],
+                        fingerprint.screen_resolution[1],
+                        fingerprint.color_depth,
+                        fingerprint.timezone_offset
+                    ])
+                    
+                    # Canvas/WebGLフィンガープリント
+                    features.append(hash(fingerprint.canvas_hash) % 10000)
+                    features.append(hash(fingerprint.webgl_hash) % 10000)
+                    
+                    # 挙動特徴
+                    features.extend([
+                        fingerprint.plugins_count,
+                        fingerprint.fonts_count,
+                        fingerprint.touch_support,
+                        fingerprint.cookies_enabled,
+                        fingerprint.local_storage_enabled
+                    ])
+                    
+                    return np.array(features)
+            ''',
+            
+            'ml_based_fraud_detection': '''
+            class MLFraudDetectionEngine:
+                """機械学習ベースの不正検知エンジン"""
+                
+                def __init__(self):
+                    self.ensemble_model = self._build_ensemble_model()
+                    self.feature_importance = {}
+                    self.model_performance = ModelPerformanceTracker()
+                
+                def _build_ensemble_model(self):
+                    """アンサンブル学習モデルの構築"""
+                    
+                    from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+                    from sklearn.neural_network import MLPClassifier
+                    from sklearn.ensemble import VotingClassifier
+                    
+                    # 個別モデル
+                    rf_model = RandomForestClassifier(
+                        n_estimators=100,
+                        max_depth=10,
+                        random_state=42
+                    )
+                    
+                    gb_model = GradientBoostingClassifier(
+                        n_estimators=100,
+                        learning_rate=0.1,
+                        max_depth=5,
+                        random_state=42
+                    )
+                    
+                    nn_model = MLPClassifier(
+                        hidden_layer_sizes=(100, 50, 25),
+                        activation='relu',
+                        solver='adam',
+                        random_state=42
+                    )
+                    
+                    # アンサンブル
+                    ensemble = VotingClassifier(
+                        estimators=[
+                            ('rf', rf_model),
+                            ('gb', gb_model),
+                            ('nn', nn_model)
+                        ],
+                        voting='soft'
+                    )
+                    
+                    return ensemble
+                
+                async def detect_fraud(self, transaction: AuthTransaction) -> FraudDetectionResult:
+                    """リアルタイム不正検知"""
+                    
+                    # 特徴量エンジニアリング
+                    features = await self.engineer_features(transaction)
+                    
+                    # 予測
+                    fraud_probability = self.ensemble_model.predict_proba([features])[0][1]
+                    is_fraud = fraud_probability > 0.7
+                    
+                    # SHAP値による説明可能性
+                    explanation = await self.explain_prediction(features, fraud_probability)
+                    
+                    # リスクスコアリング
+                    risk_score = self.calculate_comprehensive_risk_score(
+                        fraud_probability=fraud_probability,
+                        transaction=transaction,
+                        features=features
+                    )
+                    
+                    # 追加の検証
+                    rule_based_checks = await self.apply_rule_based_checks(transaction)
+                    
+                    return FraudDetectionResult(
+                        transaction_id=transaction.id,
+                        is_fraud=is_fraud,
+                        fraud_probability=fraud_probability,
+                        risk_score=risk_score,
+                        explanation=explanation,
+                        rule_violations=rule_based_checks,
+                        recommended_action=self.determine_action(risk_score)
+                    )
+                
+                async def engineer_features(self, transaction: AuthTransaction) -> np.ndarray:
+                    """高度な特徴量エンジニアリング"""
+                    
+                    user_profile = await self.get_user_profile(transaction.user_id)
+                    
+                    features = []
+                    
+                    # ユーザープロファイル特徴
+                    features.extend([
+                        user_profile.account_age_days,
+                        user_profile.total_logins,
+                        user_profile.failed_login_rate,
+                        user_profile.average_session_duration,
+                        user_profile.device_count
+                    ])
+                    
+                    # トランザクション特徴
+                    features.extend([
+                        transaction.hour_of_day,
+                        transaction.day_of_week,
+                        transaction.is_weekend,
+                        transaction.time_since_last_login
+                    ])
+                    
+                    # 地理的特徴
+                    geo_features = await self.calculate_geo_features(transaction)
+                    features.extend([
+                        geo_features.distance_from_usual_location,
+                        geo_features.is_new_country,
+                        geo_features.is_vpn_detected,
+                        geo_features.location_risk_score
+                    ])
+                    
+                    # 行動特徴
+                    behavior_features = await self.calculate_behavior_features(transaction)
+                    features.extend([
+                        behavior_features.typing_speed_deviation,
+                        behavior_features.mouse_movement_pattern,
+                        behavior_features.click_pattern_score,
+                        behavior_features.navigation_pattern_score
+                    ])
+                    
+                    # ネットワーク特徴
+                    network_features = await self.calculate_network_features(transaction)
+                    features.extend([
+                        network_features.ip_reputation_score,
+                        network_features.is_tor_exit_node,
+                        network_features.is_datacenter_ip,
+                        network_features.asn_risk_score
+                    ])
+                    
+                    return np.array(features)
+            '''
+        }
+
+### 11.2.2 高度な脅威検知技術
+
+```python
+class AdvancedThreatDetection:
+    """高度な脅威検知技術"""
+    
+    def deep_learning_models(self):
+        """ディープラーニングモデルによる検知"""
+        
+        return {
+            'autoencoder_anomaly_detection': '''
+            import tensorflow as tf
+            from tensorflow.keras import layers, Model
+            
+            class AutoencoderAnomalyDetector:
+                """オートエンコーダーによる異常検知"""
+                
+                def __init__(self, input_dim: int):
+                    self.input_dim = input_dim
+                    self.encoder = self._build_encoder()
+                    self.decoder = self._build_decoder()
+                    self.autoencoder = self._build_autoencoder()
+                    self.threshold = None
+                
+                def _build_encoder(self):
+                    """エンコーダーの構築"""
+                    inputs = layers.Input(shape=(self.input_dim,))
+                    
+                    # エンコーディング層
+                    x = layers.Dense(128, activation='relu')(inputs)
+                    x = layers.BatchNormalization()(x)
+                    x = layers.Dropout(0.2)(x)
+                    
+                    x = layers.Dense(64, activation='relu')(x)
+                    x = layers.BatchNormalization()(x)
+                    x = layers.Dropout(0.2)(x)
+                    
+                    x = layers.Dense(32, activation='relu')(x)
+                    x = layers.BatchNormalization()(x)
+                    
+                    # 潜在表現
+                    latent = layers.Dense(16, activation='relu', name='latent')(x)
+                    
+                    return Model(inputs, latent, name='encoder')
+                
+                def _build_decoder(self):
+                    """デコーダーの構築"""
+                    latent_inputs = layers.Input(shape=(16,))
+                    
+                    # デコーディング層
+                    x = layers.Dense(32, activation='relu')(latent_inputs)
+                    x = layers.BatchNormalization()(x)
+                    
+                    x = layers.Dense(64, activation='relu')(x)
+                    x = layers.BatchNormalization()(x)
+                    
+                    x = layers.Dense(128, activation='relu')(x)
+                    x = layers.BatchNormalization()(x)
+                    
+                    # 出力層
+                    outputs = layers.Dense(self.input_dim, activation='sigmoid')(x)
+                    
+                    return Model(latent_inputs, outputs, name='decoder')
+                
+                def _build_autoencoder(self):
+                    """完全なオートエンコーダー"""
+                    inputs = layers.Input(shape=(self.input_dim,))
+                    latent = self.encoder(inputs)
+                    outputs = self.decoder(latent)
+                    
+                    autoencoder = Model(inputs, outputs, name='autoencoder')
+                    autoencoder.compile(
+                        optimizer='adam',
+                        loss='mse',
+                        metrics=['mae']
+                    )
+                    
+                    return autoencoder
+                
+                def train(self, normal_data: np.ndarray, validation_split: float = 0.2):
+                    """正常データでの学習"""
+                    
+                    # データの正規化
+                    self.scaler = StandardScaler()
+                    normal_data_scaled = self.scaler.fit_transform(normal_data)
+                    
+                    # 学習
+                    history = self.autoencoder.fit(
+                        normal_data_scaled,
+                        normal_data_scaled,
+                        epochs=50,
+                        batch_size=32,
+                        validation_split=validation_split,
+                        callbacks=[
+                            tf.keras.callbacks.EarlyStopping(
+                                patience=5,
+                                restore_best_weights=True
+                            ),
+                            tf.keras.callbacks.ReduceLROnPlateau(
+                                factor=0.5,
+                                patience=3
+                            )
+                        ]
+                    )
+                    
+                    # 閾値の設定（正常データの再構成誤差の95パーセンタイル）
+                    predictions = self.autoencoder.predict(normal_data_scaled)
+                    mse = np.mean((normal_data_scaled - predictions) ** 2, axis=1)
+                    self.threshold = np.percentile(mse, 95)
+                    
+                    return history
+                
+                def detect_anomaly(self, data: np.ndarray) -> AnomalyResult:
+                    """異常検知"""
+                    
+                    # データの正規化
+                    data_scaled = self.scaler.transform(data.reshape(1, -1))
+                    
+                    # 再構成
+                    prediction = self.autoencoder.predict(data_scaled)
+                    
+                    # 再構成誤差
+                    reconstruction_error = np.mean((data_scaled - prediction) ** 2)
+                    
+                    # 異常判定
+                    is_anomaly = reconstruction_error > self.threshold
+                    anomaly_score = reconstruction_error / self.threshold
+                    
+                    # 特徴ごとの寄与度
+                    feature_errors = (data_scaled - prediction) ** 2
+                    feature_contributions = feature_errors[0] / np.sum(feature_errors[0])
+                    
+                    return AnomalyResult(
+                        is_anomaly=is_anomaly,
+                        anomaly_score=float(anomaly_score),
+                        reconstruction_error=float(reconstruction_error),
+                        feature_contributions=feature_contributions.tolist(),
+                        threshold=float(self.threshold)
+                    )
+            ''',
+            
+            'graph_neural_network_detection': '''
+            class GraphNeuralNetworkDetector:
+                """グラフニューラルネットワークによる不正検知"""
+                
+                def __init__(self):
+                    self.gnn_model = self._build_gnn_model()
+                    self.graph_builder = UserInteractionGraphBuilder()
+                
+                def _build_gnn_model(self):
+                    """GNNモデルの構築"""
+                    import torch
+                    import torch.nn as nn
+                    import torch_geometric.nn as pyg_nn
+                    
+                    class FraudGNN(nn.Module):
+                        def __init__(self, input_dim, hidden_dim, output_dim):
+                            super(FraudGNN, self).__init__()
+                            
+                            # Graph Convolutional Layers
+                            self.conv1 = pyg_nn.GCNConv(input_dim, hidden_dim)
+                            self.conv2 = pyg_nn.GCNConv(hidden_dim, hidden_dim)
+                            self.conv3 = pyg_nn.GCNConv(hidden_dim, hidden_dim)
+                            
+                            # Attention mechanism
+                            self.attention = pyg_nn.GATConv(
+                                hidden_dim, 
+                                hidden_dim, 
+                                heads=4, 
+                                concat=True
+                            )
+                            
+                            # Classification head
+                            self.classifier = nn.Sequential(
+                                nn.Linear(hidden_dim * 4, hidden_dim),
+                                nn.ReLU(),
+                                nn.Dropout(0.3),
+                                nn.Linear(hidden_dim, output_dim)
+                            )
+                            
+                        def forward(self, x, edge_index, batch):
+                            # Graph convolutions
+                            x = torch.relu(self.conv1(x, edge_index))
+                            x = torch.relu(self.conv2(x, edge_index))
+                            x = torch.relu(self.conv3(x, edge_index))
+                            
+                            # Attention
+                            x = self.attention(x, edge_index)
+                            
+                            # Global pooling
+                            x = pyg_nn.global_mean_pool(x, batch)
+                            
+                            # Classification
+                            return self.classifier(x)
+                    
+                    return FraudGNN(
+                        input_dim=64,
+                        hidden_dim=128,
+                        output_dim=2
+                    )
+                
+                async def detect_coordinated_attacks(
+                    self, 
+                    time_window: TimeWindow
+                ) -> CoordinatedAttackResult:
+                    """協調的な攻撃の検知"""
+                    
+                    # ユーザー相互作用グラフの構築
+                    interaction_graph = await self.graph_builder.build_graph(time_window)
+                    
+                    # グラフ特徴量の抽出
+                    node_features = self.extract_node_features(interaction_graph)
+                    edge_features = self.extract_edge_features(interaction_graph)
+                    
+                    # GNNによる予測
+                    predictions = self.gnn_model(
+                        x=node_features,
+                        edge_index=interaction_graph.edge_index,
+                        batch=interaction_graph.batch
+                    )
+                    
+                    # 不正なクラスタの検出
+                    suspicious_clusters = self.identify_suspicious_clusters(
+                        graph=interaction_graph,
+                        predictions=predictions
+                    )
+                    
+                    # 攻撃パターンの分析
+                    attack_patterns = await self.analyze_attack_patterns(
+                        suspicious_clusters
+                    )
+                    
+                    return CoordinatedAttackResult(
+                        detected_clusters=suspicious_clusters,
+                        attack_patterns=attack_patterns,
+                        confidence_scores=predictions.softmax(dim=1)[:, 1].tolist(),
+                        graph_metrics=self.calculate_graph_metrics(interaction_graph)
+                    )
+            '''
+        }
+    
+    def behavioral_biometrics(self):
+        """行動バイオメトリクスによる認証"""
+        
+        return {
+            'keystroke_dynamics': '''
+            class KeystrokeDynamicsAnalyzer:
+                """キーストロークダイナミクスによる本人確認"""
+                
+                def __init__(self):
+                    self.model = self._build_verification_model()
+                    self.feature_extractor = KeystrokeFeatureExtractor()
+                
+                def extract_keystroke_features(self, keystroke_data: List[KeystrokeEvent]) -> np.ndarray:
+                    """キーストロークからの特徴抽出"""
+                    
+                    features = []
+                    
+                    # Dwell time（キー押下時間）
+                    dwell_times = [
+                        event.key_up_time - event.key_down_time 
+                        for event in keystroke_data
+                    ]
+                    features.extend([
+                        np.mean(dwell_times),
+                        np.std(dwell_times),
+                        np.percentile(dwell_times, [25, 50, 75])
+                    ])
+                    
+                    # Flight time（キー間の時間）
+                    flight_times = []
+                    for i in range(1, len(keystroke_data)):
+                        flight_time = keystroke_data[i].key_down_time - keystroke_data[i-1].key_up_time
+                        flight_times.append(flight_time)
+                    
+                    features.extend([
+                        np.mean(flight_times),
+                        np.std(flight_times),
+                        np.percentile(flight_times, [25, 50, 75])
+                    ])
+                    
+                    # タイピングリズムの特徴
+                    rhythm_features = self.extract_rhythm_features(keystroke_data)
+                    features.extend(rhythm_features)
+                    
+                    # 特定のキーの組み合わせの特徴
+                    digraph_features = self.extract_digraph_features(keystroke_data)
+                    features.extend(digraph_features)
+                    
+                    return np.array(features)
+                
+                async def verify_user(
+                    self, 
+                    user_id: str, 
+                    current_keystrokes: List[KeystrokeEvent]
+                ) -> BiometricVerificationResult:
+                    """キーストロークパターンによる本人確認"""
+                    
+                    # 現在のキーストローク特徴
+                    current_features = self.extract_keystroke_features(current_keystrokes)
+                    
+                    # ユーザーの登録済みプロファイル
+                    user_profile = await self.get_user_keystroke_profile(user_id)
+                    
+                    if not user_profile.has_sufficient_data:
+                        return BiometricVerificationResult(
+                            verified=True,  # データ不足時は通過
+                            confidence=0.5,
+                            reason="Insufficient biometric data"
+                        )
+                    
+                    # 類似度スコアの計算
+                    similarity_score = self.calculate_similarity(
+                        current_features,
+                        user_profile.feature_vectors
+                    )
+                    
+                    # 機械学習モデルによる検証
+                    ml_verification = self.model.predict_proba(
+                        current_features.reshape(1, -1)
+                    )[0][1]
+                    
+                    # 総合的な判定
+                    combined_score = 0.6 * similarity_score + 0.4 * ml_verification
+                    is_verified = combined_score > user_profile.threshold
+                    
+                    # 継続的な学習
+                    if is_verified and combined_score > 0.8:
+                        await self.update_user_profile(user_id, current_features)
+                    
+                    return BiometricVerificationResult(
+                        verified=is_verified,
+                        confidence=float(combined_score),
+                        similarity_score=float(similarity_score),
+                        ml_score=float(ml_verification),
+                        anomaly_details=self.get_anomaly_details(
+                            current_features,
+                            user_profile
+                        )
+                    )
+            ''',
+            
+            'mouse_movement_analysis': '''
+            class MouseMovementAnalyzer:
+                """マウス動作パターン分析"""
+                
+                def analyze_mouse_behavior(self, mouse_events: List[MouseEvent]) -> MouseBehaviorProfile:
+                    """マウス動作の分析"""
+                    
+                    # 基本的な統計量
+                    velocities = self.calculate_velocities(mouse_events)
+                    accelerations = self.calculate_accelerations(mouse_events)
+                    angles = self.calculate_movement_angles(mouse_events)
+                    
+                    # 動作パターンの特徴
+                    movement_features = {
+                        'avg_velocity': np.mean(velocities),
+                        'velocity_std': np.std(velocities),
+                        'max_velocity': np.max(velocities),
+                        'avg_acceleration': np.mean(accelerations),
+                        'direction_changes': self.count_direction_changes(angles),
+                        'pause_count': self.count_pauses(mouse_events),
+                        'click_accuracy': self.calculate_click_accuracy(mouse_events)
+                    }
+                    
+                    # カーブの特徴
+                    curve_features = self.analyze_curves(mouse_events)
+                    movement_features.update(curve_features)
+                    
+                    # 異常パターンの検出
+                    anomalies = self.detect_anomalous_patterns(mouse_events)
+                    
+                    return MouseBehaviorProfile(
+                        features=movement_features,
+                        anomalies=anomalies,
+                        confidence_score=self.calculate_confidence(movement_features)
+                    )
+                
+                def detect_bot_behavior(self, mouse_events: List[MouseEvent]) -> BotDetectionResult:
+                    """ボット行動の検出"""
+                    
+                    bot_indicators = []
+                    
+                    # 直線的な動き
+                    linearity_score = self.calculate_linearity(mouse_events)
+                    if linearity_score > 0.9:
+                        bot_indicators.append({
+                            'indicator': 'high_linearity',
+                            'score': linearity_score,
+                            'severity': 'HIGH'
+                        })
+                    
+                    # 一定速度の動き
+                    velocity_variance = np.var(self.calculate_velocities(mouse_events))
+                    if velocity_variance < 0.1:
+                        bot_indicators.append({
+                            'indicator': 'constant_velocity',
+                            'score': 1 - velocity_variance,
+                            'severity': 'HIGH'
+                        })
+                    
+                    # 不自然なクリックパターン
+                    click_pattern_score = self.analyze_click_patterns(mouse_events)
+                    if click_pattern_score > 0.8:
+                        bot_indicators.append({
+                            'indicator': 'unnatural_clicks',
+                            'score': click_pattern_score,
+                            'severity': 'MEDIUM'
+                        })
+                    
+                    # 総合判定
+                    is_bot = len([i for i in bot_indicators if i['severity'] == 'HIGH']) > 0
+                    confidence = np.mean([i['score'] for i in bot_indicators]) if bot_indicators else 0
+                    
+                    return BotDetectionResult(
+                        is_bot=is_bot,
+                        confidence=float(confidence),
+                        indicators=bot_indicators,
+                        recommendation=self.get_bot_response_recommendation(confidence)
+                    )
+            '''
+        }
+```
+
+## 11.3 ペネトレーションテスト
 
 ### 11.2.1 認証認可システムのペンテスト
 

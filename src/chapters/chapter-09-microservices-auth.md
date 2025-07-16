@@ -1439,6 +1439,505 @@ class ContinuousVerification:
         }
 ```
 
+## 9.5 クラウドネイティブ認証パターン
+
+### 9.5.1 Kubernetesネイティブな認証
+
+```yaml
+# Kubernetes認証パターンの実装
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: microservice-a
+  namespace: production
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: microservice-a-role
+  namespace: production
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: microservice-a-binding
+  namespace: production
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: microservice-a-role
+subjects:
+- kind: ServiceAccount
+  name: microservice-a
+  namespace: production
+```
+
+```python
+class KubernetesAuthPattern:
+    """Kubernetesネイティブな認証実装"""
+    
+    def __init__(self):
+        self.k8s_client = self._init_k8s_client()
+        
+    def _init_k8s_client(self):
+        """Kubernetes APIクライアントの初期化"""
+        from kubernetes import client, config
+        
+        # Pod内から実行される場合
+        try:
+            config.load_incluster_config()
+        except:
+            # 開発環境
+            config.load_kube_config()
+            
+        return client.CoreV1Api()
+    
+    async def get_service_token(self) -> str:
+        """ServiceAccountトークンの取得"""
+        # Pod内では自動的にマウントされる
+        token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        
+        try:
+            with open(token_path, 'r') as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            # 開発環境用のフォールバック
+            return await self._get_dev_token()
+    
+    async def verify_pod_identity(self, token: str) -> Dict:
+        """Pod/ServiceAccountの検証"""
+        from kubernetes.client import V1TokenReview
+        
+        # TokenReview APIを使用した検証
+        token_review = V1TokenReview(
+            spec={
+                "token": token,
+                "audiences": ["https://kubernetes.default.svc"]
+            }
+        )
+        
+        auth_api = client.AuthenticationV1Api()
+        response = auth_api.create_token_review(token_review)
+        
+        if response.status.authenticated:
+            return {
+                "authenticated": True,
+                "username": response.status.user.username,
+                "uid": response.status.user.uid,
+                "groups": response.status.user.groups,
+                "service_account": self._parse_service_account(
+                    response.status.user.username
+                )
+            }
+        
+        return {"authenticated": False}
+    
+    def implement_pod_security_policy(self):
+        """Pod Security Standards の実装"""
+        return '''
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: secure-apps
+          labels:
+            pod-security.kubernetes.io/enforce: restricted
+            pod-security.kubernetes.io/audit: restricted
+            pod-security.kubernetes.io/warn: restricted
+        ---
+        apiVersion: policy/v1
+        kind: PodDisruptionBudget
+        metadata:
+          name: auth-service-pdb
+        spec:
+          minAvailable: 2
+          selector:
+            matchLabels:
+              app: auth-service
+        '''
+```
+
+### 9.5.2 サービスメッシュ統合（Istio）
+
+```yaml
+# Istio認証ポリシー
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: production
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: service-auth
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: payment-service
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/production/sa/order-service"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths: ["/api/v1/payments/*"]
+    when:
+    - key: request.auth.claims[role]
+      values: ["payment-processor"]
+```
+
+```python
+class ServiceMeshAuthPattern:
+    """サービスメッシュを活用した認証パターン"""
+    
+    def __init__(self):
+        self.mesh_config = self._load_mesh_config()
+        
+    def implement_mtls_authentication(self):
+        """相互TLS認証の実装"""
+        return {
+            'istio_config': '''
+            apiVersion: security.istio.io/v1beta1
+            kind: PeerAuthentication
+            metadata:
+              name: default
+              namespace: production
+            spec:
+              mtls:
+                mode: STRICT  # すべての通信でmTLSを強制
+            ''',
+            
+            'service_code': '''
+            # サービス側では特別な実装は不要
+            # Envoyプロキシが自動的にmTLSを処理
+            
+            @app.route('/api/data')
+            def get_data():
+                # リクエストヘッダーから検証済みの情報を取得
+                source_workload = request.headers.get('X-Forwarded-Client-Cert')
+                
+                # Istioが注入するユーザー情報
+                user_claims = request.headers.get('X-Auth-Request-User')
+                
+                return process_request(source_workload, user_claims)
+            '''
+        }
+    
+    def implement_jwt_validation(self):
+        """JWTバリデーションの設定"""
+        return '''
+        apiVersion: security.istio.io/v1beta1
+        kind: RequestAuthentication
+        metadata:
+          name: jwt-auth
+          namespace: production
+        spec:
+          selector:
+            matchLabels:
+              app: api-gateway
+          jwtRules:
+          - issuer: "https://auth.example.com"
+            jwksUri: "https://auth.example.com/.well-known/jwks.json"
+            audiences:
+            - "api.example.com"
+            forwardOriginalToken: true
+        '''
+    
+    def implement_authorization_policy(self):
+        """きめ細かな認可ポリシー"""
+        return '''
+        apiVersion: security.istio.io/v1beta1
+        kind: AuthorizationPolicy
+        metadata:
+          name: fine-grained-authz
+        spec:
+          selector:
+            matchLabels:
+              app: sensitive-service
+          action: ALLOW
+          rules:
+          # サービスアカウントベース
+          - from:
+            - source:
+                principals: ["cluster.local/ns/prod/sa/trusted-service"]
+          
+          # JWTクレームベース
+          - from:
+            - source:
+                requestPrincipals: ["*"]
+            when:
+            - key: request.auth.claims[role]
+              values: ["admin", "editor"]
+            - key: request.auth.claims[department]
+              values: ["finance", "hr"]
+          
+          # 時間ベースアクセス
+          - when:
+            - key: request.time
+              values: ["09:00:00..17:00:00"]
+        '''
+```
+
+### 9.5.3 コンテナネイティブセキュリティ
+
+```python
+class ContainerNativeSecurityPattern:
+    """コンテナ環境に特化したセキュリティパターン"""
+    
+    def implement_workload_identity(self):
+        """Workload Identity の実装（GKE/EKS）"""
+        
+        # Google Cloud (GKE)
+        gke_implementation = '''
+        # 1. Workload Identity の有効化
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: app-service-account
+          namespace: production
+          annotations:
+            iam.gke.io/gcp-service-account: app-sa@project.iam.gserviceaccount.com
+        
+        # 2. アプリケーションコード
+        from google.auth import default
+        from google.cloud import secretmanager
+        
+        # 認証情報は自動的に取得される
+        credentials, project = default()
+        
+        # GCPサービスへのアクセス
+        client = secretmanager.SecretManagerServiceClient(credentials=credentials)
+        '''
+        
+        # AWS (EKS)
+        eks_implementation = '''
+        # 1. IRSA (IAM Roles for Service Accounts) の設定
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: app-service-account
+          namespace: production
+          annotations:
+            eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/app-role
+        
+        # 2. アプリケーションコード
+        import boto3
+        
+        # 認証情報は自動的に取得される
+        s3_client = boto3.client('s3')
+        secrets_client = boto3.client('secretsmanager')
+        '''
+        
+        return {
+            'gke': gke_implementation,
+            'eks': eks_implementation
+        }
+    
+    def implement_admission_controller(self):
+        """Admission Controller による認証強制"""
+        
+        return '''
+        # Open Policy Agent (OPA) を使用した例
+        
+        package kubernetes.admission
+        
+        import future.keywords.contains
+        import future.keywords.if
+        
+        # すべてのPodにセキュリティコンテキストを強制
+        deny[msg] {
+            input.request.kind.kind == "Pod"
+            not input.request.object.spec.securityContext.runAsNonRoot
+            msg := "Pods must run as non-root user"
+        }
+        
+        # ServiceAccountの使用を強制
+        deny[msg] {
+            input.request.kind.kind == "Pod"
+            input.request.object.spec.serviceAccountName == "default"
+            msg := "Pods must use a dedicated ServiceAccount"
+        }
+        
+        # 特定のイメージレジストリのみ許可
+        deny[msg] {
+            input.request.kind.kind == "Pod"
+            some container
+            input.request.object.spec.containers[container]
+            not starts_with(input.request.object.spec.containers[container].image, "gcr.io/my-project/")
+            msg := sprintf("Image must be from approved registry: %v", [input.request.object.spec.containers[container].image])
+        }
+        '''
+    
+    def implement_runtime_security(self):
+        """ランタイムセキュリティの実装"""
+        
+        return '''
+        # Falco ルールの例
+        
+        - rule: Unauthorized Process in Auth Service
+          desc: Detect unauthorized process execution in auth service
+          condition: >
+            spawned_process and 
+            container.name = "auth-service" and
+            not proc.name in (python, gunicorn, nginx)
+          output: >
+            Unauthorized process started in auth service
+            (user=%user.name command=%proc.cmdline container=%container.name)
+          priority: WARNING
+          
+        - rule: Sensitive File Access
+          desc: Detect access to sensitive authentication files
+          condition: >
+            open_read and 
+            (fd.name startswith /etc/auth/ or
+             fd.name contains "private_key" or
+             fd.name contains ".env") and
+            not proc.name in (auth_service, config_loader)
+          output: >
+            Sensitive file accessed
+            (user=%user.name file=%fd.name command=%proc.cmdline)
+          priority: ERROR
+        '''
+```
+
+### 9.5.4 サーバーレス認証パターン
+
+```python
+class ServerlessAuthPattern:
+    """サーバーレス環境での認証パターン"""
+    
+    def implement_lambda_authorizer(self):
+        """AWS Lambda Authorizer の実装"""
+        
+        return '''
+        import json
+        import jwt
+        from typing import Dict, Any
+        
+        def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+            """Lambda Authorizer のメイン関数"""
+            
+            try:
+                # トークンの取得
+                token = event['authorizationToken'].replace('Bearer ', '')
+                
+                # トークンの検証
+                payload = jwt.decode(
+                    token,
+                    get_public_key(),
+                    algorithms=['RS256'],
+                    audience='api.example.com'
+                )
+                
+                # ポリシーの生成
+                policy = generate_policy(
+                    principal_id=payload['sub'],
+                    effect='Allow',
+                    resource=event['methodArn'],
+                    context={
+                        'userId': payload['sub'],
+                        'email': payload.get('email'),
+                        'roles': json.dumps(payload.get('roles', []))
+                    }
+                )
+                
+                return policy
+                
+            except jwt.ExpiredSignatureError:
+                raise Exception('Unauthorized: Token expired')
+            except jwt.InvalidTokenError:
+                raise Exception('Unauthorized: Invalid token')
+        
+        def generate_policy(principal_id: str, effect: str, resource: str, context: Dict = None):
+            """IAMポリシーの生成"""
+            
+            auth_response = {
+                'principalId': principal_id,
+                'policyDocument': {
+                    'Version': '2012-10-17',
+                    'Statement': [{
+                        'Action': 'execute-api:Invoke',
+                        'Effect': effect,
+                        'Resource': resource
+                    }]
+                }
+            }
+            
+            if context:
+                auth_response['context'] = context
+                
+            return auth_response
+        '''
+    
+    def implement_edge_authentication(self):
+        """エッジでの認証（CloudFront + Lambda@Edge）"""
+        
+        return '''
+        // Lambda@Edge 関数（Viewer Request）
+        
+        exports.handler = async (event) => {
+            const request = event.Records[0].cf.request;
+            const headers = request.headers;
+            
+            // Cookieから認証トークンを取得
+            const cookies = parseCookies(headers.cookie || []);
+            const authToken = cookies['auth-token'];
+            
+            if (!authToken) {
+                // 認証ページへリダイレクト
+                return {
+                    status: '302',
+                    statusDescription: 'Found',
+                    headers: {
+                        location: [{
+                            key: 'Location',
+                            value: 'https://auth.example.com/login?redirect=' + 
+                                   encodeURIComponent(request.uri)
+                        }]
+                    }
+                };
+            }
+            
+            try {
+                // トークンの検証（エッジで実行）
+                const payload = await verifyToken(authToken);
+                
+                // 検証済み情報をヘッダーに追加
+                request.headers['x-auth-user'] = [{
+                    key: 'X-Auth-User',
+                    value: payload.sub
+                }];
+                
+                request.headers['x-auth-roles'] = [{
+                    key: 'X-Auth-Roles',
+                    value: payload.roles.join(',')
+                }];
+                
+                return request;
+                
+            } catch (error) {
+                // 無効なトークン
+                return {
+                    status: '401',
+                    statusDescription: 'Unauthorized',
+                    body: 'Invalid authentication token'
+                };
+            }
+        };
+        '''
+```
+
 ## まとめ
 
 この章では、マイクロサービス環境における認証認可の実装について学びました：

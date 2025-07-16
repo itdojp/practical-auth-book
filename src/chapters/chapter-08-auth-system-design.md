@@ -2164,6 +2164,1039 @@ class UsabilityEnhancements:
         }
 ```
 
+## 8.5 多言語による実装例
+
+### 8.5.1 Python（FastAPI）による実装
+
+```python
+from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, EmailStr, validator
+from typing import Optional, Dict, List
+from datetime import datetime, timedelta, timezone
+import jwt
+import bcrypt
+import secrets
+from sqlalchemy.orm import Session
+import redis
+
+app = FastAPI()
+security = HTTPBearer()
+redis_client = redis.Redis(decode_responses=True)
+
+# 設定
+class AuthConfig:
+    SECRET_KEY = secrets.token_urlsafe(32)
+    ALGORITHM = "RS256"  # 明示的にアルゴリズムを指定
+    ACCESS_TOKEN_EXPIRE_MINUTES = 15
+    REFRESH_TOKEN_EXPIRE_DAYS = 7
+    BCRYPT_ROUNDS = 12
+
+# リクエスト/レスポンスモデル
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+    
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    
+    @validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters')
+        return v
+
+# 認証サービス
+class AuthService:
+    def __init__(self, db: Session):
+        self.db = db
+        
+    def hash_password(self, password: str) -> str:
+        """パスワードのハッシュ化"""
+        salt = bcrypt.gensalt(rounds=AuthConfig.BCRYPT_ROUNDS)
+        return bcrypt.hashpw(password.encode(), salt).decode()
+    
+    def verify_password(self, password: str, hashed: str) -> bool:
+        """パスワードの検証"""
+        return bcrypt.checkpw(password.encode(), hashed.encode())
+    
+    def create_tokens(self, user_id: str) -> TokenResponse:
+        """アクセストークンとリフレッシュトークンの生成"""
+        now = datetime.now(timezone.utc)
+        
+        # アクセストークン
+        access_payload = {
+            "sub": user_id,
+            "type": "access",
+            "iat": now,
+            "exp": now + timedelta(minutes=AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES)
+        }
+        access_token = jwt.encode(
+            access_payload, 
+            AuthConfig.SECRET_KEY, 
+            algorithm=AuthConfig.ALGORITHM
+        )
+        
+        # リフレッシュトークン
+        refresh_payload = {
+            "sub": user_id,
+            "type": "refresh",
+            "iat": now,
+            "exp": now + timedelta(days=AuthConfig.REFRESH_TOKEN_EXPIRE_DAYS),
+            "jti": secrets.token_urlsafe(16)  # トークンID
+        }
+        refresh_token = jwt.encode(
+            refresh_payload,
+            AuthConfig.SECRET_KEY,
+            algorithm=AuthConfig.ALGORITHM
+        )
+        
+        # リフレッシュトークンをRedisに保存（無効化可能に）
+        redis_client.setex(
+            f"refresh_token:{refresh_payload['jti']}",
+            AuthConfig.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+            user_id
+        )
+        
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
+    
+    def verify_token(self, credentials: HTTPAuthorizationCredentials) -> Dict:
+        """トークンの検証"""
+        try:
+            payload = jwt.decode(
+                credentials.credentials,
+                AuthConfig.SECRET_KEY,
+                algorithms=[AuthConfig.ALGORITHM]  # 明示的に指定
+            )
+            
+            # トークンタイプの確認
+            if payload.get("type") != "access":
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token type"
+                )
+                
+            return payload
+            
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired"
+            )
+        except jwt.InvalidTokenError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+
+# エンドポイント
+@app.post("/auth/register", response_model=TokenResponse)
+async def register(user_data: UserCreate, db: Session = Depends(get_db)):
+    """ユーザー登録"""
+    auth_service = AuthService(db)
+    
+    # メールアドレスの重複チェック
+    if db.query(User).filter_by(email=user_data.email).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # ユーザー作成
+    user = User(
+        email=user_data.email,
+        password_hash=auth_service.hash_password(user_data.password)
+    )
+    db.add(user)
+    db.commit()
+    
+    # トークン生成
+    return auth_service.create_tokens(str(user.id))
+
+@app.post("/auth/login", response_model=TokenResponse)
+async def login(
+    login_data: LoginRequest, 
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """ログイン"""
+    auth_service = AuthService(db)
+    
+    # ユーザー検索
+    user = db.query(User).filter_by(email=login_data.email).first()
+    if not user or not auth_service.verify_password(
+        login_data.password, 
+        user.password_hash
+    ):
+        # セキュリティのため、エラーメッセージは同じに
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    
+    # ログイン試行の記録
+    login_attempt = LoginAttempt(
+        user_id=user.id,
+        ip_address=request.client.host,
+        success=True,
+        timestamp=datetime.now(timezone.utc)
+    )
+    db.add(login_attempt)
+    db.commit()
+    
+    return auth_service.create_tokens(str(user.id))
+
+@app.get("/auth/me")
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    """現在のユーザー情報取得"""
+    auth_service = AuthService(db)
+    payload = auth_service.verify_token(credentials)
+    
+    user = db.query(User).filter_by(id=payload["sub"]).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "created_at": user.created_at
+    }
+```
+
+### 8.5.2 Node.js（Express）による実装
+
+```javascript
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { body, validationResult } = require('express-validator');
+const redis = require('redis');
+const crypto = require('crypto');
+
+const app = express();
+app.use(express.json());
+
+// Redis クライアント
+const redisClient = redis.createClient();
+redisClient.connect();
+
+// 設定
+const AuthConfig = {
+    SECRET_KEY: crypto.randomBytes(32).toString('hex'),
+    ALGORITHM: 'RS256',
+    ACCESS_TOKEN_EXPIRE_MINUTES: 15,
+    REFRESH_TOKEN_EXPIRE_DAYS: 7,
+    BCRYPT_ROUNDS: 12
+};
+
+// 認証ミドルウェア
+const authenticateToken = async (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Token required' });
+    }
+    
+    try {
+        // アルゴリズムを明示的に指定
+        const payload = jwt.verify(token, AuthConfig.SECRET_KEY, {
+            algorithms: [AuthConfig.ALGORITHM]
+        });
+        
+        if (payload.type !== 'access') {
+            return res.status(401).json({ error: 'Invalid token type' });
+        }
+        
+        req.user = payload;
+        next();
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired' });
+        }
+        return res.status(401).json({ error: 'Invalid token' });
+    }
+};
+
+// 認証サービス
+class AuthService {
+    static async hashPassword(password) {
+        return bcrypt.hash(password, AuthConfig.BCRYPT_ROUNDS);
+    }
+    
+    static async verifyPassword(password, hash) {
+        return bcrypt.compare(password, hash);
+    }
+    
+    static async createTokens(userId) {
+        const now = Math.floor(Date.now() / 1000);
+        
+        // アクセストークン
+        const accessPayload = {
+            sub: userId,
+            type: 'access',
+            iat: now,
+            exp: now + (AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+        };
+        
+        const accessToken = jwt.sign(
+            accessPayload,
+            AuthConfig.SECRET_KEY,
+            { algorithm: AuthConfig.ALGORITHM }
+        );
+        
+        // リフレッシュトークン
+        const jti = crypto.randomBytes(16).toString('hex');
+        const refreshPayload = {
+            sub: userId,
+            type: 'refresh',
+            iat: now,
+            exp: now + (AuthConfig.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
+            jti: jti
+        };
+        
+        const refreshToken = jwt.sign(
+            refreshPayload,
+            AuthConfig.SECRET_KEY,
+            { algorithm: AuthConfig.ALGORITHM }
+        );
+        
+        // Redisに保存
+        await redisClient.setEx(
+            `refresh_token:${jti}`,
+            AuthConfig.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+            userId
+        );
+        
+        return {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            token_type: 'bearer',
+            expires_in: AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        };
+    }
+}
+
+// エンドポイント
+app.post('/auth/register', [
+    body('email').isEmail().normalizeEmail(),
+    body('password').isLength({ min: 8 })
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    
+    const { email, password } = req.body;
+    
+    try {
+        // メールアドレスの重複チェック
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ 
+                error: 'Email already registered' 
+            });
+        }
+        
+        // パスワードハッシュ化
+        const passwordHash = await AuthService.hashPassword(password);
+        
+        // ユーザー作成
+        const user = await User.create({
+            email,
+            password_hash: passwordHash
+        });
+        
+        // トークン生成
+        const tokens = await AuthService.createTokens(user.id);
+        res.json(tokens);
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/auth/login', [
+    body('email').isEmail().normalizeEmail(),
+    body('password').notEmpty()
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    
+    const { email, password } = req.body;
+    
+    try {
+        // ユーザー検索
+        const user = await User.findOne({ email });
+        
+        if (!user || !await AuthService.verifyPassword(
+            password, 
+            user.password_hash
+        )) {
+            return res.status(401).json({ 
+                error: 'Invalid credentials' 
+            });
+        }
+        
+        // ログイン記録
+        await LoginAttempt.create({
+            user_id: user.id,
+            ip_address: req.ip,
+            success: true,
+            timestamp: new Date()
+        });
+        
+        // トークン生成
+        const tokens = await AuthService.createTokens(user.id);
+        res.json(tokens);
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/auth/me', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.sub);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({
+            id: user.id,
+            email: user.email,
+            created_at: user.created_at
+        });
+        
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+```
+
+### 8.5.3 Java（Spring Boot）による実装
+
+```java
+package com.example.auth;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.annotation.Validated;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import java.util.Date;
+import java.util.UUID;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import org.springframework.data.redis.core.RedisTemplate;
+import java.util.concurrent.TimeUnit;
+
+@SpringBootApplication
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+    
+    @Autowired
+    private AuthService authService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    // 設定
+    private static class AuthConfig {
+        static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.RS256);
+        static final String ALGORITHM = "RS256";
+        static final int ACCESS_TOKEN_EXPIRE_MINUTES = 15;
+        static final int REFRESH_TOKEN_EXPIRE_DAYS = 7;
+        static final int BCRYPT_STRENGTH = 12;
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(AuthConfig.BCRYPT_STRENGTH);
+    }
+    
+    // DTOクラス
+    public static class LoginRequest {
+        @Email(message = "Invalid email format")
+        @NotBlank(message = "Email is required")
+        private String email;
+        
+        @NotBlank(message = "Password is required")
+        private String password;
+        
+        // getters and setters
+    }
+    
+    public static class RegisterRequest {
+        @Email(message = "Invalid email format")
+        @NotBlank(message = "Email is required")
+        private String email;
+        
+        @NotBlank(message = "Password is required")
+        @Size(min = 8, message = "Password must be at least 8 characters")
+        private String password;
+        
+        // getters and setters
+    }
+    
+    public static class TokenResponse {
+        private String accessToken;
+        private String refreshToken;
+        private String tokenType = "bearer";
+        private long expiresIn;
+        
+        // constructor and getters
+    }
+    
+    // 認証サービス
+    @Service
+    public class AuthService {
+        
+        @Autowired
+        private PasswordEncoder passwordEncoder;
+        
+        public String hashPassword(String password) {
+            return passwordEncoder.encode(password);
+        }
+        
+        public boolean verifyPassword(String password, String hash) {
+            return passwordEncoder.matches(password, hash);
+        }
+        
+        public TokenResponse createTokens(String userId) {
+            Instant now = Instant.now();
+            
+            // アクセストークン
+            String accessToken = Jwts.builder()
+                .setSubject(userId)
+                .claim("type", "access")
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(
+                    AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES, 
+                    ChronoUnit.MINUTES
+                )))
+                .signWith(AuthConfig.SECRET_KEY)
+                .compact();
+            
+            // リフレッシュトークン
+            String jti = UUID.randomUUID().toString();
+            String refreshToken = Jwts.builder()
+                .setSubject(userId)
+                .claim("type", "refresh")
+                .setId(jti)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(
+                    AuthConfig.REFRESH_TOKEN_EXPIRE_DAYS, 
+                    ChronoUnit.DAYS
+                )))
+                .signWith(AuthConfig.SECRET_KEY)
+                .compact();
+            
+            // Redisに保存
+            redisTemplate.opsForValue().set(
+                "refresh_token:" + jti,
+                userId,
+                AuthConfig.REFRESH_TOKEN_EXPIRE_DAYS,
+                TimeUnit.DAYS
+            );
+            
+            return new TokenResponse(
+                accessToken,
+                refreshToken,
+                "bearer",
+                AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            );
+        }
+        
+        public Claims verifyToken(String token) {
+            try {
+                return Jwts.parserBuilder()
+                    .setSigningKey(AuthConfig.SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            } catch (ExpiredJwtException e) {
+                throw new AuthException("Token expired");
+            } catch (JwtException e) {
+                throw new AuthException("Invalid token");
+            }
+        }
+    }
+    
+    // エンドポイント
+    @PostMapping("/register")
+    public ResponseEntity<TokenResponse> register(
+        @Valid @RequestBody RegisterRequest request
+    ) {
+        // メールアドレスの重複チェック
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest()
+                .body(new ErrorResponse("Email already registered"));
+        }
+        
+        // ユーザー作成
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(authService.hashPassword(request.getPassword()));
+        user = userRepository.save(user);
+        
+        // トークン生成
+        TokenResponse tokens = authService.createTokens(user.getId().toString());
+        return ResponseEntity.ok(tokens);
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(
+        @Valid @RequestBody LoginRequest request
+    ) {
+        // ユーザー検索
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElse(null);
+        
+        if (user == null || !authService.verifyPassword(
+            request.getPassword(), 
+            user.getPasswordHash()
+        )) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Invalid credentials"));
+        }
+        
+        // ログイン記録
+        LoginAttempt attempt = new LoginAttempt();
+        attempt.setUserId(user.getId());
+        attempt.setIpAddress(request.getRemoteAddr());
+        attempt.setSuccess(true);
+        attempt.setTimestamp(Instant.now());
+        loginAttemptRepository.save(attempt);
+        
+        // トークン生成
+        TokenResponse tokens = authService.createTokens(user.getId().toString());
+        return ResponseEntity.ok(tokens);
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(
+        @RequestHeader("Authorization") String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Token required"));
+        }
+        
+        String token = authHeader.substring(7);
+        Claims claims = authService.verifyToken(token);
+        
+        if (!"access".equals(claims.get("type"))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Invalid token type"));
+        }
+        
+        User user = userRepository.findById(
+            Long.parseLong(claims.getSubject())
+        ).orElse(null);
+        
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        return ResponseEntity.ok(new UserResponse(
+            user.getId(),
+            user.getEmail(),
+            user.getCreatedAt()
+        ));
+    }
+}
+```
+
+### 8.5.4 Go（Gin）による実装
+
+```go
+package main
+
+import (
+    "crypto/rand"
+    "encoding/base64"
+    "errors"
+    "fmt"
+    "net/http"
+    "time"
+    
+    "github.com/gin-gonic/gin"
+    "github.com/golang-jwt/jwt/v5"
+    "github.com/go-redis/redis/v8"
+    "golang.org/x/crypto/bcrypt"
+    "gorm.io/gorm"
+)
+
+// 設定
+type AuthConfig struct {
+    SecretKey               []byte
+    Algorithm               string
+    AccessTokenExpireTime   time.Duration
+    RefreshTokenExpireTime  time.Duration
+    BcryptCost             int
+}
+
+var config = AuthConfig{
+    SecretKey:              generateSecretKey(),
+    Algorithm:              "RS256",
+    AccessTokenExpireTime:  15 * time.Minute,
+    RefreshTokenExpireTime: 7 * 24 * time.Hour,
+    BcryptCost:            12,
+}
+
+// モデル
+type User struct {
+    ID           uint      `gorm:"primarykey"`
+    Email        string    `gorm:"unique;not null"`
+    PasswordHash string    `gorm:"not null"`
+    CreatedAt    time.Time
+}
+
+type LoginAttempt struct {
+    ID        uint      `gorm:"primarykey"`
+    UserID    uint      `gorm:"not null"`
+    IPAddress string    `gorm:"not null"`
+    Success   bool      `gorm:"not null"`
+    Timestamp time.Time `gorm:"not null"`
+}
+
+// リクエスト/レスポンス
+type LoginRequest struct {
+    Email    string `json:"email" binding:"required,email"`
+    Password string `json:"password" binding:"required"`
+}
+
+type RegisterRequest struct {
+    Email    string `json:"email" binding:"required,email"`
+    Password string `json:"password" binding:"required,min=8"`
+}
+
+type TokenResponse struct {
+    AccessToken  string `json:"access_token"`
+    RefreshToken string `json:"refresh_token"`
+    TokenType    string `json:"token_type"`
+    ExpiresIn    int    `json:"expires_in"`
+}
+
+type UserResponse struct {
+    ID        uint      `json:"id"`
+    Email     string    `json:"email"`
+    CreatedAt time.Time `json:"created_at"`
+}
+
+// 認証サービス
+type AuthService struct {
+    db    *gorm.DB
+    redis *redis.Client
+}
+
+func NewAuthService(db *gorm.DB, redis *redis.Client) *AuthService {
+    return &AuthService{db: db, redis: redis}
+}
+
+func (s *AuthService) HashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword(
+        []byte(password), 
+        config.BcryptCost,
+    )
+    return string(bytes), err
+}
+
+func (s *AuthService) VerifyPassword(password, hash string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+    return err == nil
+}
+
+func (s *AuthService) CreateTokens(userID uint) (*TokenResponse, error) {
+    now := time.Now()
+    
+    // アクセストークン
+    accessClaims := jwt.MapClaims{
+        "sub":  fmt.Sprintf("%d", userID),
+        "type": "access",
+        "iat":  now.Unix(),
+        "exp":  now.Add(config.AccessTokenExpireTime).Unix(),
+    }
+    
+    accessToken := jwt.NewWithClaims(
+        jwt.SigningMethodRS256, 
+        accessClaims,
+    )
+    accessTokenString, err := accessToken.SignedString(config.SecretKey)
+    if err != nil {
+        return nil, err
+    }
+    
+    // リフレッシュトークン
+    jti := generateJTI()
+    refreshClaims := jwt.MapClaims{
+        "sub":  fmt.Sprintf("%d", userID),
+        "type": "refresh",
+        "jti":  jti,
+        "iat":  now.Unix(),
+        "exp":  now.Add(config.RefreshTokenExpireTime).Unix(),
+    }
+    
+    refreshToken := jwt.NewWithClaims(
+        jwt.SigningMethodRS256, 
+        refreshClaims,
+    )
+    refreshTokenString, err := refreshToken.SignedString(config.SecretKey)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Redisに保存（タイムアウト付きコンテキスト）
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    
+    key := fmt.Sprintf("refresh_token:%s", jti)
+    err = s.redis.Set(
+        ctx, 
+        key, 
+        fmt.Sprintf("%d", userID),
+        config.RefreshTokenExpireTime,
+    ).Err()
+    if err != nil {
+        return nil, err
+    }
+    
+    return &TokenResponse{
+        AccessToken:  accessTokenString,
+        RefreshToken: refreshTokenString,
+        TokenType:    "bearer",
+        ExpiresIn:    int(config.AccessTokenExpireTime.Seconds()),
+    }, nil
+}
+
+func (s *AuthService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
+    token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+        // アルゴリズムの確認
+        if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+            return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+        }
+        return config.SecretKey, nil
+    })
+    
+    if err != nil {
+        return nil, err
+    }
+    
+    if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+        return claims, nil
+    }
+    
+    return nil, errors.New("invalid token")
+}
+
+// ミドルウェア
+func AuthMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        authHeader := c.GetHeader("Authorization")
+        if authHeader == "" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Token required"})
+            c.Abort()
+            return
+        }
+        
+        tokenString := authHeader[7:] // Remove "Bearer "
+        
+        authService := c.MustGet("authService").(*AuthService)
+        claims, err := authService.VerifyToken(tokenString)
+        if err != nil {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+            c.Abort()
+            return
+        }
+        
+        if claims["type"] != "access" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type"})
+            c.Abort()
+            return
+        }
+        
+        c.Set("userID", claims["sub"])
+        c.Next()
+    }
+}
+
+// エンドポイント
+func Register(c *gin.Context) {
+    var req RegisterRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    
+    authService := c.MustGet("authService").(*AuthService)
+    
+    // メールアドレスの重複チェック
+    var existingUser User
+    if err := authService.db.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Email already registered"})
+        return
+    }
+    
+    // パスワードハッシュ化
+    passwordHash, err := authService.HashPassword(req.Password)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+        return
+    }
+    
+    // ユーザー作成
+    user := User{
+        Email:        req.Email,
+        PasswordHash: passwordHash,
+    }
+    if err := authService.db.Create(&user).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+        return
+    }
+    
+    // トークン生成
+    tokens, err := authService.CreateTokens(user.ID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create tokens"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, tokens)
+}
+
+func Login(c *gin.Context) {
+    var req LoginRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    
+    authService := c.MustGet("authService").(*AuthService)
+    
+    // ユーザー検索
+    var user User
+    if err := authService.db.Where("email = ?", req.Email).First(&user).Error; err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+        return
+    }
+    
+    // パスワード検証
+    if !authService.VerifyPassword(req.Password, user.PasswordHash) {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+        return
+    }
+    
+    // ログイン記録
+    attempt := LoginAttempt{
+        UserID:    user.ID,
+        IPAddress: c.ClientIP(),
+        Success:   true,
+        Timestamp: time.Now(),
+    }
+    authService.db.Create(&attempt)
+    
+    // トークン生成
+    tokens, err := authService.CreateTokens(user.ID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create tokens"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, tokens)
+}
+
+func GetCurrentUser(c *gin.Context) {
+    userIDStr := c.MustGet("userID").(string)
+    userID, _ := strconv.ParseUint(userIDStr, 10, 64)
+    
+    authService := c.MustGet("authService").(*AuthService)
+    
+    var user User
+    if err := authService.db.First(&user, uint(userID)).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, UserResponse{
+        ID:        user.ID,
+        Email:     user.Email,
+        CreatedAt: user.CreatedAt,
+    })
+}
+
+// ヘルパー関数
+func generateSecretKey() []byte {
+    key := make([]byte, 32)
+    rand.Read(key)
+    return key
+}
+
+func generateJTI() string {
+    b := make([]byte, 16)
+    rand.Read(b)
+    return base64.URLEncoding.EncodeToString(b)
+}
+
+func main() {
+    r := gin.Default()
+    
+    // データベースとRedis接続（省略）
+    
+    // ルート設定
+    auth := r.Group("/auth")
+    {
+        auth.POST("/register", Register)
+        auth.POST("/login", Login)
+        auth.GET("/me", AuthMiddleware(), GetCurrentUser)
+    }
+    
+    r.Run(":8080")
+}
+```
+
 ## まとめ
 
 この章では、実践的な認証システムの設計について学びました：

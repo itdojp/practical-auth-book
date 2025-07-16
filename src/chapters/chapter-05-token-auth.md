@@ -376,7 +376,12 @@ class JWTAlgorithms:
                 'name': 'No digital signature',
                 'type': 'None',
                 'security': 'INSECURE - NEVER USE IN PRODUCTION',
-                'warning': '署名なしトークンは改ざん可能'
+                'warning': '署名なしトークンは改ざん可能',
+                'critical_warning': '''
+                ⚠️ 絶対に本番環境で使用しないでください！
+                "alg": "none" は JWT の署名を無効化し、
+                誰でもトークンを偽造できるようになります。
+                '''
             }
         }
     
@@ -476,6 +481,141 @@ class JWTAlgorithms:
                 ).decode().rstrip('=')
         
         return RS256Implementation
+
+
+### 5.1.4 JWT セキュリティベストプラクティス（2024年版）
+
+```python
+class JWTSecurityBestPractices:
+    """JWT実装における重要なセキュリティ対策"""
+    
+    def __init__(self):
+        self.critical_rules = self._define_critical_rules()
+    
+    def _define_critical_rules(self):
+        """絶対に守るべきセキュリティルール"""
+        
+        return {
+            'algorithm_verification': {
+                'rule': 'アルゴリズムを明示的に指定する',
+                'reason': 'アルゴリズム混同攻撃の防止',
+                'bad_example': '''
+                # ❌ 危険な実装 - アルゴリズムを指定していない
+                def verify_token_unsafe(token: str, key: str):
+                    # ヘッダーのアルゴリズムを信頼してしまう
+                    return jwt.decode(token, key)  # algorithms パラメータなし
+                ''',
+                'good_example': '''
+                # ✅ 安全な実装 - アルゴリズムを明示的に指定
+                def verify_token_safe(token: str, key: str):
+                    # 期待するアルゴリズムのみを許可
+                    return jwt.decode(
+                        token, 
+                        key, 
+                        algorithms=['RS256']  # 明示的に指定
+                    )
+                ''',
+                'attack_scenario': '''
+                # アルゴリズム混同攻撃の例
+                # 1. 正規のトークン（RS256で署名）
+                original_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+                
+                # 2. 攻撃者がヘッダーを改ざん
+                fake_header = {"typ": "JWT", "alg": "HS256"}  # RSA → HMAC
+                
+                # 3. 公開鍵を秘密鍵として使用してHMAC署名
+                # （公開鍵は公開されているため、攻撃者も知っている）
+                # 以下の関数は攻撃シナリオを説明するための擬似コードです。
+                # 実際の実装は含まれていません。
+                fake_token = create_token_with_public_key_as_hmac_secret()
+                
+                # 4. アルゴリズムを指定しない検証は成功してしまう！
+                '''
+            },
+            
+            'none_algorithm_prevention': {
+                'rule': '"alg": "none" を絶対に許可しない',
+                'implementation': '''
+                # ✅ none アルゴリズムを確実に拒否
+                ALLOWED_ALGORITHMS = ['RS256', 'ES256']  # none は含めない
+                
+                def verify_token(token: str, key: str):
+                    # ヘッダーを先にチェック
+                    header = jwt.get_unverified_header(token)
+                    if header.get('alg') == 'none':
+                        raise SecurityError("Algorithm 'none' is not allowed")
+                    
+                    return jwt.decode(
+                        token,
+                        key,
+                        algorithms=ALLOWED_ALGORITHMS
+                    )
+                '''
+            },
+            
+            'key_strength': {
+                'rule': '十分な強度の鍵を使用する',
+                'requirements': {
+                    'HS256': '最低256ビット（32バイト）',
+                    'RS256': '最低2048ビット',
+                    'ES256': 'P-256曲線（256ビット）'
+                },
+                'implementation': '''
+                import secrets
+                
+                # ✅ 強力な秘密鍵の生成
+                def generate_strong_secret():
+                    # 256ビット（32バイト）の暗号学的に安全なランダム値
+                    return secrets.token_bytes(32)
+                
+                # ✅ 鍵強度の検証
+                def validate_key_strength(key: bytes, algorithm: str):
+                    if algorithm == 'HS256' and len(key) < 32:
+                        raise ValueError("HS256 requires at least 256-bit key")
+                '''
+            },
+            
+            'token_expiration': {
+                'rule': '適切な有効期限を設定する',
+                'guidelines': {
+                    'access_token': '15分〜1時間',
+                    'refresh_token': '7日〜30日',
+                    'remember_me': '最大90日'
+                },
+                'implementation': '''
+                from datetime import datetime, timedelta, timezone
+                
+                def create_access_token(user_id: str) -> str:
+                    now = datetime.now(timezone.utc)
+                    payload = {
+                        'user_id': user_id,
+                        'iat': now,
+                        'exp': now + timedelta(minutes=15),  # 15分の有効期限
+                        'type': 'access'
+                    }
+                    return jwt.encode(payload, SECRET_KEY, algorithm='RS256')
+                '''
+            }
+        }
+    
+    def validate_jwt_implementation(self, code: str) -> List[str]:
+        """JWT実装のセキュリティ監査"""
+        
+        issues = []
+        
+        # アルゴリズム指定のチェック
+        if 'jwt.decode(' in code and 'algorithms=' not in code:
+            issues.append("🚨 Critical: JWT decode without algorithm specification")
+        
+        # none アルゴリズムのチェック
+        if '"none"' in code or "'none'" in code:
+            issues.append("🚨 Critical: Potential 'none' algorithm usage")
+        
+        # 鍵の強度チェック（簡易版）
+        if 'secret' in code.lower() and len(code) < 32:
+            issues.append("⚠️ Warning: Potentially weak secret key")
+        
+        return issues
 ```
 
 ## 5.2 トークンの保存と管理 - XSSとCSRFのリスク評価

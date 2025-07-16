@@ -740,3 +740,1135 @@ class AdvancedCircuitBreaker:
 - スレッドセーフな実装
 - 効率的な統計計算
 - 適切なエラーハンドリング
+
+## 12.5 CI/CDパイプライン統合
+
+### 12.5.1 認証システムのCI/CD戦略
+
+```python
+class AuthSystemCICDStrategy:
+    """認証システムのCI/CD戦略"""
+    
+    def continuous_integration_pipeline(self):
+        """継続的インテグレーションパイプライン"""
+        
+        return {
+            'github_actions_workflow': '''
+            name: Auth System CI/CD Pipeline
+            
+            on:
+              push:
+                branches: [ main, develop ]
+              pull_request:
+                branches: [ main ]
+            
+            jobs:
+              security-checks:
+                name: Security Vulnerability Checks
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Run Security Audit
+                    run: |
+                      # 依存関係の脆弱性チェック
+                      npm audit --production
+                      pip install safety
+                      safety check
+                      
+                  - name: SAST - Static Application Security Testing
+                    uses: github/super-linter@v4
+                    env:
+                      DEFAULT_BRANCH: main
+                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      VALIDATE_PYTHON_BLACK: true
+                      VALIDATE_JAVASCRIPT_ES: true
+                      
+                  - name: Secret Scanning
+                    uses: trufflesecurity/trufflehog@main
+                    with:
+                      path: ./
+                      base: ${{ github.event.repository.default_branch }}
+                      head: HEAD
+                      
+                  - name: Container Security Scan
+                    uses: aquasecurity/trivy-action@master
+                    with:
+                      image-ref: 'auth-service:${{ github.sha }}'
+                      format: 'sarif'
+                      output: 'trivy-results.sarif'
+              
+              unit-tests:
+                name: Unit Tests with Coverage
+                runs-on: ubuntu-latest
+                strategy:
+                  matrix:
+                    python-version: [3.9, 3.10, 3.11]
+                    node-version: [16, 18, 20]
+                
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Set up Python ${{ matrix.python-version }}
+                    uses: actions/setup-python@v4
+                    with:
+                      python-version: ${{ matrix.python-version }}
+                      
+                  - name: Install Python dependencies
+                    run: |
+                      python -m pip install --upgrade pip
+                      pip install -r requirements.txt
+                      pip install -r requirements-test.txt
+                      
+                  - name: Run Python tests with coverage
+                    run: |
+                      pytest tests/unit/ \
+                        --cov=auth_service \
+                        --cov-report=xml \
+                        --cov-report=html \
+                        --cov-fail-under=80
+                      
+                  - name: Set up Node.js ${{ matrix.node-version }}
+                    uses: actions/setup-node@v3
+                    with:
+                      node-version: ${{ matrix.node-version }}
+                      
+                  - name: Run JavaScript tests
+                    run: |
+                      npm ci
+                      npm run test:unit -- --coverage
+                      
+                  - name: Upload coverage reports
+                    uses: codecov/codecov-action@v3
+                    with:
+                      token: ${{ secrets.CODECOV_TOKEN }}
+                      files: ./coverage.xml,./coverage/lcov.info
+              
+              integration-tests:
+                name: Integration Tests
+                runs-on: ubuntu-latest
+                needs: [security-checks, unit-tests]
+                
+                services:
+                  postgres:
+                    image: postgres:15
+                    env:
+                      POSTGRES_PASSWORD: testpass
+                      POSTGRES_DB: auth_test
+                    options: >-
+                      --health-cmd pg_isready
+                      --health-interval 10s
+                      --health-timeout 5s
+                      --health-retries 5
+                    ports:
+                      - 5432:5432
+                      
+                  redis:
+                    image: redis:7-alpine
+                    options: >-
+                      --health-cmd "redis-cli ping"
+                      --health-interval 10s
+                      --health-timeout 5s
+                      --health-retries 5
+                    ports:
+                      - 6379:6379
+                
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Run integration tests
+                    env:
+                      DATABASE_URL: postgresql://postgres:testpass@localhost:5432/auth_test
+                      REDIS_URL: redis://localhost:6379
+                    run: |
+                      python -m pytest tests/integration/ -v
+                      npm run test:integration
+                      
+                  - name: Run E2E authentication flow tests
+                    run: |
+                      docker-compose -f docker-compose.test.yml up -d
+                      npm run test:e2e
+                      docker-compose -f docker-compose.test.yml down
+              
+              performance-tests:
+                name: Performance and Load Tests
+                runs-on: ubuntu-latest
+                needs: [integration-tests]
+                
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Run performance benchmarks
+                    run: |
+                      # JWT生成/検証ベンチマーク
+                      python benchmarks/jwt_benchmark.py
+                      
+                      # パスワードハッシュベンチマーク
+                      python benchmarks/password_hash_benchmark.py
+                      
+                      # 認証フロー全体のベンチマーク
+                      python benchmarks/auth_flow_benchmark.py
+                      
+                  - name: Load testing with k6
+                    uses: grafana/k6-action@v0.3.0
+                    with:
+                      filename: tests/load/auth_scenarios.js
+                      flags: --out json=results.json
+                      
+                  - name: Analyze performance results
+                    run: |
+                      python scripts/analyze_performance.py results.json
+                      
+                  - name: Comment PR with performance impact
+                    if: github.event_name == 'pull_request'
+                    uses: actions/github-script@v6
+                    with:
+                      script: |
+                        const fs = require('fs');
+                        const results = JSON.parse(fs.readFileSync('performance-summary.json'));
+                        
+                        const comment = `## Performance Impact Analysis
+                        
+                        | Metric | Baseline | This PR | Change |
+                        |--------|----------|---------|--------|
+                        | Auth Latency (p95) | ${results.baseline.p95}ms | ${results.current.p95}ms | ${results.change.p95}% |
+                        | Throughput | ${results.baseline.rps} rps | ${results.current.rps} rps | ${results.change.rps}% |
+                        | CPU Usage | ${results.baseline.cpu}% | ${results.current.cpu}% | ${results.change.cpu}% |
+                        | Memory Usage | ${results.baseline.memory}MB | ${results.current.memory}MB | ${results.change.memory}% |
+                        `;
+                        
+                        github.rest.issues.createComment({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          body: comment
+                        });
+              
+              build-and-push:
+                name: Build and Push Container Images
+                runs-on: ubuntu-latest
+                needs: [performance-tests]
+                if: github.ref == 'refs/heads/main'
+                
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Set up Docker Buildx
+                    uses: docker/setup-buildx-action@v2
+                    
+                  - name: Log in to Container Registry
+                    uses: docker/login-action@v2
+                    with:
+                      registry: ${{ secrets.REGISTRY_URL }}
+                      username: ${{ secrets.REGISTRY_USERNAME }}
+                      password: ${{ secrets.REGISTRY_PASSWORD }}
+                      
+                  - name: Build and push auth service
+                    uses: docker/build-push-action@v4
+                    with:
+                      context: ./services/auth
+                      push: true
+                      tags: |
+                        ${{ secrets.REGISTRY_URL }}/auth-service:${{ github.sha }}
+                        ${{ secrets.REGISTRY_URL }}/auth-service:latest
+                      cache-from: type=gha
+                      cache-to: type=gha,mode=max
+                      build-args: |
+                        VERSION=${{ github.sha }}
+                        BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            ''',
+            
+            'gitlab_ci_pipeline': '''
+            stages:
+              - security
+              - test
+              - build
+              - deploy
+              - monitor
+            
+            variables:
+              DOCKER_DRIVER: overlay2
+              DOCKER_TLS_CERTDIR: ""
+            
+            # セキュリティステージ
+            dependency-check:
+              stage: security
+              image: owasp/dependency-check:latest
+              script:
+                - dependency-check.sh --project "Auth Service" --scan . --format ALL
+              artifacts:
+                reports:
+                  dependency_scanning: dependency-check-report.json
+              only:
+                - merge_requests
+                - main
+            
+            sast:
+              stage: security
+              image: 
+                name: "registry.gitlab.com/gitlab-org/security-products/sast:latest"
+              script:
+                - /analyzer run
+              artifacts:
+                reports:
+                  sast: gl-sast-report.json
+            
+            # テストステージ
+            test:auth-unit:
+              stage: test
+              image: python:3.10
+              services:
+                - postgres:15
+                - redis:7
+              variables:
+                POSTGRES_DB: test_db
+                POSTGRES_USER: test_user
+                POSTGRES_PASSWORD: test_pass
+                DATABASE_URL: postgresql://test_user:test_pass@postgres:5432/test_db
+                REDIS_URL: redis://redis:6379
+              before_script:
+                - pip install -r requirements.txt
+                - pip install -r requirements-test.txt
+              script:
+                - pytest tests/unit/ --junitxml=report.xml --cov=auth_service --cov-report=xml
+              coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+              artifacts:
+                reports:
+                  junit: report.xml
+                  coverage_report:
+                    coverage_format: cobertura
+                    path: coverage.xml
+            
+            # ビルドステージ
+            build:auth-service:
+              stage: build
+              image: docker:latest
+              services:
+                - docker:dind
+              before_script:
+                - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+              script:
+                - docker build -t $CI_REGISTRY_IMAGE/auth-service:$CI_COMMIT_SHA ./services/auth
+                - docker push $CI_REGISTRY_IMAGE/auth-service:$CI_COMMIT_SHA
+                - |
+                  if [ "$CI_COMMIT_BRANCH" == "main" ]; then
+                    docker tag $CI_REGISTRY_IMAGE/auth-service:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE/auth-service:latest
+                    docker push $CI_REGISTRY_IMAGE/auth-service:latest
+                  fi
+              only:
+                - main
+                - develop
+            '''
+        }
+    
+    def continuous_deployment_pipeline(self):
+        """継続的デプロイメントパイプライン"""
+        
+        return {
+            'kubernetes_deployment': '''
+            class KubernetesDeploymentPipeline:
+                """Kubernetesへの継続的デプロイメント"""
+                
+                def __init__(self):
+                    self.helm_chart_path = "./charts/auth-service"
+                    self.environments = ["dev", "staging", "production"]
+                
+                def generate_github_action_deploy(self):
+                    """GitHub Actionデプロイメントワークフロー"""
+                    
+                    return """
+              deploy:
+                name: Deploy to Kubernetes
+                runs-on: ubuntu-latest
+                needs: [build-and-push]
+                strategy:
+                  matrix:
+                    environment: [dev, staging]
+                
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Set up Kubectl
+                    uses: azure/setup-kubectl@v3
+                    with:
+                      version: 'v1.28.0'
+                      
+                  - name: Set up Helm
+                    uses: azure/setup-helm@v3
+                    with:
+                      version: 'v3.12.0'
+                      
+                  - name: Configure AWS credentials
+                    uses: aws-actions/configure-aws-credentials@v2
+                    with:
+                      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                      aws-region: us-east-1
+                      
+                  - name: Update kubeconfig
+                    run: |
+                      aws eks update-kubeconfig --name auth-cluster-${{ matrix.environment }}
+                      
+                  - name: Deploy with Helm
+                    run: |
+                      helm upgrade --install auth-service ./charts/auth-service \
+                        --namespace auth-${{ matrix.environment }} \
+                        --create-namespace \
+                        --set image.tag=${{ github.sha }} \
+                        --set environment=${{ matrix.environment }} \
+                        --values ./charts/auth-service/values.${{ matrix.environment }}.yaml \
+                        --wait \
+                        --timeout 10m
+                        
+                  - name: Run smoke tests
+                    run: |
+                      kubectl run smoke-test-${{ github.run_id }} \
+                        --image=curlimages/curl:latest \
+                        --rm \
+                        --attach \
+                        --restart=Never \
+                        --namespace=auth-${{ matrix.environment }} \
+                        -- /bin/sh -c "
+                          curl -f http://auth-service/health || exit 1
+                          curl -f http://auth-service/api/v1/auth/login \
+                            -X POST \
+                            -H 'Content-Type: application/json' \
+                            -d '{\"username\":\"test@example.com\",\"password\":\"test\"}' || exit 1
+                        "
+                        
+                  - name: Rollback on failure
+                    if: failure()
+                    run: |
+                      helm rollback auth-service -n auth-${{ matrix.environment }}
+                      
+              deploy-production:
+                name: Deploy to Production
+                runs-on: ubuntu-latest
+                needs: [deploy]
+                environment: production
+                if: github.ref == 'refs/heads/main'
+                
+                steps:
+                  - uses: actions/checkout@v3
+                  
+                  - name: Create deployment record
+                    uses: actions/github-script@v6
+                    with:
+                      script: |
+                        const deployment = await github.rest.repos.createDeployment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          ref: context.sha,
+                          environment: 'production',
+                          required_contexts: [],
+                          auto_merge: false
+                        });
+                        
+                        core.setOutput('deployment_id', deployment.data.id);
+                        
+                  - name: Deploy to production
+                    run: |
+                      # Blue-Green deployment
+                      ./scripts/deploy-blue-green.sh production ${{ github.sha }}
+                      
+                  - name: Update deployment status
+                    if: always()
+                    uses: actions/github-script@v6
+                    with:
+                      script: |
+                        await github.rest.repos.createDeploymentStatus({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          deployment_id: ${{ steps.create-deployment.outputs.deployment_id }},
+                          state: '${{ job.status }}',
+                          environment_url: 'https://auth.production.example.com',
+                          description: 'Deployment ${{ job.status }}'
+                        });
+                    """
+                
+                def generate_argocd_config(self):
+                    """ArgoCD Application設定"""
+                    
+                    return {
+                        'argocd_application': '''
+            apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            metadata:
+              name: auth-service
+              namespace: argocd
+            spec:
+              project: default
+              source:
+                repoURL: https://github.com/your-org/auth-service
+                targetRevision: HEAD
+                path: charts/auth-service
+                helm:
+                  valueFiles:
+                    - values.production.yaml
+                  parameters:
+                    - name: image.tag
+                      value: $ARGOCD_APP_REVISION
+              destination:
+                server: https://kubernetes.default.svc
+                namespace: auth-production
+              syncPolicy:
+                automated:
+                  prune: true
+                  selfHeal: true
+                  allowEmpty: false
+                syncOptions:
+                  - CreateNamespace=true
+                  - PruneLast=true
+                retry:
+                  limit: 5
+                  backoff:
+                    duration: 5s
+                    factor: 2
+                    maxDuration: 3m
+              revisionHistoryLimit: 10
+                        ''',
+                        
+                        'rollout_strategy': '''
+            apiVersion: argoproj.io/v1alpha1
+            kind: Rollout
+            metadata:
+              name: auth-service
+              namespace: auth-production
+            spec:
+              replicas: 10
+              strategy:
+                canary:
+                  steps:
+                    - setWeight: 10
+                    - pause: {duration: 5m}
+                    - analysis:
+                        templates:
+                          - templateName: auth-service-analysis
+                        args:
+                          - name: service-name
+                            value: auth-service
+                    - setWeight: 25
+                    - pause: {duration: 5m}
+                    - setWeight: 50
+                    - pause: {duration: 5m}
+                    - setWeight: 75
+                    - pause: {duration: 5m}
+                  trafficRouting:
+                    istio:
+                      virtualServices:
+                        - name: auth-service-vsvc
+                          routes:
+                            - primary
+                      destinationRule:
+                        name: auth-service-dest
+                        canarySubsetName: canary
+                        stableSubsetName: stable
+              selector:
+                matchLabels:
+                  app: auth-service
+              template:
+                metadata:
+                  labels:
+                    app: auth-service
+                spec:
+                  containers:
+                    - name: auth-service
+                      image: registry.example.com/auth-service:latest
+                      ports:
+                        - containerPort: 8080
+                      env:
+                        - name: ENVIRONMENT
+                          value: production
+                      livenessProbe:
+                        httpGet:
+                          path: /health
+                          port: 8080
+                        initialDelaySeconds: 30
+                        periodSeconds: 10
+                      readinessProbe:
+                        httpGet:
+                          path: /ready
+                          port: 8080
+                        initialDelaySeconds: 5
+                        periodSeconds: 5
+                        '''
+                    }
+            ''',
+            
+            'monitoring_and_alerting': '''
+            class MonitoringIntegration:
+                """CI/CDパイプラインでのモニタリング統合"""
+                
+                def generate_prometheus_rules(self):
+                    """Prometheusアラートルール"""
+                    
+                    return """
+            groups:
+              - name: auth_service_deployment
+                interval: 30s
+                rules:
+                  - alert: DeploymentFailureRate
+                    expr: |
+                      rate(deployment_failures_total[5m]) > 0.1
+                    for: 5m
+                    labels:
+                      severity: critical
+                      team: platform
+                    annotations:
+                      summary: "High deployment failure rate"
+                      description: "Deployment failure rate is {{ $value }} failures/sec"
+                      
+                  - alert: AuthServiceRollback
+                    expr: |
+                      increase(helm_rollback_total{service="auth-service"}[1h]) > 0
+                    labels:
+                      severity: warning
+                      team: platform
+                    annotations:
+                      summary: "Auth service was rolled back"
+                      description: "Auth service deployment was rolled back in {{ $labels.environment }}"
+                      
+                  - alert: CanaryDeploymentFailed
+                    expr: |
+                      auth_service_canary_success_rate < 0.95
+                    for: 5m
+                    labels:
+                      severity: critical
+                      team: platform
+                    annotations:
+                      summary: "Canary deployment health check failed"
+                      description: "Canary success rate is {{ $value }}"
+                    """
+                
+                def generate_datadog_monitors(self):
+                    """Datadog モニター設定"""
+                    
+                    return {
+                        'deployment_monitor': '''
+            {
+              "name": "Auth Service Deployment Health",
+              "type": "metric alert",
+              "query": "avg(last_5m):avg:kubernetes.deployment.replicas.available{deployment:auth-service} by {environment} < 0.8 * avg:kubernetes.deployment.replicas.desired{deployment:auth-service} by {environment}",
+              "message": "Auth service deployment health degraded in {{environment.name}}\\n\\nAvailable replicas: {{value}}\\nDesired replicas: {{comparator_value}}\\n\\n@slack-platform-alerts @pagerduty",
+              "tags": ["service:auth", "team:platform"],
+              "options": {
+                "thresholds": {
+                  "critical": 0.8,
+                  "warning": 0.9
+                },
+                "notify_no_data": true,
+                "no_data_timeframe": 10
+              }
+            }
+                        ''',
+                        
+                        'performance_regression_monitor': '''
+            {
+              "name": "Auth Service Performance Regression",
+              "type": "anomaly",
+              "query": "avg(last_30m):avg:trace.auth.login.duration{env:production} by {version}",
+              "message": "Potential performance regression detected after deployment\\n\\nVersion: {{version.name}}\\nCurrent p95 latency: {{value}}ms\\n\\nCompare with previous version metrics and consider rollback if necessary.\\n\\n@slack-platform-alerts",
+              "tags": ["service:auth", "regression-detection"],
+              "options": {
+                "threshold_windows": {
+                  "recovery_window": "last_15m",
+                  "trigger_window": "last_5m"
+                }
+              }
+            }
+                        '''
+                    }
+            '''
+        }
+    
+    def security_in_pipeline(self):
+        """パイプラインでのセキュリティ実装"""
+        
+        return {
+            'security_gates': '''
+            class SecurityGates:
+                """デプロイメント前のセキュリティゲート"""
+                
+                def __init__(self):
+                    self.required_checks = [
+                        "dependency_scan",
+                        "sast_scan",
+                        "container_scan",
+                        "secrets_scan",
+                        "license_compliance"
+                    ]
+                
+                async def validate_deployment(self, deployment_request: DeploymentRequest) -> ValidationResult:
+                    """デプロイメント前の包括的なセキュリティ検証"""
+                    
+                    results = []
+                    
+                    # 1. 脆弱性スキャン結果の確認
+                    vuln_check = await self.check_vulnerability_scan(
+                        deployment_request.image_tag
+                    )
+                    results.append(vuln_check)
+                    
+                    # 2. セキュリティポリシーの確認
+                    policy_check = await self.validate_security_policies(
+                        deployment_request
+                    )
+                    results.append(policy_check)
+                    
+                    # 3. 認証設定の検証
+                    auth_config_check = await self.validate_auth_configuration(
+                        deployment_request.config
+                    )
+                    results.append(auth_config_check)
+                    
+                    # 4. TLS/証明書の有効性確認
+                    tls_check = await self.validate_tls_configuration(
+                        deployment_request.environment
+                    )
+                    results.append(tls_check)
+                    
+                    # 5. シークレット管理の確認
+                    secrets_check = await self.validate_secrets_management(
+                        deployment_request
+                    )
+                    results.append(secrets_check)
+                    
+                    # すべてのチェックに合格した場合のみデプロイを許可
+                    all_passed = all(r.passed for r in results)
+                    
+                    return ValidationResult(
+                        passed=all_passed,
+                        checks=results,
+                        deployment_allowed=all_passed,
+                        risk_score=self.calculate_risk_score(results)
+                    )
+                
+                async def check_vulnerability_scan(self, image_tag: str) -> CheckResult:
+                    """コンテナイメージの脆弱性チェック"""
+                    
+                    scan_results = await self.trivy_scan(image_tag)
+                    
+                    critical_vulns = scan_results.get_critical_vulnerabilities()
+                    high_vulns = scan_results.get_high_vulnerabilities()
+                    
+                    # クリティカルな脆弱性は許可しない
+                    if critical_vulns:
+                        return CheckResult(
+                            name="vulnerability_scan",
+                            passed=False,
+                            message=f"Found {len(critical_vulns)} critical vulnerabilities",
+                            details=critical_vulns
+                        )
+                    
+                    # 高リスクの脆弱性は3個まで許容
+                    if len(high_vulns) > 3:
+                        return CheckResult(
+                            name="vulnerability_scan",
+                            passed=False,
+                            message=f"Found {len(high_vulns)} high vulnerabilities (max allowed: 3)",
+                            details=high_vulns
+                        )
+                    
+                    return CheckResult(
+                        name="vulnerability_scan",
+                        passed=True,
+                        message="Vulnerability scan passed"
+                    )
+                
+                async def validate_auth_configuration(self, config: dict) -> CheckResult:
+                    """認証設定の妥当性検証"""
+                    
+                    required_settings = {
+                        "jwt_algorithm": ["RS256", "ES256"],  # 安全なアルゴリズムのみ
+                        "password_min_length": lambda x: x >= 12,
+                        "mfa_enabled": lambda x: x is True,
+                        "session_timeout_minutes": lambda x: x <= 480,  # 最大8時間
+                        "bcrypt_rounds": lambda x: x >= 12
+                    }
+                    
+                    violations = []
+                    
+                    for setting, requirement in required_settings.items():
+                        value = config.get(setting)
+                        
+                        if isinstance(requirement, list):
+                            if value not in requirement:
+                                violations.append(f"{setting} must be one of {requirement}")
+                        elif callable(requirement):
+                            if not requirement(value):
+                                violations.append(f"{setting} does not meet requirements")
+                        else:
+                            if value != requirement:
+                                violations.append(f"{setting} must be {requirement}")
+                    
+                    if violations:
+                        return CheckResult(
+                            name="auth_configuration",
+                            passed=False,
+                            message="Invalid authentication configuration",
+                            details=violations
+                        )
+                    
+                    return CheckResult(
+                        name="auth_configuration",
+                        passed=True,
+                        message="Authentication configuration is valid"
+                    )
+            ''',
+            
+            'automated_security_tests': '''
+            class AutomatedSecurityTests:
+                """パイプラインでの自動セキュリティテスト"""
+                
+                def generate_security_test_suite(self):
+                    """包括的なセキュリティテストスイート"""
+                    
+                    return """
+            security-test-suite:
+              stage: security-test
+              image: owasp/zap2docker-stable
+              services:
+                - name: $CI_REGISTRY_IMAGE/auth-service:$CI_COMMIT_SHA
+                  alias: auth-service
+              variables:
+                AUTH_SERVICE_URL: http://auth-service:8080
+              script:
+                # OWASP ZAP による動的セキュリティテスト
+                - |
+                  zap-baseline.py \
+                    -t $AUTH_SERVICE_URL \
+                    -g gen.conf \
+                    -J zap-report.json \
+                    -r zap-report.html \
+                    --auto
+                
+                # 認証バイパステスト
+                - python security-tests/test_auth_bypass.py
+                
+                # SQLインジェクションテスト
+                - python security-tests/test_sql_injection.py
+                
+                # XSSテスト
+                - python security-tests/test_xss.py
+                
+                # CSRF対策テスト
+                - python security-tests/test_csrf_protection.py
+                
+                # レート制限テスト
+                - python security-tests/test_rate_limiting.py
+                
+                # JWT セキュリティテスト
+                - python security-tests/test_jwt_security.py
+                
+              artifacts:
+                reports:
+                  dast: zap-report.json
+                paths:
+                  - zap-report.html
+                  - security-test-results/
+              only:
+                - merge_requests
+                - main
+                    """
+                
+                def generate_penetration_test_automation(self):
+                    """自動ペネトレーションテスト"""
+                    
+                    return {
+                        'nuclei_scan': '''
+            - name: Run Nuclei Security Scan
+              run: |
+                nuclei -u ${{ env.TARGET_URL }} \
+                  -t nuclei-templates/cves/ \
+                  -t nuclei-templates/vulnerabilities/ \
+                  -t nuclei-templates/misconfiguration/ \
+                  -severity critical,high,medium \
+                  -o nuclei-report.json \
+                  -json
+                        ''',
+                        
+                        'custom_auth_tests': '''
+            import asyncio
+            import aiohttp
+            from typing import List, Dict
+            
+            class AuthSecurityTester:
+                """認証システム専用のセキュリティテスト"""
+                
+                def __init__(self, base_url: str):
+                    self.base_url = base_url
+                    self.session = None
+                
+                async def run_all_tests(self) -> Dict[str, List[str]]:
+                    """すべてのセキュリティテストを実行"""
+                    
+                    results = {
+                        "passed": [],
+                        "failed": [],
+                        "warnings": []
+                    }
+                    
+                    tests = [
+                        self.test_jwt_none_algorithm,
+                        self.test_jwt_key_confusion,
+                        self.test_password_timing_attack,
+                        self.test_session_fixation,
+                        self.test_brute_force_protection,
+                        self.test_account_enumeration,
+                        self.test_concurrent_session_limit,
+                        self.test_token_replay_attack
+                    ]
+                    
+                    async with aiohttp.ClientSession() as self.session:
+                        for test in tests:
+                            try:
+                                test_name = test.__name__
+                                await test()
+                                results["passed"].append(test_name)
+                            except AssertionError as e:
+                                results["failed"].append(f"{test_name}: {str(e)}")
+                            except Exception as e:
+                                results["warnings"].append(f"{test_name}: {str(e)}")
+                    
+                    return results
+                
+                async def test_jwt_none_algorithm(self):
+                    """JWT 'none' アルゴリズム攻撃テスト"""
+                    
+                    # 正常なログインでJWTを取得
+                    login_response = await self.session.post(
+                        f"{self.base_url}/auth/login",
+                        json={"username": "test@example.com", "password": "testpass"}
+                    )
+                    token = (await login_response.json())["access_token"]
+                    
+                    # JWTを改ざん（algをnoneに変更）
+                    parts = token.split('.')
+                    header = json.loads(base64.urlsafe_b64decode(parts[0] + '=='))
+                    header['alg'] = 'none'
+                    
+                    tampered_token = (
+                        base64.urlsafe_b64encode(json.dumps(header).encode()).decode().rstrip('=') +
+                        '.' + parts[1] + '.'
+                    )
+                    
+                    # 改ざんされたトークンでアクセス
+                    response = await self.session.get(
+                        f"{self.base_url}/api/profile",
+                        headers={"Authorization": f"Bearer {tampered_token}"}
+                    )
+                    
+                    assert response.status == 401, "JWT none algorithm attack succeeded!"
+                        '''
+                    }
+            '''
+        }
+```
+
+### 12.5.2 パフォーマンステストの自動化
+
+```python
+class PerformanceTestAutomation:
+    """CI/CDでのパフォーマンステスト自動化"""
+    
+    def generate_k6_test_scenarios(self):
+        """k6によるロードテストシナリオ"""
+        
+        return {
+            'auth_load_test': '''
+            import http from 'k6/http';
+            import { check, sleep } from 'k6';
+            import { Rate } from 'k6/metrics';
+            
+            // カスタムメトリクス
+            const errorRate = new Rate('errors');
+            const authSuccessRate = new Rate('auth_success');
+            const jwtValidationTime = new Trend('jwt_validation_time');
+            
+            // テストシナリオ設定
+            export const options = {
+              scenarios: {
+                // ステージ1: 通常負荷
+                normal_load: {
+                  executor: 'ramping-vus',
+                  startVUs: 0,
+                  stages: [
+                    { duration: '2m', target: 100 },  // Ramp up
+                    { duration: '5m', target: 100 },  // Stay at 100 users
+                    { duration: '2m', target: 0 },    // Ramp down
+                  ],
+                  gracefulRampDown: '30s',
+                },
+                
+                // ステージ2: スパイク負荷
+                spike_test: {
+                  executor: 'ramping-vus',
+                  startVUs: 0,
+                  stages: [
+                    { duration: '30s', target: 500 },  // Sudden spike
+                    { duration: '1m', target: 500 },   // Hold
+                    { duration: '30s', target: 0 },    // Quick drop
+                  ],
+                  startTime: '10m',  // Start after normal load
+                },
+                
+                // ステージ3: 持続負荷
+                sustained_load: {
+                  executor: 'constant-vus',
+                  vus: 200,
+                  duration: '30m',
+                  startTime: '15m',
+                },
+              },
+              
+              thresholds: {
+                // パフォーマンス基準
+                http_req_duration: ['p(95)<500', 'p(99)<1000'],  // 95%が500ms以下
+                http_req_failed: ['rate<0.01'],  // エラー率1%未満
+                errors: ['rate<0.01'],
+                auth_success: ['rate>0.99'],  // 認証成功率99%以上
+                jwt_validation_time: ['p(95)<50'],  // JWT検証95%が50ms以下
+              },
+            };
+            
+            // テストデータ
+            const users = JSON.parse(open('./test-users.json'));
+            const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
+            
+            export default function () {
+              // ランダムユーザー選択
+              const user = users[Math.floor(Math.random() * users.length)];
+              
+              // 1. ログインテスト
+              const loginRes = http.post(
+                `${BASE_URL}/api/v1/auth/login`,
+                JSON.stringify({
+                  email: user.email,
+                  password: user.password,
+                }),
+                {
+                  headers: { 'Content-Type': 'application/json' },
+                  tags: { name: 'login' },
+                }
+              );
+              
+              const loginSuccess = check(loginRes, {
+                'login status is 200': (r) => r.status === 200,
+                'login has token': (r) => r.json('access_token') !== '',
+                'login response time < 500ms': (r) => r.timings.duration < 500,
+              });
+              
+              errorRate.add(!loginSuccess);
+              authSuccessRate.add(loginSuccess);
+              
+              if (!loginSuccess) return;
+              
+              const authToken = loginRes.json('access_token');
+              const refreshToken = loginRes.json('refresh_token');
+              
+              // 2. 認証が必要なAPIへのアクセス
+              const headers = {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              };
+              
+              // プロファイル取得
+              const profileRes = http.get(`${BASE_URL}/api/v1/profile`, { headers });
+              check(profileRes, {
+                'profile status is 200': (r) => r.status === 200,
+                'profile has user data': (r) => r.json('user_id') !== '',
+              });
+              
+              sleep(1);
+              
+              // 3. トークンリフレッシュテスト
+              if (Math.random() > 0.7) {  // 30%の確率でリフレッシュ
+                const refreshStart = new Date();
+                const refreshRes = http.post(
+                  `${BASE_URL}/api/v1/auth/refresh`,
+                  JSON.stringify({ refresh_token: refreshToken }),
+                  { headers: { 'Content-Type': 'application/json' } }
+                );
+                
+                const refreshDuration = new Date() - refreshStart;
+                jwtValidationTime.add(refreshDuration);
+                
+                check(refreshRes, {
+                  'refresh status is 200': (r) => r.status === 200,
+                  'refresh has new token': (r) => r.json('access_token') !== '',
+                });
+              }
+              
+              // 4. 並行セッションテスト
+              if (__VU % 10 === 0) {  // 10%のVUで実行
+                const batch = http.batch([
+                  ['GET', `${BASE_URL}/api/v1/profile`, null, { headers }],
+                  ['GET', `${BASE_URL}/api/v1/settings`, null, { headers }],
+                  ['GET', `${BASE_URL}/api/v1/permissions`, null, { headers }],
+                ]);
+                
+                check(batch[0], {
+                  'batch requests successful': (r) => r.status === 200,
+                });
+              }
+              
+              sleep(Math.random() * 3 + 1);  // 1-4秒のランダム待機
+            }
+            
+            export function handleSummary(data) {
+              return {
+                'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+                'summary.json': JSON.stringify(data),
+                'summary.html': htmlReport(data),
+              };
+            }
+            ''',
+            
+            'grafana_dashboard': '''
+            {
+              "dashboard": {
+                "title": "Auth Service CI/CD Performance",
+                "panels": [
+                  {
+                    "title": "Request Rate",
+                    "targets": [{
+                      "expr": "rate(http_requests_total{service=\"auth-service\"}[5m])"
+                    }]
+                  },
+                  {
+                    "title": "Response Time (p95)",
+                    "targets": [{
+                      "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"auth-service\"}[5m]))"
+                    }]
+                  },
+                  {
+                    "title": "Error Rate",
+                    "targets": [{
+                      "expr": "rate(http_requests_total{service=\"auth-service\",status=~\"5..\"}[5m])"
+                    }]
+                  },
+                  {
+                    "title": "JWT Validation Performance",
+                    "targets": [{
+                      "expr": "histogram_quantile(0.95, rate(jwt_validation_duration_seconds_bucket[5m]))"
+                    }]
+                  },
+                  {
+                    "title": "Database Connection Pool",
+                    "targets": [{
+                      "expr": "db_connection_pool_size{service=\"auth-service\"}"
+                    }]
+                  }
+                ],
+                "annotations": [
+                  {
+                    "datasource": "prometheus",
+                    "expr": "ALERTS{alertname=\"DeploymentStarted\",service=\"auth-service\"}",
+                    "titleFormat": "Deployment Started"
+                  }
+                ]
+              }
+            }
+            '''
+        }
+```

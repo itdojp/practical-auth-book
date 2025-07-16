@@ -342,62 +342,585 @@ class ModernAuthenticationFlows:
             },
             
             'webauthn_flow': {
-                'description': 'WebAuthn/FIDO2による生体認証',
+                'description': 'WebAuthn/FIDO2による生体認証の詳細実装',
                 'implementation': '''
+                from webauthn import generate_registration_options, verify_registration_response
+                from webauthn import generate_authentication_options, verify_authentication_response
+                from webauthn.helpers import base64url_to_bytes, bytes_to_base64url
+                import secrets
+                import json
+                from typing import Optional, Dict, List
+                
                 class WebAuthnFlow:
-                    def __init__(self):
-                        self.rp = PublicKeyCredentialRpEntity(
-                            name="My App",
-                            id="example.com"
-                        )
+                    """WebAuthn/FIDO2 パスワードレス認証の完全実装"""
+                    
+                    def __init__(self, rp_name: str, rp_id: str, origin: str):
+                        self.rp_name = rp_name
+                        self.rp_id = rp_id
+                        self.origin = origin
+                        
+                    # === 登録フロー ===
                     
                     async def registration_begin(self, user: User) -> dict:
-                        # チャレンジ生成
-                        challenge = secrets.token_bytes(32)
+                        """登録開始 - クライアントへのチャレンジ送信"""
                         
-                        # 登録オプション作成
+                        # 既存の認証器を取得
+                        existing_credentials = await self.get_user_credentials(user.id)
+                        exclude_credentials = [
+                            {
+                                "id": cred.credential_id,
+                                "type": "public-key",
+                                "transports": cred.transports
+                            }
+                            for cred in existing_credentials
+                        ]
+                        
+                        # 登録オプションの生成
                         options = generate_registration_options(
-                            rp_id=self.rp.id,
-                            rp_name=self.rp.name,
-                            user_id=user.id.encode(),
+                            rp_id=self.rp_id,
+                            rp_name=self.rp_name,
+                            user_id=user.id.encode('utf-8'),
                             user_name=user.email,
-                            user_display_name=user.name,
-                            challenge=challenge,
-                            attestation="direct",
-                            authenticator_selection=AuthenticatorSelectionCriteria(
-                                authenticator_attachment="platform",
-                                user_verification="required"
-                            )
+                            user_display_name=user.display_name or user.email,
+                            # セキュリティ設定
+                            attestation="direct",  # 認証器の証明書を要求
+                            authenticator_selection={
+                                "authenticator_attachment": "cross-platform",  # USB/NFC/BLE対応
+                                "user_verification": "preferred",  # 生体認証推奨
+                                "require_resident_key": True  # パスキー対応
+                            },
+                            exclude_credentials=exclude_credentials,
+                            # サポートする公開鍵アルゴリズム
+                            supported_pub_key_algs=[-7, -257],  # ES256, RS256
+                            timeout=60000  # 60秒のタイムアウト
                         )
                         
-                        # チャレンジを保存
-                        await self.store_challenge(user.id, challenge)
+                        # チャレンジをセッションに保存
+                        await self.save_challenge(
+                            user_id=user.id,
+                            challenge=options.challenge,
+                            type="registration"
+                        )
                         
-                        return options
+                        # クライアントへ送信するデータ
+                        return {
+                            "challenge": bytes_to_base64url(options.challenge),
+                            "rp": {
+                                "name": options.rp.name,
+                                "id": options.rp.id
+                            },
+                            "user": {
+                                "id": bytes_to_base64url(options.user.id),
+                                "name": options.user.name,
+                                "displayName": options.user.display_name
+                            },
+                            "pubKeyCredParams": [
+                                {"type": "public-key", "alg": -7},   # ES256
+                                {"type": "public-key", "alg": -257}  # RS256
+                            ],
+                            "authenticatorSelection": options.authenticator_selection,
+                            "attestation": options.attestation,
+                            "excludeCredentials": options.exclude_credentials,
+                            "timeout": options.timeout
+                        }
                     
-                    async def registration_complete(self, user: User, credential: dict) -> bool:
-                        # チャレンジ検証
-                        expected_challenge = await self.get_challenge(user.id)
+                    async def registration_complete(
+                        self, 
+                        user: User, 
+                        credential: dict,
+                        client_data_json: str
+                    ) -> Dict:
+                        """登録完了 - 認証器からの応答を検証"""
                         
-                        # 認証情報の検証
-                        verification = verify_registration_response(
-                            credential=credential,
-                            expected_challenge=expected_challenge,
-                            expected_origin=self.expected_origin,
-                            expected_rp_id=self.rp.id
+                        # 保存されたチャレンジを取得
+                        expected_challenge = await self.get_challenge(
+                            user.id, 
+                            type="registration"
                         )
                         
-                        if verification.verified:
-                            # 認証情報の保存
-                            await self.save_credential(
+                        if not expected_challenge:
+                            raise ValueError("Challenge not found or expired")
+                        
+                        try:
+                            # 登録応答の検証
+                            verification = verify_registration_response(
+                                credential=credential,
+                                expected_challenge=expected_challenge,
+                                expected_origin=self.origin,
+                                expected_rp_id=self.rp_id,
+                                require_user_verification=True
+                            )
+                            
+                            if not verification.verified:
+                                raise ValueError("Registration verification failed")
+                            
+                            # 認証器情報の保存
+                            credential_record = await self.save_credential(
                                 user_id=user.id,
                                 credential_id=verification.credential_id,
                                 public_key=verification.credential_public_key,
-                                sign_count=verification.sign_count
+                                sign_count=verification.sign_count,
+                                credential_type=verification.credential_type,
+                                transports=credential.get("transports", []),
+                                aaguid=verification.aaguid,  # 認証器の識別子
+                                credential_device_type=verification.credential_device_type,
+                                credential_backed_up=verification.credential_backed_up
                             )
-                            return True
+                            
+                            # 監査ログ
+                            await self.log_registration(
+                                user_id=user.id,
+                                credential_id=credential_record.id,
+                                authenticator_type=verification.credential_device_type,
+                                success=True
+                            )
+                            
+                            return {
+                                "verified": True,
+                                "credential_id": credential_record.id,
+                                "authenticator_type": verification.credential_device_type,
+                                "backed_up": verification.credential_backed_up
+                            }
+                            
+                        except Exception as e:
+                            await self.log_registration(
+                                user_id=user.id,
+                                error=str(e),
+                                success=False
+                            )
+                            raise
+                    
+                    # === 認証フロー ===
+                    
+                    async def authentication_begin(
+                        self, 
+                        user_id: Optional[str] = None
+                    ) -> dict:
+                        """認証開始 - チャレンジの生成"""
                         
-                        return False
+                        # 利用可能な認証器を取得
+                        allow_credentials = []
+                        if user_id:
+                            # ユーザー指定の場合
+                            credentials = await self.get_user_credentials(user_id)
+                            allow_credentials = [
+                                {
+                                    "id": cred.credential_id,
+                                    "type": "public-key",
+                                    "transports": cred.transports
+                                }
+                                for cred in credentials
+                            ]
+                        # user_idがない場合はパスキー（resident key）を使用
+                        
+                        # 認証オプションの生成
+                        options = generate_authentication_options(
+                            rp_id=self.rp_id,
+                            allow_credentials=allow_credentials,
+                            user_verification="preferred",
+                            timeout=60000
+                        )
+                        
+                        # チャレンジを保存
+                        session_id = secrets.token_urlsafe(32)
+                        await self.save_challenge(
+                            session_id=session_id,
+                            challenge=options.challenge,
+                            type="authentication",
+                            user_id=user_id  # オプショナル
+                        )
+                        
+                        return {
+                            "challenge": bytes_to_base64url(options.challenge),
+                            "rpId": options.rp_id,
+                            "allowCredentials": options.allow_credentials,
+                            "userVerification": options.user_verification,
+                            "timeout": options.timeout,
+                            "session_id": session_id
+                        }
+                    
+                    async def authentication_complete(
+                        self,
+                        credential: dict,
+                        session_id: str,
+                        client_data_json: str
+                    ) -> Dict:
+                        """認証完了 - 署名の検証"""
+                        
+                        # チャレンジとユーザー情報を取得
+                        challenge_info = await self.get_challenge_info(
+                            session_id=session_id,
+                            type="authentication"
+                        )
+                        
+                        if not challenge_info:
+                            raise ValueError("Challenge not found or expired")
+                        
+                        # 認証器の公開鍵を取得
+                        credential_id = credential.get("id")
+                        stored_credential = await self.get_credential_by_id(credential_id)
+                        
+                        if not stored_credential:
+                            raise ValueError("Credential not found")
+                        
+                        try:
+                            # 認証応答の検証
+                            verification = verify_authentication_response(
+                                credential=credential,
+                                expected_challenge=challenge_info.challenge,
+                                expected_origin=self.origin,
+                                expected_rp_id=self.rp_id,
+                                credential_public_key=stored_credential.public_key,
+                                credential_current_sign_count=stored_credential.sign_count,
+                                require_user_verification=True
+                            )
+                            
+                            if not verification.verified:
+                                raise ValueError("Authentication verification failed")
+                            
+                            # サインカウントの更新（リプレイ攻撃対策）
+                            await self.update_sign_count(
+                                credential_id=stored_credential.id,
+                                new_sign_count=verification.new_sign_count
+                            )
+                            
+                            # 認証成功
+                            user = await self.get_user(stored_credential.user_id)
+                            
+                            # 監査ログ
+                            await self.log_authentication(
+                                user_id=user.id,
+                                credential_id=stored_credential.id,
+                                success=True
+                            )
+                            
+                            return {
+                                "verified": True,
+                                "user_id": user.id,
+                                "credential_id": stored_credential.id,
+                                "sign_count": verification.new_sign_count
+                            }
+                            
+                        except Exception as e:
+                            await self.log_authentication(
+                                credential_id=credential_id,
+                                error=str(e),
+                                success=False
+                            )
+                            raise
+                    
+                    # === 認証器管理 ===
+                    
+                    async def list_credentials(self, user_id: str) -> List[Dict]:
+                        """ユーザーの登録済み認証器一覧"""
+                        credentials = await self.get_user_credentials(user_id)
+                        
+                        return [
+                            {
+                                "id": cred.id,
+                                "name": cred.name,
+                                "type": cred.credential_device_type,
+                                "created_at": cred.created_at,
+                                "last_used": cred.last_used,
+                                "backed_up": cred.credential_backed_up,
+                                "transports": cred.transports
+                            }
+                            for cred in credentials
+                        ]
+                    
+                    async def rename_credential(
+                        self, 
+                        user_id: str, 
+                        credential_id: str, 
+                        new_name: str
+                    ) -> bool:
+                        """認証器の名前変更"""
+                        credential = await self.get_credential_by_id(credential_id)
+                        
+                        if not credential or credential.user_id != user_id:
+                            raise ValueError("Credential not found")
+                        
+                        await self.update_credential_name(credential_id, new_name)
+                        return True
+                    
+                    async def delete_credential(
+                        self, 
+                        user_id: str, 
+                        credential_id: str
+                    ) -> bool:
+                        """認証器の削除"""
+                        # 最後の認証器は削除できない
+                        count = await self.count_user_credentials(user_id)
+                        if count <= 1:
+                            raise ValueError("Cannot delete last credential")
+                        
+                        credential = await self.get_credential_by_id(credential_id)
+                        if not credential or credential.user_id != user_id:
+                            raise ValueError("Credential not found")
+                        
+                        await self.remove_credential(credential_id)
+                        return True
+                ''',
+                'frontend_implementation': '''
+                // WebAuthn フロントエンド実装（JavaScript/TypeScript）
+                
+                class WebAuthnClient {
+                    constructor(apiEndpoint) {
+                        this.apiEndpoint = apiEndpoint;
+                    }
+                    
+                    // === 登録フロー ===
+                    
+                    async register() {
+                        try {
+                            // 1. サーバーから登録オプションを取得
+                            const response = await fetch(`${this.apiEndpoint}/webauthn/register/begin`, {
+                                method: 'POST',
+                                credentials: 'include',
+                                headers: {'Content-Type': 'application/json'}
+                            });
+                            
+                            const options = await response.json();
+                            
+                            // 2. Base64URLデコード
+                            options.challenge = this.base64urlToBuffer(options.challenge);
+                            options.user.id = this.base64urlToBuffer(options.user.id);
+                            
+                            if (options.excludeCredentials) {
+                                options.excludeCredentials = options.excludeCredentials.map(cred => ({
+                                    ...cred,
+                                    id: this.base64urlToBuffer(cred.id)
+                                }));
+                            }
+                            
+                            // 3. 認証器の呼び出し
+                            const credential = await navigator.credentials.create({
+                                publicKey: options
+                            });
+                            
+                            // 4. レスポンスの準備
+                            const credentialData = {
+                                id: credential.id,
+                                rawId: this.bufferToBase64url(credential.rawId),
+                                type: credential.type,
+                                response: {
+                                    clientDataJSON: this.bufferToBase64url(
+                                        credential.response.clientDataJSON
+                                    ),
+                                    attestationObject: this.bufferToBase64url(
+                                        credential.response.attestationObject
+                                    ),
+                                    transports: credential.response.getTransports?.() || []
+                                }
+                            };
+                            
+                            // 5. サーバーに送信して検証
+                            const verifyResponse = await fetch(
+                                `${this.apiEndpoint}/webauthn/register/complete`, 
+                                {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({credential: credentialData})
+                                }
+                            );
+                            
+                            return await verifyResponse.json();
+                            
+                        } catch (error) {
+                            console.error('Registration failed:', error);
+                            throw this.handleError(error);
+                        }
+                    }
+                    
+                    // === 認証フロー ===
+                    
+                    async authenticate(userHandle = null) {
+                        try {
+                            // 1. サーバーから認証オプションを取得
+                            const beginResponse = await fetch(
+                                `${this.apiEndpoint}/webauthn/authenticate/begin`,
+                                {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({ userHandle })
+                                }
+                            );
+                            
+                            const options = await beginResponse.json();
+                            
+                            // 2. Base64URLデコード
+                            options.challenge = this.base64urlToBuffer(options.challenge);
+                            
+                            if (options.allowCredentials) {
+                                options.allowCredentials = options.allowCredentials.map(cred => ({
+                                    ...cred,
+                                    id: this.base64urlToBuffer(cred.id)
+                                }));
+                            }
+                            
+                            // 3. 認証器の呼び出し
+                            const assertion = await navigator.credentials.get({
+                                publicKey: options
+                            });
+                            
+                            // 4. レスポンスの準備
+                            const assertionData = {
+                                id: assertion.id,
+                                rawId: this.bufferToBase64url(assertion.rawId),
+                                type: assertion.type,
+                                response: {
+                                    clientDataJSON: this.bufferToBase64url(
+                                        assertion.response.clientDataJSON
+                                    ),
+                                    authenticatorData: this.bufferToBase64url(
+                                        assertion.response.authenticatorData
+                                    ),
+                                    signature: this.bufferToBase64url(
+                                        assertion.response.signature
+                                    ),
+                                    userHandle: assertion.response.userHandle ? 
+                                        this.bufferToBase64url(assertion.response.userHandle) : null
+                                }
+                            };
+                            
+                            // 5. サーバーに送信して検証
+                            const verifyResponse = await fetch(
+                                `${this.apiEndpoint}/webauthn/authenticate/complete`,
+                                {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        assertion: assertionData,
+                                        sessionId: options.session_id
+                                    })
+                                }
+                            );
+                            
+                            return await verifyResponse.json();
+                            
+                        } catch (error) {
+                            console.error('Authentication failed:', error);
+                            throw this.handleError(error);
+                        }
+                    }
+                    
+                    // === ユーティリティ関数 ===
+                    
+                    base64urlToBuffer(base64url) {
+                        const padding = '='.repeat((4 - base64url.length % 4) % 4);
+                        const base64 = (base64url + padding)
+                            .replace(/-/g, '+')
+                            .replace(/_/g, '/');
+                        const binary = window.atob(base64);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) {
+                            bytes[i] = binary.charCodeAt(i);
+                        }
+                        return bytes.buffer;
+                    }
+                    
+                    bufferToBase64url(buffer) {
+                        const bytes = new Uint8Array(buffer);
+                        let binary = '';
+                        for (let i = 0; i < bytes.byteLength; i++) {
+                            binary += String.fromCharCode(bytes[i]);
+                        }
+                        const base64 = window.btoa(binary);
+                        return base64
+                            .replace(/\+/g, '-')
+                            .replace(/\//g, '_')
+                            .replace(/=/g, '');
+                    }
+                    
+                    handleError(error) {
+                        if (error.name === 'NotAllowedError') {
+                            return new Error('認証がキャンセルされました');
+                        } else if (error.name === 'SecurityError') {
+                            return new Error('セキュリティエラー: HTTPSが必要です');
+                        } else if (error.name === 'AbortError') {
+                            return new Error('操作がタイムアウトしました');
+                        } else if (error.name === 'InvalidStateError') {
+                            return new Error('認証器は既に登録されています');
+                        } else if (error.name === 'NotSupportedError') {
+                            return new Error('このブラウザはWebAuthnをサポートしていません');
+                        }
+                        return error;
+                    }
+                    
+                    // === UI統合例 ===
+                    
+                    async setupUI() {
+                        // ブラウザサポートチェック
+                        if (!window.PublicKeyCredential) {
+                            this.showError('WebAuthnはサポートされていません');
+                            return;
+                        }
+                        
+                        // パスキー対応チェック
+                        const available = await PublicKeyCredential
+                            .isUserVerifyingPlatformAuthenticatorAvailable();
+                        
+                        if (available) {
+                            this.showPasskeyOption();
+                        }
+                        
+                        // 条件付きUIチェック（自動入力）
+                        if (window.PublicKeyCredential.isConditionalMediationAvailable) {
+                            const conditional = await PublicKeyCredential
+                                .isConditionalMediationAvailable();
+                            if (conditional) {
+                                this.enableConditionalUI();
+                            }
+                        }
+                    }
+                    
+                    async enableConditionalUI() {
+                        // 入力フィールドに自動入力を設定
+                        const emailInput = document.getElementById('email');
+                        emailInput.setAttribute('autocomplete', 'username webauthn');
+                        
+                        // 条件付き認証の開始
+                        try {
+                            const options = await this.getAuthenticationOptions();
+                            options.mediation = 'conditional';
+                            
+                            const credential = await navigator.credentials.get({
+                                publicKey: options
+                            });
+                            
+                            if (credential) {
+                                await this.completeAuthentication(credential);
+                            }
+                        } catch (error) {
+                            console.log('Conditional UI not triggered');
+                        }
+                    }
+                }
+                ''',
+                'best_practices': '''
+                WebAuthn実装のベストプラクティス:
+                
+                1. **プログレッシブエンハンスメント**
+                   - パスワード認証も併用可能に
+                   - WebAuthn非対応ブラウザへの配慮
+                   
+                2. **ユーザー体験の最適化**
+                   - 明確な登録フロー
+                   - エラーメッセージの分かりやすさ
+                   - 認証器の管理UI
+                   
+                3. **セキュリティ強化**
+                   - attestation（認証器の証明）の検証
+                   - リプレイ攻撃対策（sign count）
+                   - チャレンジの適切な管理
+                   
+                4. **互換性対応**
+                   - 様々な認証器のサポート
+                   - トランスポート（USB/NFC/BLE）の考慮
+                   - プラットフォーム固有の挙動への対応
                 '''
             }
         }

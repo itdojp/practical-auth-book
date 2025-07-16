@@ -217,6 +217,227 @@ class OAuth2Evolution:
         }
 ```
 
+### 6.1.4 OAuth 2.1 - セキュリティ強化版の最新仕様
+
+```python
+class OAuth21SecurityEnhancements:
+    """OAuth 2.1の重要な変更点と強化されたセキュリティ"""
+    
+    def explain_oauth21_changes(self):
+        """OAuth 2.1で何が変わったのか"""
+        
+        return {
+            'deprecated_features': {
+                'implicit_grant': {
+                    'status': '廃止',
+                    'reason': 'トークンがURLフラグメントで露出するリスク',
+                    'alternative': 'Authorization Code + PKCE',
+                    'migration_example': '''
+                    # ❌ OAuth 2.0 Implicit Flow（廃止）
+                    https://auth.example.com/authorize?
+                        response_type=token&
+                        client_id=spa_client&
+                        redirect_uri=https://app.example.com
+                    
+                    # ✅ OAuth 2.1 Authorization Code + PKCE
+                    https://auth.example.com/authorize?
+                        response_type=code&
+                        client_id=spa_client&
+                        redirect_uri=https://app.example.com&
+                        code_challenge=XXXXXXXXX&
+                        code_challenge_method=S256
+                    '''
+                },
+                
+                'resource_owner_password': {
+                    'status': '廃止',
+                    'reason': 'パスワードの直接取り扱いは危険',
+                    'alternative': 'Authorization Code or Device Flow',
+                    'exception': 'レガシーシステムの移行期間のみ'
+                },
+                
+                'non_https_redirects': {
+                    'status': '禁止',
+                    'reason': '中間者攻撃のリスク',
+                    'requirement': 'すべてのリダイレクトURIはHTTPS必須',
+                    'exception': 'localhost開発環境のみHTTP許可'
+                }
+            },
+            
+            'mandatory_features': {
+                'pkce_required': {
+                    'applies_to': 'すべてのパブリッククライアント',
+                    'implementation': '''
+                    import hashlib
+                    import base64
+                    import secrets
+                    
+                    class PKCEGenerator:
+                        @staticmethod
+                        def generate_pkce_pair():
+                            # Code Verifier: 43-128文字のランダム文字列
+                            code_verifier = base64.urlsafe_b64encode(
+                                secrets.token_bytes(32)
+                            ).decode('utf-8').rstrip('=')
+                            
+                            # Code Challenge: S256 = BASE64URL(SHA256(verifier))
+                            code_challenge = base64.urlsafe_b64encode(
+                                hashlib.sha256(code_verifier.encode()).digest()
+                            ).decode('utf-8').rstrip('=')
+                            
+                            return {
+                                'verifier': code_verifier,
+                                'challenge': code_challenge,
+                                'method': 'S256'
+                            }
+                    ''',
+                    'benefit': '認可コード横取り攻撃を防ぐ'
+                },
+                
+                'exact_redirect_uri_matching': {
+                    'requirement': '完全一致（ワイルドカード禁止）',
+                    'example': '''
+                    # ❌ 許可されない
+                    registered: https://app.example.com/callback
+                    requested:  https://app.example.com/callback?state=xyz
+                    
+                    # ✅ 正しい実装
+                    registered: https://app.example.com/callback
+                    requested:  https://app.example.com/callback
+                    # stateはフラグメントかPOSTボディで送信
+                    '''
+                },
+                
+                'refresh_token_rotation': {
+                    'requirement': 'リフレッシュトークンの使い回し禁止',
+                    'implementation': '''
+                    async def refresh_access_token(refresh_token: str):
+                        # 1. リフレッシュトークンの検証
+                        token_data = await verify_refresh_token(refresh_token)
+                        
+                        # 2. 新しいトークンペアの生成
+                        new_access_token = generate_access_token(token_data.user_id)
+                        new_refresh_token = generate_refresh_token(token_data.user_id)
+                        
+                        # 3. 古いリフレッシュトークンを無効化
+                        await revoke_refresh_token(refresh_token)
+                        
+                        # 4. トークンファミリーの追跡（リプレイ検知）
+                        await track_token_family(
+                            old_token=refresh_token,
+                            new_token=new_refresh_token
+                        )
+                        
+                        return {
+                            'access_token': new_access_token,
+                            'refresh_token': new_refresh_token,
+                            'expires_in': 3600
+                        }
+                    '''
+                }
+            },
+            
+            'security_bcp': {
+                'title': 'OAuth 2.0 Security Best Current Practice',
+                'key_points': [
+                    'アクセストークンは送信者制約付きを推奨（DPoP）',
+                    'リソースサーバーはトークンイントロスペクションを使用',
+                    'クライアント認証は非対称鍵ベースを推奨',
+                    'AS-RSの通信はmTLSまたはJWT署名付き'
+                ]
+            }
+        }
+    
+    def implement_oauth21_compliant_server(self):
+        """OAuth 2.1準拠の認可サーバー実装"""
+        
+        class OAuth21AuthorizationServer:
+            def __init__(self):
+                self.supported_flows = ['authorization_code']  # Implicitは削除
+                self.pkce_required = True
+                self.https_required = True
+                
+            async def authorize_endpoint(self, request):
+                # PKCEパラメータの検証
+                if not request.code_challenge:
+                    return ErrorResponse(
+                        error='invalid_request',
+                        description='PKCE code_challenge is required'
+                    )
+                
+                if request.code_challenge_method != 'S256':
+                    return ErrorResponse(
+                        error='invalid_request',
+                        description='Only S256 code_challenge_method is supported'
+                    )
+                
+                # リダイレクトURIの検証（完全一致）
+                if not self.validate_redirect_uri_exact_match(
+                    request.client_id, 
+                    request.redirect_uri
+                ):
+                    return ErrorResponse(
+                        error='invalid_request',
+                        description='Redirect URI must exactly match registered URI'
+                    )
+                
+                # HTTPSチェック（localhost以外）
+                if not request.redirect_uri.startswith('https://'):
+                    if not request.redirect_uri.startswith('http://localhost'):
+                        return ErrorResponse(
+                            error='invalid_request',
+                            description='HTTPS is required for redirect URIs'
+                        )
+                
+                # 認可コードの生成と保存
+                auth_code = await self.generate_authorization_code(
+                    client_id=request.client_id,
+                    user_id=request.user_id,
+                    scope=request.scope,
+                    code_challenge=request.code_challenge,
+                    redirect_uri=request.redirect_uri
+                )
+                
+                return RedirectResponse(
+                    location=f"{request.redirect_uri}?code={auth_code}&state={request.state}"
+                )
+    
+    def migration_guide(self):
+        """OAuth 2.0から2.1への移行ガイド"""
+        
+        return {
+            'spa_migration': {
+                'from': 'Implicit Flow',
+                'to': 'Authorization Code + PKCE',
+                'steps': [
+                    '1. PKCEサポートをクライアントに追加',
+                    '2. response_type を token から code に変更',
+                    '3. トークンエンドポイントでの交換処理を実装',
+                    '4. セキュアなトークン保存（HttpOnly Cookie推奨）'
+                ]
+            },
+            
+            'mobile_migration': {
+                'from': 'Authorization Code (without PKCE)',
+                'to': 'Authorization Code + PKCE',
+                'steps': [
+                    '1. PKCEパラメータ生成ロジックの追加',
+                    '2. カスタムURLスキームからHTTPSユニバーサルリンクへ',
+                    '3. アプリ内ブラウザではなくシステムブラウザを使用'
+                ]
+            },
+            
+            'server_migration': {
+                'deprecations': [
+                    'Implicit Grant エンドポイントの削除',
+                    'Password Grant エンドポイントの削除',
+                    'リダイレクトURIの完全一致検証の強制',
+                    'リフレッシュトークンローテーションの実装'
+                ]
+            }
+        }
+```
+
 ## 6.2 各種グラントタイプの使い分け - ユースケースに応じた選択
 
 ### 6.2.1 Authorization Code Grant - 最も安全な標準フロー
