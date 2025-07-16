@@ -525,6 +525,8 @@ class JWTSecurityBestPractices:
                 
                 # 3. 公開鍵を秘密鍵として使用してHMAC署名
                 # （公開鍵は公開されているため、攻撃者も知っている）
+                # 以下の関数は攻撃シナリオを説明するための擬似コードです。
+                # 実際の実装は含まれていません。
                 fake_token = create_token_with_public_key_as_hmac_secret()
                 
                 # 4. アルゴリズムを指定しない検証は成功してしまう！
