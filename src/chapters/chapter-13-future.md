@@ -325,7 +325,659 @@ class DecentralizedIdentityManager:
             return False, f"Invalid signature: {str(e)}"
 ```
 
-### 13.2.2 ブロックチェーンベースの認証
+### 13.2.2 量子耐性認証の実装
+
+```python
+class QuantumResistantAuthentication:
+    """量子耐性認証システム"""
+    
+    def post_quantum_algorithms(self):
+        """ポスト量子暗号アルゴリズム"""
+        
+        return {
+            'lattice_based': {
+                'dilithium': {
+                    'type': 'デジタル署名',
+                    'security_levels': [2, 3, 5],  # NIST レベル
+                    'key_sizes': {
+                        'public': [1312, 1952, 2592],
+                        'secret': [2528, 4000, 4864],
+                        'signature': [2420, 3293, 4595]
+                    },
+                    'performance': 'Fast',
+                    'use_case': 'JWT署名、認証トークン'
+                },
+                
+                'kyber': {
+                    'type': '鍵カプセル化メカニズム（KEM）',
+                    'security_levels': [1, 3, 5],
+                    'key_sizes': {
+                        'public': [800, 1184, 1568],
+                        'secret': [1632, 2400, 3168],
+                        'ciphertext': [768, 1088, 1568]
+                    },
+                    'performance': 'Very Fast',
+                    'use_case': 'セッション鍵交換、TLS'
+                }
+            },
+            
+            'code_based': {
+                'mceliece': {
+                    'type': '公開鍵暗号',
+                    'security_level': 5,
+                    'key_sizes': {
+                        'public': 1044992,  # ~1MB
+                        'secret': 14120
+                    },
+                    'performance': 'Fast encryption/decryption',
+                    'limitation': '巨大な公開鍵サイズ'
+                }
+            },
+            
+            'hash_based': {
+                'sphincs_plus': {
+                    'type': 'ステートレス署名',
+                    'security_levels': [1, 3, 5],
+                    'signature_size': [7856, 16224, 29792],
+                    'performance': 'Slow',
+                    'advantage': '最も保守的で安全'
+                }
+            }
+        }
+    
+    def hybrid_authentication_system(self):
+        """ハイブリッド認証システムの実装"""
+        
+        return '''
+        import asyncio
+        from typing import Tuple, Dict, Optional
+        from dataclasses import dataclass
+        from datetime import datetime, timedelta
+        
+        @dataclass
+        class HybridAuthToken:
+            """ハイブリッド認証トークン"""
+            classical_signature: bytes
+            pqc_signature: bytes
+            payload: dict
+            algorithm: str
+            issued_at: datetime
+            expires_at: datetime
+        
+        class HybridAuthenticationSystem:
+            """従来暗号とPQCのハイブリッド認証"""
+            
+            def __init__(self):
+                # 従来の暗号
+                self.rsa_key = self.load_rsa_key()
+                self.ecdsa_key = self.load_ecdsa_key()
+                
+                # ポスト量子暗号
+                self.dilithium = DilithiumSigner()
+                self.kyber = KyberKEM()
+                
+                # 移行フェーズ管理
+                self.migration_phase = self.get_migration_phase()
+            
+            async def authenticate_user(
+                self, 
+                username: str, 
+                credential: Union[str, bytes],
+                device_info: dict
+            ) -> HybridAuthToken:
+                """ユーザー認証"""
+                
+                # 1. クレデンシャル検証（パスワード、生体認証等）
+                user = await self.verify_credential(username, credential)
+                if not user:
+                    raise AuthenticationError("Invalid credentials")
+                
+                # 2. デバイス信頼性評価
+                device_trust = await self.evaluate_device_trust(device_info)
+                
+                # 3. リスクベース認証
+                risk_score = await self.calculate_risk_score(user, device_info)
+                
+                # 4. 認証強度の決定
+                auth_strength = self.determine_auth_strength(
+                    device_trust, 
+                    risk_score
+                )
+                
+                # 5. トークン生成
+                if auth_strength == "HIGH":
+                    # 高リスク：両方式での署名
+                    token = await self.create_hybrid_token(user, full_strength=True)
+                elif auth_strength == "MEDIUM":
+                    # 中リスク：PQCのみ
+                    token = await self.create_pqc_token(user)
+                else:
+                    # 低リスク：従来方式（移行期間中のみ）
+                    if self.migration_phase < 3:
+                        token = await self.create_classical_token(user)
+                    else:
+                        token = await self.create_pqc_token(user)
+                
+                # 6. 監査ログ
+                await self.audit_log.record_authentication(
+                    user_id=user.id,
+                    auth_type=token.algorithm,
+                    risk_score=risk_score,
+                    device_info=device_info
+                )
+                
+                return token
+            
+            async def create_hybrid_token(
+                self, 
+                user: User, 
+                full_strength: bool = True
+            ) -> HybridAuthToken:
+                """ハイブリッドトークンの生成"""
+                
+                payload = {
+                    "sub": user.id,
+                    "name": user.name,
+                    "roles": user.roles,
+                    "iat": int(datetime.utcnow().timestamp()),
+                    "exp": int((datetime.utcnow() + timedelta(hours=1)).timestamp()),
+                    "quantum_ready": True
+                }
+                
+                # エンコード
+                payload_bytes = json.dumps(payload).encode()
+                
+                # 並列署名生成
+                classical_sig_task = asyncio.create_task(
+                    self.sign_classical(payload_bytes)
+                )
+                pqc_sig_task = asyncio.create_task(
+                    self.sign_pqc(payload_bytes)
+                )
+                
+                classical_sig, pqc_sig = await asyncio.gather(
+                    classical_sig_task, 
+                    pqc_sig_task
+                )
+                
+                return HybridAuthToken(
+                    classical_signature=classical_sig,
+                    pqc_signature=pqc_sig,
+                    payload=payload,
+                    algorithm="HYBRID-RSA-DILITHIUM3",
+                    issued_at=datetime.utcnow(),
+                    expires_at=datetime.utcnow() + timedelta(hours=1)
+                )
+            
+            async def verify_hybrid_token(self, token: str) -> Dict:
+                """ハイブリッドトークンの検証"""
+                
+                try:
+                    # トークンのパース
+                    token_data = self.parse_token(token)
+                    
+                    # 有効期限チェック
+                    if datetime.utcnow().timestamp() > token_data['exp']:
+                        raise TokenExpiredError()
+                    
+                    # 署名検証ポリシー（移行フェーズに応じて）
+                    if self.migration_phase == 1:
+                        # Phase 1: 従来方式のみ検証
+                        valid = await self.verify_classical_signature(token_data)
+                    elif self.migration_phase == 2:
+                        # Phase 2: どちらか一方が有効
+                        classical_valid = await self.verify_classical_signature(token_data)
+                        pqc_valid = await self.verify_pqc_signature(token_data)
+                        valid = classical_valid or pqc_valid
+                    elif self.migration_phase == 3:
+                        # Phase 3: 両方が有効
+                        classical_valid = await self.verify_classical_signature(token_data)
+                        pqc_valid = await self.verify_pqc_signature(token_data)
+                        valid = classical_valid and pqc_valid
+                    else:
+                        # Phase 4: PQCのみ
+                        valid = await self.verify_pqc_signature(token_data)
+                    
+                    if not valid:
+                        raise InvalidTokenError()
+                    
+                    return token_data['payload']
+                    
+                except Exception as e:
+                    self.logger.error(f"Token verification failed: {e}")
+                    raise
+            
+            def get_migration_phase(self) -> int:
+                """現在の移行フェーズを取得"""
+                
+                # 環境変数または設定から取得
+                phase = int(os.getenv('PQC_MIGRATION_PHASE', '1'))
+                
+                # フェーズの説明
+                phases = {
+                    1: "準備期間：PQC署名を追加するが検証はしない",
+                    2: "移行期間：両方式を受け入れる",
+                    3: "強化期間：両方式を要求する",
+                    4: "完了：PQCのみ使用"
+                }
+                
+                self.logger.info(f"Current migration phase: {phase} - {phases[phase]}")
+                return phase
+        '''
+```
+
+### 13.2.3 ブロックチェーンとDID
+
+```python
+class DecentralizedIdentityImplementation:
+    """分散型アイデンティティ（DID）の実装"""
+    
+    def did_architecture(self):
+        """DIDアーキテクチャ"""
+        
+        return {
+            'did_format': '''
+            # DID (Decentralized Identifier) のフォーマット
+            did:method:method-specific-identifier
+            
+            例：
+            - did:web:example.com:users:alice
+            - did:ethr:0x1234567890123456789012345678901234567890
+            - did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
+            ''',
+            
+            'did_document_structure': '''
+            {
+                "@context": [
+                    "https://www.w3.org/ns/did/v1",
+                    "https://w3id.org/security/suites/ed25519-2020/v1"
+                ],
+                "id": "did:example:123456789abcdefghi",
+                "verificationMethod": [{
+                    "id": "did:example:123456789abcdefghi#key-1",
+                    "type": "Ed25519VerificationKey2020",
+                    "controller": "did:example:123456789abcdefghi",
+                    "publicKeyMultibase": "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+                }],
+                "authentication": [
+                    "did:example:123456789abcdefghi#key-1"
+                ],
+                "assertionMethod": [
+                    "did:example:123456789abcdefghi#key-1"
+                ],
+                "service": [{
+                    "id": "did:example:123456789abcdefghi#service-1",
+                    "type": "AuthenticationService",
+                    "serviceEndpoint": "https://auth.example.com"
+                }]
+            }
+            '''
+        }
+    
+    def did_implementation_example(self):
+        """DID実装例"""
+        
+        return '''
+        import hashlib
+        import json
+        from datetime import datetime, timezone
+        from typing import Dict, List, Optional
+        from cryptography.hazmat.primitives.asymmetric import ed25519
+        from cryptography.hazmat.primitives import serialization
+        import base58
+        
+        class DIDManager:
+            """DID管理システム"""
+            
+            def __init__(self, storage_backend, resolver_network):
+                self.storage = storage_backend
+                self.resolver = resolver_network
+                self.cache = {}
+            
+            def create_did(self, method: str = "key") -> Dict:
+                """新しいDIDの作成"""
+                
+                # Ed25519鍵ペアの生成
+                private_key = ed25519.Ed25519PrivateKey.generate()
+                public_key = private_key.public_key()
+                
+                # DIDの生成
+                if method == "key":
+                    # did:key メソッド（鍵ベース）
+                    public_key_bytes = public_key.public_bytes(
+                        encoding=serialization.Encoding.Raw,
+                        format=serialization.PublicFormat.Raw
+                    )
+                    
+                    # Multibase エンコーディング
+                    multicodec_ed25519_pub = b'\xed\x01'  # 0xed01
+                    public_key_multicodec = multicodec_ed25519_pub + public_key_bytes
+                    did = f"did:key:z{base58.b58encode(public_key_multicodec).decode()}"
+                    
+                elif method == "web":
+                    # did:web メソッド（Web ベース）
+                    domain = "example.com"
+                    user_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
+                    did = f"did:web:{domain}:users:{user_id}"
+                    
+                elif method == "ethr":
+                    # did:ethr メソッド（Ethereum ベース）
+                    # Ethereum アドレスの導出
+                    eth_address = self.derive_ethereum_address(public_key)
+                    did = f"did:ethr:{eth_address}"
+                
+                # DIDドキュメントの作成
+                did_document = self.create_did_document(did, public_key)
+                
+                # ストレージに保存
+                self.storage.save_did_document(did, did_document)
+                
+                return {
+                    'did': did,
+                    'document': did_document,
+                    'private_key': private_key,
+                    'public_key': public_key
+                }
+            
+            def create_did_document(self, did: str, public_key: ed25519.Ed25519PublicKey) -> Dict:
+                """DIDドキュメントの作成"""
+                
+                # 公開鍵のMultibase表現
+                public_key_bytes = public_key.public_bytes(
+                    encoding=serialization.Encoding.Raw,
+                    format=serialization.PublicFormat.Raw
+                )
+                multicodec_ed25519_pub = b'\xed\x01'
+                public_key_multibase = f"z{base58.b58encode(multicodec_ed25519_pub + public_key_bytes).decode()}"
+                
+                return {
+                    "@context": [
+                        "https://www.w3.org/ns/did/v1",
+                        "https://w3id.org/security/suites/ed25519-2020/v1"
+                    ],
+                    "id": did,
+                    "verificationMethod": [{
+                        "id": f"{did}#key-1",
+                        "type": "Ed25519VerificationKey2020",
+                        "controller": did,
+                        "publicKeyMultibase": public_key_multibase
+                    }],
+                    "authentication": [f"{did}#key-1"],
+                    "assertionMethod": [f"{did}#key-1"],
+                    "keyAgreement": [],
+                    "capabilityInvocation": [f"{did}#key-1"],
+                    "capabilityDelegation": [f"{did}#key-1"],
+                    "service": [],
+                    "created": datetime.now(timezone.utc).isoformat(),
+                    "updated": datetime.now(timezone.utc).isoformat()
+                }
+            
+            async def resolve_did(self, did: str) -> Optional[Dict]:
+                """DIDの解決"""
+                
+                # キャッシュチェック
+                if did in self.cache:
+                    cached = self.cache[did]
+                    if cached['expires'] > datetime.now(timezone.utc):
+                        return cached['document']
+                
+                # DIDメソッドに応じた解決
+                method = did.split(':')[1]
+                
+                if method == "key":
+                    # did:key は自己完結型
+                    document = self.resolve_did_key(did)
+                    
+                elif method == "web":
+                    # HTTPSから取得
+                    document = await self.resolve_did_web(did)
+                    
+                elif method == "ethr":
+                    # Ethereumブロックチェーンから取得
+                    document = await self.resolve_did_ethr(did)
+                
+                else:
+                    # Universal Resolver を使用
+                    document = await self.resolver.resolve(did)
+                
+                if document:
+                    # キャッシュに保存
+                    self.cache[did] = {
+                        'document': document,
+                        'expires': datetime.now(timezone.utc) + timedelta(hours=1)
+                    }
+                
+                return document
+            
+            def create_verifiable_credential(
+                self,
+                issuer_did: str,
+                subject_did: str,
+                credential_type: str,
+                claims: Dict,
+                private_key: ed25519.Ed25519PrivateKey
+            ) -> Dict:
+                """検証可能な資格情報（VC）の作成"""
+                
+                credential = {
+                    "@context": [
+                        "https://www.w3.org/2018/credentials/v1",
+                        "https://www.w3.org/2018/credentials/examples/v1"
+                    ],
+                    "id": f"urn:uuid:{self.generate_uuid()}",
+                    "type": ["VerifiableCredential", credential_type],
+                    "issuer": issuer_did,
+                    "issuanceDate": datetime.now(timezone.utc).isoformat(),
+                    "credentialSubject": {
+                        "id": subject_did,
+                        **claims
+                    }
+                }
+                
+                # 証明の追加
+                proof = self.create_proof(credential, issuer_did, private_key)
+                credential['proof'] = proof
+                
+                return credential
+            
+            def create_proof(
+                self,
+                document: Dict,
+                creator_did: str,
+                private_key: ed25519.Ed25519PrivateKey
+            ) -> Dict:
+                """デジタル署名による証明の作成"""
+                
+                # 正規化
+                normalized = self.normalize_document(document)
+                
+                # 署名
+                signature = private_key.sign(normalized)
+                
+                return {
+                    "type": "Ed25519Signature2020",
+                    "created": datetime.now(timezone.utc).isoformat(),
+                    "verificationMethod": f"{creator_did}#key-1",
+                    "proofPurpose": "assertionMethod",
+                    "proofValue": base58.b58encode(signature).decode()
+                }
+            
+            async def verify_credential(self, credential: Dict) -> bool:
+                """資格情報の検証"""
+                
+                try:
+                    # 発行者のDIDを解決
+                    issuer_did = credential['issuer']
+                    issuer_document = await self.resolve_did(issuer_did)
+                    
+                    if not issuer_document:
+                        return False
+                    
+                    # 検証メソッドの取得
+                    proof = credential['proof']
+                    verification_method_id = proof['verificationMethod']
+                    
+                    # 公開鍵の取得
+                    public_key = self.get_public_key_from_document(
+                        issuer_document,
+                        verification_method_id
+                    )
+                    
+                    if not public_key:
+                        return False
+                    
+                    # 署名検証
+                    credential_copy = credential.copy()
+                    proof_copy = credential_copy.pop('proof')
+                    
+                    normalized = self.normalize_document(credential_copy)
+                    signature = base58.b58decode(proof_copy['proofValue'])
+                    
+                    public_key.verify(signature, normalized)
+                    
+                    # 有効期限チェック
+                    if 'expirationDate' in credential:
+                        expiration = datetime.fromisoformat(
+                            credential['expirationDate'].replace('Z', '+00:00')
+                        )
+                        if datetime.now(timezone.utc) > expiration:
+                            return False
+                    
+                    return True
+                    
+                except Exception as e:
+                    print(f"Credential verification failed: {e}")
+                    return False
+            
+            def create_verifiable_presentation(
+                self,
+                holder_did: str,
+                credentials: List[Dict],
+                verifier_did: str,
+                challenge: str,
+                private_key: ed25519.Ed25519PrivateKey
+            ) -> Dict:
+                """検証可能な提示（VP）の作成"""
+                
+                presentation = {
+                    "@context": [
+                        "https://www.w3.org/2018/credentials/v1"
+                    ],
+                    "type": ["VerifiablePresentation"],
+                    "verifiableCredential": credentials,
+                    "holder": holder_did,
+                    "proof": {
+                        "type": "Ed25519Signature2020",
+                        "created": datetime.now(timezone.utc).isoformat(),
+                        "verificationMethod": f"{holder_did}#key-1",
+                        "proofPurpose": "authentication",
+                        "challenge": challenge,
+                        "domain": verifier_did
+                    }
+                }
+                
+                # 署名
+                proof = self.create_proof(presentation, holder_did, private_key)
+                presentation['proof'].update(proof)
+                
+                return presentation
+        '''
+    
+    def self_sovereign_identity_flow(self):
+        """自己主権型アイデンティティのフロー"""
+        
+        return '''
+        class SelfSovereignIdentityFlow:
+            """SSIの実装フロー"""
+            
+            def __init__(self, did_manager: DIDManager):
+                self.did_manager = did_manager
+            
+            async def complete_ssi_flow(self):
+                """完全なSSIフローの実装"""
+                
+                # 1. ユーザー（Holder）がDIDを作成
+                print("=== Step 1: Holder creates DID ===")
+                holder = self.did_manager.create_did(method="key")
+                print(f"Holder DID: {holder['did']}")
+                
+                # 2. 発行者（Issuer）がDIDを作成
+                print("\\n=== Step 2: Issuer creates DID ===")
+                issuer = self.did_manager.create_did(method="web")
+                print(f"Issuer DID: {issuer['did']}")
+                
+                # 3. 発行者が資格情報を発行
+                print("\\n=== Step 3: Issuer creates Verifiable Credential ===")
+                credential = self.did_manager.create_verifiable_credential(
+                    issuer_did=issuer['did'],
+                    subject_did=holder['did'],
+                    credential_type="UniversityDegreeCredential",
+                    claims={
+                        "degree": {
+                            "type": "BachelorDegree",
+                            "name": "Computer Science",
+                            "university": "Example University"
+                        },
+                        "graduationDate": "2024-06-15"
+                    },
+                    private_key=issuer['private_key']
+                )
+                print(f"Credential ID: {credential['id']}")
+                
+                # 4. ホルダーが資格情報を検証
+                print("\\n=== Step 4: Holder verifies credential ===")
+                is_valid = await self.did_manager.verify_credential(credential)
+                print(f"Credential valid: {is_valid}")
+                
+                # 5. 検証者（Verifier）がDIDを作成
+                print("\\n=== Step 5: Verifier creates DID ===")
+                verifier = self.did_manager.create_did(method="ethr")
+                print(f"Verifier DID: {verifier['did']}")
+                
+                # 6. 検証者がチャレンジを発行
+                print("\\n=== Step 6: Verifier issues challenge ===")
+                challenge = secrets.token_urlsafe(32)
+                print(f"Challenge: {challenge}")
+                
+                # 7. ホルダーが検証可能な提示を作成
+                print("\\n=== Step 7: Holder creates Verifiable Presentation ===")
+                presentation = self.did_manager.create_verifiable_presentation(
+                    holder_did=holder['did'],
+                    credentials=[credential],
+                    verifier_did=verifier['did'],
+                    challenge=challenge,
+                    private_key=holder['private_key']
+                )
+                
+                # 8. 検証者が提示を検証
+                print("\\n=== Step 8: Verifier verifies presentation ===")
+                presentation_valid = await self.verify_presentation(
+                    presentation,
+                    expected_challenge=challenge,
+                    expected_holder=holder['did']
+                )
+                print(f"Presentation valid: {presentation_valid}")
+                
+                # 9. 選択的開示の例
+                print("\\n=== Step 9: Selective disclosure ===")
+                selective_credential = self.create_selective_disclosure(
+                    credential,
+                    disclosed_claims=["degree.type", "graduationDate"]
+                )
+                print("Disclosed only degree type and graduation date")
+                
+                return {
+                    'holder_did': holder['did'],
+                    'issuer_did': issuer['did'],
+                    'verifier_did': verifier['did'],
+                    'credential': credential,
+                    'presentation': presentation,
+                    'verification_result': presentation_valid
+                }
+        '''
+```
+
+## 13.3 分散型アイデンティティの実装例
 
 ```python
 class BlockchainIdentityService:

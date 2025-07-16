@@ -2169,7 +2169,7 @@ class UsabilityEnhancements:
 ### 8.5.1 Python（FastAPI）による実装
 
 ```python
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, Dict, List
@@ -2325,7 +2325,11 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return auth_service.create_tokens(str(user.id))
 
 @app.post("/auth/login", response_model=TokenResponse)
-async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
+async def login(
+    login_data: LoginRequest, 
+    request: Request,
+    db: Session = Depends(get_db)
+):
     """ログイン"""
     auth_service = AuthService(db)
     
@@ -2985,8 +2989,10 @@ func (s *AuthService) CreateTokens(userID uint) (*TokenResponse, error) {
         return nil, err
     }
     
-    // Redisに保存
-    ctx := context.Background()
+    // Redisに保存（タイムアウト付きコンテキスト）
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    
     key := fmt.Sprintf("refresh_token:%s", jti)
     err = s.redis.Set(
         ctx, 
