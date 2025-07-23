@@ -32,50 +32,7 @@
 
 ### 1.1.2 認証認可が解決する4つの根本的な問題
 
-```mermaid
-graph TB
-    subgraph "認証認可が解決する根本的な問題"
-        subgraph "1. アイデンティティの問題"
-            Q1[❓ あなたは誰？]
-            P1[🔐 デジタル世界での身元確認<br/><br/>【現実世界の例え】<br/>・銀行窓口: 通帳+印鑑<br/>・空港: パスポート+顔認証<br/><br/>【デジタル世界】<br/>・ID/パスワード<br/>・生体認証<br/>・多要素認証]
-        end
-        
-        subgraph "2. 権限の問題"
-            Q2[❓ 何ができる？]
-            P2[👥 役割に応じた権限管理<br/><br/>【一般社員】<br/>・自分のデータ閲覧・編集<br/>・共有リソース閲覧<br/><br/>【マネージャー】<br/>・チームデータ閲覧<br/>・承認権限<br/><br/>【管理者】<br/>・システム設定変更<br/>・全データアクセス]
-        end
-        
-        subgraph "3. 責任追跡の問題"
-            Q3[❓ 誰が何をした？]
-            P3[📋 監査ログとアカウンタビリティ<br/><br/>【重要性】<br/>・不正の抑止力<br/>・インシデント原因究明<br/>・法的要求への対応<br/>・コンプライアンス対応<br/><br/>【記録内容】<br/>・Who: 実行者<br/>・What: 実行内容<br/>・When: 実行時刻<br/>・Where: アクセス元]
-        end
-        
-        subgraph "4. 利便性の問題"
-            Q4[❓ 毎回認証は面倒]
-            P4[⚖️ セキュリティと利便性のバランス<br/><br/>【利便性向上施策】<br/>・シングルサインオン (SSO)<br/>・リメンバーミー機能<br/>・生体認証の活用<br/>・段階的認証<br/><br/>【セキュリティ強化】<br/>・リスクベース認証<br/>・適応的認証<br/>・時間制限つきセッション]
-        end
-        
-        Q1 --> P1
-        Q2 --> P2
-        Q3 --> P3
-        Q4 --> P4
-        
-        subgraph "統合的な解決策"
-            Solution[🎯 現代の認証認可システム<br/><br/>【包括的アプローチ】<br/>・統合ID管理 (IAM)<br/>・Zero Trust Architecture<br/>・継続的認証・認可<br/>・AI/ML活用のリスク評価<br/><br/>【ビジネス価値】<br/>・セキュリティリスク軽減<br/>・運用コスト削減<br/>・ユーザーエクスペリエンス向上<br/>・コンプライアンス確保]
-        end
-        
-        P1 --> Solution
-        P2 --> Solution
-        P3 --> Solution  
-        P4 --> Solution
-    end
-    
-    style Q1 fill:#ffebee
-    style Q2 fill:#fff3e0
-    style Q3 fill:#e8f5e8
-    style Q4 fill:#e3f2fd
-    style Solution fill:#f3e5f5
-```
+![認証認可が解決する根本的な問題](../../docs/assets/images/diagrams/chapter01/auth-fundamental-problems.svg)
 
 #### 1. アイデンティティの問題：「あなたは誰？」
 
@@ -154,44 +111,7 @@ graph TB
 
 多くの開発者が混同するこの2つの概念を、明確に区別しましょう。
 
-```mermaid
-sequenceDiagram
-    participant U as ユーザー
-    participant S as システム
-    participant R as リソース
-    participant A as 認証サービス
-    participant Z as 認可サービス
-    
-    Note over U,Z: 認証と認可の流れ
-    
-    rect rgb(255, 240, 240)
-        Note over U,A: 🔐 認証フェーズ (Authentication)
-        U->>+S: 1. ログイン要求<br/>(username, password)
-        S->>+A: 2. 身元確認要求
-        A->>A: 3. 身元検証<br/>・パスワード照合<br/>・多要素認証
-        A->>-S: 4. 認証結果<br/>(成功/失敗)
-        S->>-U: 5. 認証結果通知
-    end
-    
-    rect rgb(240, 255, 240)
-        Note over U,Z: 🛡️ 認可フェーズ (Authorization)
-        U->>+S: 6. リソースアクセス要求<br/>(認証済みユーザー)
-        S->>+Z: 7. アクセス権限確認
-        Z->>Z: 8. 権限評価<br/>・役割確認<br/>・ポリシー適用
-        Z->>-S: 9. 認可結果<br/>(許可/拒否)
-        alt 認可成功
-            S->>+R: 10a. リソースアクセス
-            R->>-S: 11a. レスポンス
-            S->>U: 12a. 成功レスポンス
-        else 認可失敗
-            S->>U: 10b. アクセス拒否
-        end
-    end
-    
-    Note over U,Z: 🔍 重要な区別
-    Note over U,A: 認証: "あなたは誰ですか？"
-    Note over U,Z: 認可: "何をすることができますか？"
-```
+![認証と認可のシーケンス図](../../docs/assets/images/diagrams/chapter01/auth-authz-sequence.svg)
 
 #### 認証（Authentication）- "AuthN"
 
@@ -297,60 +217,7 @@ String username = principal.getName();
 
 認証技術の歴史を理解することで、なぜ現在の技術が生まれたのか、次に何が来るのかが見えてきます。
 
-```mermaid
-timeline
-    title 認証技術の歴史的進化
-    
-    section 第1世代: パスワードのみ (1960年代～)
-        1960s : メインフレーム時代
-              : 限られたユーザー
-              : 平文パスワード保存
-        問題点 : 総当たり攻撃への脆弱性
-              : パスワードの使い回し
-              : セキュリティ意識の不足
-    
-    section 第2世代: 暗号化・ハッシュ化 (1970年代～)
-        1970s : Unix crypt()関数
-              : 可逆暗号化の試み
-        1990s : MD5ハッシュ化
-              : ソルトの概念導入
-        2000s : SHA-1, SHA-256
-              : bcrypt (計算量的安全性)
-        現在  : Argon2 (推奨)
-              : scrypt (代替案)
-    
-    section 第3世代: 多要素認証 (2000年代～)
-        2000s : RSA SecurID
-              : ハードウェアトークン
-        2005  : SMS認証の普及
-              : 携帯電話の普及と連動
-        2010  : TOTP/HOTP標準化
-              : Google Authenticator
-        2015  : プッシュ通知認証
-              : スマートフォンアプリ活用
-    
-    section 第4世代: 生体認証 (2010年代～)
-        2013  : iPhone 5s Touch ID
-              : 指紋認証の民主化
-        2017  : iPhone X Face ID
-              : 3D顔認証技術
-        2018  : Android指紋認証標準化
-              : Windows Hello普及
-        現在  : 行動的生体認証研究
-              : 歩行パターン・タイピング
-    
-    section 第5世代: パスワードレス (2020年代～)
-        2018  : FIDO2/WebAuthn標準化
-              : W3C勧告
-        2020  : Microsoft Passwordless
-              : 企業導入加速
-        2021  : Apple Passkeys
-              : デバイス間同期
-        2022  : Google Passkeys
-              : クロスプラットフォーム
-        未来  : Quantum-Safe認証
-              : 分散アイデンティティ
-```
+![認証技術の歴史的進化](../../docs/assets/images/diagrams/chapter01/authentication-evolution-timeline.svg)
 
 #### 第1世代：パスワードのみの時代（1960年代～）
 
@@ -414,73 +281,7 @@ navigator.credentials.create({
 
 ### 1.3.2 認可モデルの進化
 
-```mermaid
-graph TD
-    subgraph "認可モデルの進化"
-        subgraph "ACL: Access Control List (1970年代～)"
-            ACL[リソース中心の権限管理]
-            ACLExample[file.txt:<br/>- user1: read, write<br/>- user2: read<br/>- user3: no access]
-            ACLPros[👍 シンプル<br/>👍 直感的<br/>👍 実装が容易]
-            ACLCons[👎 スケールしない<br/>👎 管理コストが高い<br/>👎 継承ができない]
-        end
-        
-        subgraph "RBAC: Role-Based Access Control (1990年代～)"
-            RBAC[役割による権限管理]
-            RBACExample[User → Role → Permission<br/>John → Editor → [create_post, edit_post]<br/>Jane → Viewer → [view_post]]
-            RBACPros[👍 管理が容易<br/>👍 職務分離<br/>👍 継承可能]
-            RBACCons[👎 複雑な条件を表現困難<br/>👎 役割爆発の問題<br/>👎 動的制御が困難]
-        end
-        
-        subgraph "ABAC: Attribute-Based Access Control (2000年代～)"
-            ABAC[属性ベースの柔軟制御]
-            ABACExample[if (user.department == 'HR' &&<br/>resource.type == 'employee_data' &&<br/>time.hour >= 9 && time.hour <= 18)]
-            ABACPros[👍 非常に柔軟<br/>👍 文脈を考慮<br/>👍 動的制御]
-            ABACCons[👎 設計が複雑<br/>👎 パフォーマンス課題<br/>👎 デバッグ困難]
-        end
-        
-        subgraph "PBAC: Policy-Based Access Control (2010年代～)"
-            PBAC[宣言的ポリシー記述]
-            PBACExample[# OPA (Open Policy Agent)<br/>allow {<br/>  input.method = 'GET'<br/>  input.path = ['api', 'users', user_id]<br/>  input.user.id = user_id<br/>}]
-            PBACPros[👍 宣言的記述<br/>👍 バージョン管理可能<br/>👍 テスト可能]
-            PBACCons[👎 学習コストが高い<br/>👎 ツール依存<br/>👎 運用コストが高い]
-        end
-        
-        ACL --> RBAC
-        RBAC --> ABAC
-        ABAC --> PBAC
-        
-        ACL --> ACLExample
-        ACL --> ACLPros
-        ACL --> ACLCons
-        
-        RBAC --> RBACExample
-        RBAC --> RBACPros
-        RBAC --> RBACCons
-        
-        ABAC --> ABACExample
-        ABAC --> ABACPros
-        ABAC --> ABACCons
-        
-        PBAC --> PBACExample
-        PBAC --> PBACPros
-        PBAC --> PBACCons
-        
-        subgraph "現代のハイブリッドアプローチ"
-            Modern[🎯 実用的な組み合わせ<br/><br/>・基本権限: RBAC<br/>・動的制御: ABAC<br/>・ポリシー管理: PBAC<br/>・リソース固有: ACL<br/><br/>【選択基準】<br/>・システムの複雑さ<br/>・管理コスト<br/>・パフォーマンス要件<br/>・セキュリティ要件]
-        end
-        
-        ACL -.-> Modern
-        RBAC -.-> Modern
-        ABAC -.-> Modern
-        PBAC -.-> Modern
-    end
-    
-    style ACL fill:#ffe0e0
-    style RBAC fill:#e0ffe0
-    style ABAC fill:#e0e0ff
-    style PBAC fill:#ffe0ff
-    style Modern fill:#fff2e0
-```
+![認可モデルの進化](../../docs/assets/images/diagrams/chapter01/authorization-model-evolution.svg)
 
 #### ACL（Access Control List）
 
@@ -568,113 +369,7 @@ def determine_auth_method(risk_score):
 
 ### 1.3.4 技術選択のフレームワーク
 
-```mermaid
-flowchart TD
-    subgraph "認証認可技術選択の意思決定フレームワーク"
-        Start[🚀 プロジェクト開始]
-        
-        subgraph "1️⃣ セキュリティ要件分析"
-            Security[🔒 セキュリティ要件]
-            DataClass[データ分類<br/>・機密性レベル<br/>・個人情報の有無<br/>・金融データの有無]
-            Compliance[規制要件<br/>・GDPR<br/>・PCI-DSS<br/>・HIPAA<br/>・SOX法]
-            ThreatModel[脅威モデリング<br/>・想定攻撃者<br/>・攻撃手法<br/>・影響度評価]
-        end
-        
-        subgraph "2️⃣ ユーザビリティ要件"
-            UX[👥 ユーザビリティ要件]
-            UserProfile[ユーザープロファイル<br/>・技術リテラシー<br/>・年齢層<br/>・利用環境]
-            Frequency[利用頻度<br/>・1日複数回<br/>・週数回<br/>・月数回]
-            Devices[デバイス種類<br/>・PC<br/>・スマートフォン<br/>・IoTデバイス]
-        end
-        
-        subgraph "3️⃣ 技術的制約"
-            Tech[⚙️ 技術的制約]
-            Integration[既存システム統合<br/>・レガシーシステム<br/>・API互換性<br/>・データ移行]
-            Performance[パフォーマンス<br/>・レスポンス時間<br/>・同時接続数<br/>・可用性要件]
-            Cost[開発・運用コスト<br/>・初期開発費<br/>・運用保守費<br/>・人的リソース]
-        end
-        
-        subgraph "4️⃣ 将来性評価"
-            Future[🔮 将来性評価]
-            Standards[標準化状況<br/>・W3C勧告<br/>・IETF RFC<br/>・業界標準]
-            Community[コミュニティ<br/>・開発活動<br/>・サポート体制<br/>・ドキュメント]
-            Vendor[ベンダーロックイン<br/>・移行可能性<br/>・技術の汎用性<br/>・ライセンス]
-        end
-        
-        subgraph "5️⃣ 技術選択マトリックス"
-            Matrix{技術選択マトリックス}
-            
-            BasicAuth[基本認証<br/>📊 評価<br/>セキュリティ: ⭐<br/>ユーザビリティ: ⭐⭐⭐<br/>コスト: ⭐⭐⭐⭐⭐<br/>将来性: ⭐]
-            
-            MFA[多要素認証<br/>📊 評価<br/>セキュリティ: ⭐⭐⭐⭐<br/>ユーザビリティ: ⭐⭐<br/>コスト: ⭐⭐⭐<br/>将来性: ⭐⭐⭐⭐]
-            
-            SSO[シングルサインオン<br/>📊 評価<br/>セキュリティ: ⭐⭐⭐<br/>ユーザビリティ: ⭐⭐⭐⭐⭐<br/>コスト: ⭐⭐<br/>将来性: ⭐⭐⭐⭐]
-            
-            Passwordless[パスワードレス<br/>📊 評価<br/>セキュリティ: ⭐⭐⭐⭐⭐<br/>ユーザビリティ: ⭐⭐⭐⭐<br/>コスト: ⭐⭐<br/>将来性: ⭐⭐⭐⭐⭐]
-        end
-        
-        subgraph "6️⃣ 最終決定"
-            Decision[🎯 技術選択決定]
-            Implementation[実装計画<br/>・フェーズ分け<br/>・リスク管理<br/>・移行戦略]
-            Monitoring[継続的評価<br/>・セキュリティ監視<br/>・パフォーマンス測定<br/>・ユーザーフィードバック]
-        end
-        
-        Start --> Security
-        Start --> UX
-        Start --> Tech
-        Start --> Future
-        
-        Security --> DataClass
-        Security --> Compliance
-        Security --> ThreatModel
-        
-        UX --> UserProfile
-        UX --> Frequency
-        UX --> Devices
-        
-        Tech --> Integration
-        Tech --> Performance
-        Tech --> Cost
-        
-        Future --> Standards
-        Future --> Community
-        Future --> Vendor
-        
-        DataClass --> Matrix
-        Compliance --> Matrix
-        ThreatModel --> Matrix
-        UserProfile --> Matrix
-        Frequency --> Matrix
-        Devices --> Matrix
-        Integration --> Matrix
-        Performance --> Matrix
-        Cost --> Matrix
-        Standards --> Matrix
-        Community --> Matrix
-        Vendor --> Matrix
-        
-        Matrix --> BasicAuth
-        Matrix --> MFA
-        Matrix --> SSO
-        Matrix --> Passwordless
-        
-        BasicAuth --> Decision
-        MFA --> Decision
-        SSO --> Decision
-        Passwordless --> Decision
-        
-        Decision --> Implementation
-        Decision --> Monitoring
-        
-        Monitoring -.-> Security
-    end
-    
-    style Security fill:#ffebee
-    style UX fill:#e8f5e8
-    style Tech fill:#fff3e0
-    style Future fill:#e3f2fd
-    style Decision fill:#f3e5f5
-```
+![技術選択フレームワーク](../../docs/assets/images/diagrams/chapter01/technology-selection-framework.svg)
 
 適切な技術を選択するための判断基準：
 
