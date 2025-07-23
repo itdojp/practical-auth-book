@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      /* Color Palette */
+      :root {
+        --bg-primary: #FFFFFF;
+        --bg-secondary: #F8F9FA;
+        --text-primary: #1A1A1A;
+        --text-secondary: #6B7280;
+        --primary: #3B82F6;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --error: #EF4444;
+        --neutral: #6B7280;
+        --border: #E5E7EB;
+        --auth-bg: rgba(255, 240, 240, 0.8);
+        --authz-bg: rgba(240, 255, 240, 0.8);
+      }
+      
+      /* Dark Theme */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-primary: #1A1A1A;
+          --bg-secondary: #2D2D2D;
+          --text-primary: #FFFFFF;
+          --text-secondary: #9CA3AF;
+          --primary: #60A5FA;
+          --success: #34D399;
+          --warning: #FBBF24;
+          --error: #F87171;
+          --neutral: #9CA3AF;
+          --border: #374151;
+          --auth-bg: rgba(139, 0, 0, 0.3);
+          --authz-bg: rgba(0, 100, 0, 0.3);
+        }
+      }
+      
+      /* Typography */
+      .title-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .actor-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .message-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 400;
+        text-anchor: start;
+        fill: var(--text-primary);
+      }
+      
+      .note-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .phase-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      /* Lifeline Styles */
+      .lifeline {
+        stroke: var(--neutral);
+        stroke-width: 2;
+        stroke-dasharray: 4,4;
+      }
+      
+      .actor-box {
+        fill: var(--bg-secondary);
+        stroke: var(--border);
+        stroke-width: 1;
+      }
+      
+      /* Message Styles */
+      .message-line {
+        stroke: var(--primary);
+        stroke-width: 1.5;
+        marker-end: url(#arrow);
+      }
+      
+      .return-line {
+        stroke: var(--success);
+        stroke-width: 1.5;
+        stroke-dasharray: 4,4;
+        marker-end: url(#arrow-green);
+      }
+      
+      .internal-line {
+        stroke: var(--warning);
+        stroke-width: 1.5;
+        marker-end: url(#arrow-orange);
+      }
+    </style>
+    
+    <!-- Arrow Markers -->
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--primary)"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--success)"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--warning)"/>
+    </marker>
+  </defs>
+  
+  <title>認証と認可の流れ</title>
+  <desc>シーケンス図による認証・認可プロセスの詳細</desc>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="var(--bg-primary)"/>
+  
+  <!-- Main Title -->
+  <text x="400" y="24" class="title-text">認証と認可の流れ</text>
+  
+  <!-- Actors -->
+  <rect x="70" y="50" width="100" height="40" rx="4" class="actor-box"/>
+  <text x="120" y="74" class="actor-text">ユーザー</text>
+  
+  <rect x="220" y="50" width="100" height="40" rx="4" class="actor-box"/>
+  <text x="270" y="74" class="actor-text">システム</text>
+  
+  <rect x="370" y="50" width="100" height="40" rx="4" class="actor-box"/>
+  <text x="420" y="74" class="actor-text">リソース</text>
+  
+  <rect x="520" y="50" width="100" height="40" rx="4" class="actor-box"/>
+  <text x="570" y="74" class="actor-text">認証サービス</text>
+  
+  <rect x="670" y="50" width="100" height="40" rx="4" class="actor-box"/>
+  <text x="720" y="74" class="actor-text">認可サービス</text>
+  
+  <!-- Lifelines -->
+  <line x1="120" y1="90" x2="120" y2="750" class="lifeline"/>
+  <line x1="270" y1="90" x2="270" y2="750" class="lifeline"/>
+  <line x1="420" y1="90" x2="420" y2="750" class="lifeline"/>
+  <line x1="570" y1="90" x2="570" y2="750" class="lifeline"/>
+  <line x1="720" y1="90" x2="720" y2="750" class="lifeline"/>
+  
+  <!-- Authentication Phase -->
+  <rect x="50" y="110" width="720" height="180" rx="4" fill="var(--auth-bg)" stroke="var(--error)" stroke-width="1"/>
+  <text x="400" y="130" class="phase-text">🔐 認証フェーズ (Authentication)</text>
+  
+  <!-- 1. Login Request -->
+  <line x1="120" y1="150" x2="270" y2="150" class="message-line"/>
+  <text x="130" y="145" class="message-text">1. ログイン要求</text>
+  <text x="130" y="160" class="message-text">(username, password)</text>
+  
+  <!-- 2. Identity Verification Request -->
+  <line x1="270" y1="175" x2="570" y2="175" class="message-line"/>
+  <text x="280" y="170" class="message-text">2. 身元確認要求</text>
+  
+  <!-- 3. Identity Verification -->
+  <line x1="570" y1="200" x2="570" y2="200" class="internal-line"/>
+  <rect x="575" y="195" width="120" height="30" rx="3" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+  <text x="635" y="210" class="message-text">3. 身元検証</text>
+  <text x="580" y="220" class="message-text">• パスワード照合・多要素認証</text>
+  
+  <!-- 4. Authentication Result -->
+  <line x1="570" y1="240" x2="270" y2="240" class="return-line"/>
+  <text x="280" y="235" class="message-text">4. 認証結果 (成功/失敗)</text>
+  
+  <!-- 5. Authentication Result Notification -->
+  <line x1="270" y1="265" x2="120" y2="265" class="return-line"/>
+  <text x="130" y="260" class="message-text">5. 認証結果通知</text>
+  
+  <!-- Authorization Phase -->
+  <rect x="50" y="310" width="720" height="280" rx="4" fill="var(--authz-bg)" stroke="var(--success)" stroke-width="1"/>
+  <text x="400" y="330" class="phase-text">🛡️ 認可フェーズ (Authorization)</text>
+  
+  <!-- 6. Resource Access Request -->
+  <line x1="120" y1="350" x2="270" y2="350" class="message-line"/>
+  <text x="130" y="345" class="message-text">6. リソースアクセス要求</text>
+  <text x="130" y="360" class="message-text">(認証済みユーザー)</text>
+  
+  <!-- 7. Access Permission Check -->
+  <line x1="270" y1="375" x2="720" y2="375" class="message-line"/>
+  <text x="280" y="370" class="message-text">7. アクセス権限確認</text>
+  
+  <!-- 8. Permission Evaluation -->
+  <line x1="720" y1="400" x2="720" y2="400" class="internal-line"/>
+  <rect x="725" y="395" width="120" height="30" rx="3" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+  <text x="785" y="410" class="message-text">8. 権限評価</text>
+  <text x="730" y="420" class="message-text">• 役割確認・ポリシー適用</text>
+  
+  <!-- 9. Authorization Result -->
+  <line x1="720" y1="440" x2="270" y2="440" class="return-line"/>
+  <text x="280" y="435" class="message-text">9. 認可結果 (許可/拒否)</text>
+  
+  <!-- Alternative: Success Path -->
+  <rect x="70" y="460" width="350" height="80" rx="3" fill="var(--success)" fill-opacity="0.1" stroke="var(--success)" stroke-width="1"/>
+  <text x="75" y="475" class="message-text">認可成功</text>
+  
+  <!-- 10a. Resource Access -->
+  <line x1="270" y1="490" x2="420" y2="490" class="message-line"/>
+  <text x="280" y="485" class="message-text">10a. リソースアクセス</text>
+  
+  <!-- 11a. Response -->
+  <line x1="420" y1="510" x2="270" y2="510" class="return-line"/>
+  <text x="280" y="505" class="message-text">11a. レスポンス</text>
+  
+  <!-- 12a. Success Response -->
+  <line x1="270" y1="530" x2="120" y2="530" class="return-line"/>
+  <text x="130" y="525" class="message-text">12a. 成功レスポンス</text>
+  
+  <!-- Alternative: Failure Path -->
+  <rect x="450" y="460" width="200" height="40" rx="3" fill="var(--error)" fill-opacity="0.1" stroke="var(--error)" stroke-width="1"/>
+  <text x="455" y="475" class="message-text">認可失敗</text>
+  
+  <!-- 10b. Access Denied -->
+  <line x1="270" y1="490" x2="120" y2="490" class="return-line"/>
+  <text x="130" y="485" class="message-text">10b. アクセス拒否</text>
+  
+  <!-- Important Distinction -->
+  <rect x="50" y="620" width="700" height="100" rx="4" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+  <text x="400" y="640" class="note-text">🔍 重要な区別</text>
+  
+  <rect x="100" y="660" width="250" height="40" rx="3" fill="var(--auth-bg)" stroke="var(--error)" stroke-width="1"/>
+  <text x="225" y="684" class="note-text">認証: "あなたは誰ですか？"</text>
+  
+  <rect x="450" y="660" width="250" height="40" rx="3" fill="var(--authz-bg)" stroke="var(--success)" stroke-width="1"/>
+  <text x="575" y="684" class="note-text">認可: "何をすることができますか？"</text>
+  
+</svg>

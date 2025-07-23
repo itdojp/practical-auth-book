@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      /* Color Palette */
+      :root {
+        --bg-primary: #FFFFFF;
+        --bg-secondary: #F8F9FA;
+        --text-primary: #1A1A1A;
+        --text-secondary: #6B7280;
+        --primary: #3B82F6;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --error: #EF4444;
+        --neutral: #6B7280;
+        --border: #E5E7EB;
+        --beginner-bg: #e8f5e8;
+        --practical-bg: #fff3e0;
+        --expert-bg: #e3f2fd;
+        --specialist-bg: #f3e5f5;
+        --resource-bg: #ffe0b2;
+      }
+      
+      /* Dark Theme */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-primary: #1A1A1A;
+          --bg-secondary: #2D2D2D;
+          --text-primary: #FFFFFF;
+          --text-secondary: #9CA3AF;
+          --primary: #60A5FA;
+          --success: #34D399;
+          --warning: #FBBF24;
+          --error: #F87171;
+          --neutral: #9CA3AF;
+          --border: #374151;
+          --beginner-bg: #1B5E20;
+          --practical-bg: #E65100;
+          --expert-bg: #1A237E;
+          --specialist-bg: #4A148C;
+          --resource-bg: #FF8F00;
+        }
+      }
+      
+      /* Typography */
+      .title-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .label-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .annotation-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 400;
+        text-anchor: middle;
+        fill: var(--text-secondary);
+      }
+      
+      .section-title {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      /* Node Styles */
+      .beginner-node {
+        fill: var(--beginner-bg);
+        stroke: var(--success);
+        stroke-width: 1.5;
+      }
+      
+      .practical-node {
+        fill: var(--practical-bg);
+        stroke: var(--warning);
+        stroke-width: 1.5;
+      }
+      
+      .expert-node {
+        fill: var(--expert-bg);
+        stroke: var(--primary);
+        stroke-width: 1.5;
+      }
+      
+      .specialist-node {
+        fill: var(--specialist-bg);
+        stroke: var(--neutral);
+        stroke-width: 1.5;
+      }
+      
+      .resource-node {
+        fill: var(--resource-bg);
+        stroke: var(--warning);
+        stroke-width: 1.5;
+      }
+      
+      /* Connection Lines */
+      .flow-line {
+        stroke: var(--primary);
+        stroke-width: 2;
+        marker-end: url(#arrow);
+      }
+      
+      .support-line {
+        stroke: var(--neutral);
+        stroke-width: 1;
+        stroke-dasharray: 4,4;
+        marker-end: url(#arrow-gray);
+      }
+    </style>
+    
+    <!-- Arrow Markers -->
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--primary)"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--neutral)"/>
+    </marker>
+  </defs>
+  
+  <title>認証認可システム設計の学習ロードマップ</title>
+  <desc>段階的なスキル習得パスとリソース活用法</desc>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="var(--bg-primary)"/>
+  
+  <!-- Main Title -->
+  <text x="400" y="24" class="title-text">認証認可システム設計の学習ロードマップ</text>
+  
+  <!-- Beginner Level -->
+  <rect x="50" y="60" width="700" height="20" rx="3" fill="var(--beginner-bg)" stroke="var(--success)" stroke-width="1"/>
+  <text x="400" y="74" class="section-title">入門レベル (0-1年)</text>
+  
+  <rect x="70" y="100" width="180" height="80" rx="6" class="beginner-node"/>
+  <text x="160" y="120" class="label-text">基本概念の理解</text>
+  <text x="160" y="135" class="annotation-text">• 認証vs認可</text>
+  <text x="160" y="147" class="annotation-text">• ID管理の基礎</text>
+  <text x="160" y="159" class="annotation-text">• セキュリティ原則</text>
+  
+  <rect x="290" y="100" width="180" height="80" rx="6" class="beginner-node"/>
+  <text x="380" y="120" class="label-text">基本実装</text>
+  <text x="380" y="135" class="annotation-text">• パスワード認証</text>
+  <text x="380" y="147" class="annotation-text">• セッション管理</text>
+  <text x="380" y="159" class="annotation-text">• 基本的な権限制御</text>
+  
+  <rect x="510" y="100" width="180" height="80" rx="6" class="beginner-node"/>
+  <text x="600" y="120" class="label-text">セキュリティ基礎</text>
+  <text x="600" y="135" class="annotation-text">• HTTPS通信</text>
+  <text x="600" y="147" class="annotation-text">• パスワードハッシュ化</text>
+  <text x="600" y="159" class="annotation-text">• 基本的な攻撃手法</text>
+  
+  <!-- Practical Level -->
+  <rect x="50" y="220" width="700" height="20" rx="3" fill="var(--practical-bg)" stroke="var(--warning)" stroke-width="1"/>
+  <text x="400" y="234" class="section-title">実践レベル (1-3年)</text>
+  
+  <rect x="70" y="260" width="180" height="80" rx="6" class="practical-node"/>
+  <text x="160" y="280" class="label-text">高度な認証</text>
+  <text x="160" y="295" class="annotation-text">• 多要素認証</text>
+  <text x="160" y="307" class="annotation-text">• JWT実装</text>
+  <text x="160" y="319" class="annotation-text">• OAuth 2.0基礎</text>
+  
+  <rect x="290" y="260" width="180" height="80" rx="6" class="practical-node"/>
+  <text x="380" y="280" class="label-text">システム設計</text>
+  <text x="380" y="295" class="annotation-text">• 認証アーキテクチャ</text>
+  <text x="380" y="307" class="annotation-text">• スケーラビリティ</text>
+  <text x="380" y="319" class="annotation-text">• 可用性設計</text>
+  
+  <rect x="510" y="260" width="180" height="80" rx="6" class="practical-node"/>
+  <text x="600" y="280" class="label-text">セキュリティ強化</text>
+  <text x="600" y="295" class="annotation-text">• 脅威モデリング</text>
+  <text x="600" y="307" class="annotation-text">• 脆弱性対策</text>
+  <text x="600" y="319" class="annotation-text">• セキュリティテスト</text>
+  
+  <!-- Expert Level -->
+  <rect x="50" y="380" width="700" height="20" rx="3" fill="var(--expert-bg)" stroke="var(--primary)" stroke-width="1"/>
+  <text x="400" y="394" class="section-title">エキスパートレベル (3年以上)</text>
+  
+  <rect x="70" y="420" width="180" height="80" rx="6" class="expert-node"/>
+  <text x="160" y="440" class="label-text">エンタープライズ設計</text>
+  <text x="160" y="455" class="annotation-text">• 企業認証基盤</text>
+  <text x="160" y="467" class="annotation-text">• ID連携・SSO</text>
+  <text x="160" y="479" class="annotation-text">• コンプライアンス対応</text>
+  
+  <rect x="290" y="420" width="180" height="80" rx="6" class="expert-node"/>
+  <text x="380" y="440" class="label-text">先進技術活用</text>
+  <text x="380" y="455" class="annotation-text">• Zero Trust</text>
+  <text x="380" y="467" class="annotation-text">• Decentralized ID</text>
+  <text x="380" y="479" class="annotation-text">• 生体認証・WebAuthn</text>
+  
+  <rect x="510" y="420" width="180" height="80" rx="6" class="expert-node"/>
+  <text x="600" y="440" class="label-text">組織レベル最適化</text>
+  <text x="600" y="455" class="annotation-text">• セキュリティ戦略策定</text>
+  <text x="600" y="467" class="annotation-text">• リスク管理</text>
+  <text x="600" y="479" class="annotation-text">• 技術選択リーダーシップ</text>
+  
+  <!-- Specialist Level -->
+  <rect x="50" y="540" width="700" height="20" rx="3" fill="var(--specialist-bg)" stroke="var(--neutral)" stroke-width="1"/>
+  <text x="400" y="554" class="section-title">専門領域</text>
+  
+  <rect x="200" y="580" width="180" height="80" rx="6" class="specialist-node"/>
+  <text x="290" y="600" class="label-text">研究・開発</text>
+  <text x="290" y="615" class="annotation-text">• 新認証技術研究</text>
+  <text x="290" y="627" class="annotation-text">• プロトコル設計</text>
+  <text x="290" y="639" class="annotation-text">• 標準化活動</text>
+  
+  <rect x="420" y="580" width="180" height="80" rx="6" class="specialist-node"/>
+  <text x="510" y="600" class="label-text">コンサルティング</text>
+  <text x="510" y="615" class="annotation-text">• 企業認証戦略支援</text>
+  <text x="510" y="627" class="annotation-text">• セキュリティ監査</text>
+  <text x="510" y="639" class="annotation-text">• 教育・トレーニング</text>
+  
+  <!-- Learning Resources -->
+  <rect x="50" y="700" width="700" height="20" rx="3" fill="var(--resource-bg)" stroke="var(--warning)" stroke-width="1"/>
+  <text x="400" y="714" class="section-title">学習リソース活用</text>
+  
+  <rect x="70" y="740" width="180" height="50" rx="6" class="resource-node"/>
+  <text x="160" y="755" class="label-text">理論学習 30%</text>
+  <text x="160" y="770" class="annotation-text">書籍・論文・オンライン講座・技術仕様書</text>
+  
+  <rect x="290" y="740" width="180" height="50" rx="6" class="resource-node"/>
+  <text x="380" y="755" class="label-text">実践演習 50%</text>
+  <text x="380" y="770" class="annotation-text">ハンズオン実装・脆弱性体験・プロジェクト適用</text>
+  
+  <rect x="510" y="740" width="180" height="50" rx="6" class="resource-node"/>
+  <text x="600" y="755" class="label-text">コミュニティ 20%</text>
+  <text x="600" y="770" class="annotation-text">技術勉強会・セキュリティカンファレンス・OSS貢献</text>
+  
+  <!-- Flow Lines -->
+  <!-- Beginner progression -->
+  <line x1="250" y1="140" x2="290" y2="140" class="flow-line"/>
+  <line x1="470" y1="140" x2="510" y2="140" class="flow-line"/>
+  
+  <!-- Beginner to Practical -->
+  <line x1="600" y1="180" x2="160" y2="260" class="flow-line"/>
+  
+  <!-- Practical progression -->
+  <line x1="250" y1="300" x2="290" y2="300" class="flow-line"/>
+  <line x1="470" y1="300" x2="510" y2="300" class="flow-line"/>
+  
+  <!-- Practical to Expert -->
+  <line x1="600" y1="340" x2="160" y2="420" class="flow-line"/>
+  
+  <!-- Expert progression -->
+  <line x1="250" y1="460" x2="290" y2="460" class="flow-line"/>
+  <line x1="470" y1="460" x2="510" y2="460" class="flow-line"/>
+  
+  <!-- Expert to Specialist -->
+  <line x1="600" y1="500" x2="290" y2="580" class="flow-line"/>
+  <line x1="600" y1="500" x2="510" y2="580" class="flow-line"/>
+  
+  <!-- Resource Support Lines -->
+  <line x1="160" y1="740" x2="160" y2="180" class="support-line"/>
+  <line x1="380" y1="740" x2="160" y2="260" class="support-line"/>
+  <line x1="600" y1="740" x2="160" y2="420" class="support-line"/>
+  
+</svg>

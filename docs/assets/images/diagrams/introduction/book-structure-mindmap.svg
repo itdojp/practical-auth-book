@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="1000" viewBox="0 0 800 1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      /* Color Palette */
+      :root {
+        --bg-primary: #FFFFFF;
+        --bg-secondary: #F8F9FA;
+        --text-primary: #1A1A1A;
+        --text-secondary: #6B7280;
+        --primary: #3B82F6;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --error: #EF4444;
+        --neutral: #6B7280;
+        --border: #E5E7EB;
+        --core-bg: #e8f5e8;
+        --basics-bg: #fff3e0;
+        --protocol-bg: #e3f2fd;
+        --design-bg: #f3e5f5;
+        --operation-bg: #fffbf0;
+      }
+      
+      /* Dark Theme */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-primary: #1A1A1A;
+          --bg-secondary: #2D2D2D;
+          --text-primary: #FFFFFF;
+          --text-secondary: #9CA3AF;
+          --primary: #60A5FA;
+          --success: #34D399;
+          --warning: #FBBF24;
+          --error: #F87171;
+          --neutral: #9CA3AF;
+          --border: #374151;
+          --core-bg: #1B5E20;
+          --basics-bg: #E65100;
+          --protocol-bg: #1A237E;
+          --design-bg: #4A148C;
+          --operation-bg: #3E2723;
+        }
+      }
+      
+      /* Typography */
+      .title-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .label-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .annotation-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 400;
+        text-anchor: middle;
+        fill: var(--text-secondary);
+      }
+      
+      .section-title {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .chapter-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 400;
+        text-anchor: start;
+        fill: var(--text-secondary);
+      }
+      
+      /* Node Styles */
+      .core-node {
+        fill: var(--core-bg);
+        stroke: var(--success);
+        stroke-width: 2;
+      }
+      
+      .basics-node {
+        fill: var(--basics-bg);
+        stroke: var(--warning);
+        stroke-width: 1.5;
+      }
+      
+      .protocol-node {
+        fill: var(--protocol-bg);
+        stroke: var(--primary);
+        stroke-width: 1.5;
+      }
+      
+      .design-node {
+        fill: var(--design-bg);
+        stroke: var(--neutral);
+        stroke-width: 1.5;
+      }
+      
+      .operation-node {
+        fill: var(--operation-bg);
+        stroke: var(--warning);
+        stroke-width: 1.5;
+      }
+      
+      /* Connection Lines */
+      .connection-line {
+        stroke: var(--neutral);
+        stroke-width: 1.5;
+      }
+    </style>
+  </defs>
+  
+  <title>実践認証認可システム設計 - 書籍構成</title>
+  <desc>認証認可システムの体系的学習マップ</desc>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="var(--bg-primary)"/>
+  
+  <!-- Main Title -->
+  <text x="400" y="24" class="title-text">実践認証認可システム設計</text>
+  
+  <!-- Central Core -->
+  <circle cx="400" cy="500" r="80" class="core-node"/>
+  <text x="400" y="495" class="label-text">実践認証認可</text>
+  <text x="400" y="510" class="label-text">システム設計</text>
+  
+  <!-- Basic Concepts Section -->
+  <rect x="50" y="80" width="200" height="20" rx="3" fill="var(--basics-bg)" stroke="var(--warning)" stroke-width="1"/>
+  <text x="150" y="94" class="section-title">基礎概念編</text>
+  
+  <!-- Overview Chapter -->
+  <rect x="70" y="120" width="160" height="60" rx="4" class="basics-node"/>
+  <text x="150" y="140" class="label-text">認証認可の全体像</text>
+  <text x="80" y="155" class="chapter-text">• ビジネス価値の理解</text>
+  <text x="80" y="167" class="chapter-text">• 用語の明確な定義</text>
+  
+  <!-- Authentication Basics -->
+  <rect x="70" y="200" width="160" height="60" rx="4" class="basics-node"/>
+  <text x="150" y="220" class="label-text">認証の基礎</text>
+  <text x="80" y="235" class="chapter-text">• パスワード認証</text>
+  <text x="80" y="247" class="chapter-text">• 多要素認証</text>
+  
+  <!-- Authorization Basics -->
+  <rect x="70" y="280" width="160" height="60" rx="4" class="basics-node"/>
+  <text x="150" y="300" class="label-text">認可の基礎</text>
+  <text x="80" y="315" class="chapter-text">• ACL・RBAC・ABAC</text>
+  <text x="80" y="327" class="chapter-text">• 権限管理の実装</text>
+  
+  <!-- Protocol & Standards Section -->
+  <rect x="570" y="80" width="200" height="20" rx="3" fill="var(--protocol-bg)" stroke="var(--primary)" stroke-width="1"/>
+  <text x="670" y="94" class="section-title">プロトコル・標準編</text>
+  
+  <!-- Session Management -->
+  <rect x="590" y="120" width="160" height="60" rx="4" class="protocol-node"/>
+  <text x="670" y="140" class="label-text">セッション管理</text>
+  <text x="600" y="155" class="chapter-text">• Cookie-based認証</text>
+  <text x="600" y="167" class="chapter-text">• セッション固定攻撃対策</text>
+  
+  <!-- Token Authentication -->
+  <rect x="590" y="200" width="160" height="60" rx="4" class="protocol-node"/>
+  <text x="670" y="220" class="label-text">トークン認証</text>
+  <text x="600" y="235" class="chapter-text">• JWT実装パターン</text>
+  <text x="600" y="247" class="chapter-text">• Refresh Token戦略</text>
+  
+  <!-- OAuth 2.0 -->
+  <rect x="590" y="280" width="160" height="60" rx="4" class="protocol-node"/>
+  <text x="670" y="300" class="label-text">OAuth 2.0</text>
+  <text x="600" y="315" class="chapter-text">• 認可フロー設計</text>
+  <text x="600" y="327" class="chapter-text">• スコープ管理</text>
+  
+  <!-- OIDC & SAML -->
+  <rect x="590" y="360" width="160" height="60" rx="4" class="protocol-node"/>
+  <text x="670" y="380" class="label-text">OpenID Connect・SAML</text>
+  <text x="600" y="395" class="chapter-text">• ID連携の実現</text>
+  <text x="600" y="407" class="chapter-text">• SSO実装戦略</text>
+  
+  <!-- System Design Section -->
+  <rect x="300" y="750" width="200" height="20" rx="3" fill="var(--design-bg)" stroke="var(--neutral)" stroke-width="1"/>
+  <text x="400" y="764" class="section-title">システム設計編</text>
+  
+  <!-- Auth System Design -->
+  <rect x="120" y="790" width="160" height="60" rx="4" class="design-node"/>
+  <text x="200" y="810" class="label-text">認証システム設計</text>
+  <text x="130" y="825" class="chapter-text">• アーキテクチャパターン</text>
+  <text x="130" y="837" class="chapter-text">• スケーラビリティ設計</text>
+  
+  <!-- Microservices Auth -->
+  <rect x="320" y="790" width="160" height="60" rx="4" class="design-node"/>
+  <text x="400" y="810" class="label-text">マイクロサービス認証</text>
+  <text x="330" y="825" class="chapter-text">• サービス間認証</text>
+  <text x="330" y="837" class="chapter-text">• API Gateway活用</text>
+  
+  <!-- Implementation Patterns -->
+  <rect x="520" y="790" width="160" height="60" rx="4" class="design-node"/>
+  <text x="600" y="810" class="label-text">実装パターン</text>
+  <text x="530" y="825" class="chapter-text">• 言語別ベストプラクティス</text>
+  <text x="530" y="837" class="chapter-text">• フレームワーク選択</text>
+  
+  <!-- Operation & Development Section -->
+  <rect x="50" y="560" width="200" height="20" rx="3" fill="var(--operation-bg)" stroke="var(--warning)" stroke-width="1"/>
+  <text x="150" y="574" class="section-title">運用・発展編</text>
+  
+  <!-- Security Threats -->
+  <rect x="70" y="600" width="160" height="60" rx="4" class="operation-node"/>
+  <text x="150" y="620" class="label-text">セキュリティ脅威対策</text>
+  <text x="80" y="635" class="chapter-text">• 脆弱性の理解と対策</text>
+  <text x="80" y="647" class="chapter-text">• ペネトレーションテスト</text>
+  
+  <!-- Performance Optimization -->
+  <rect x="70" y="680" width="160" height="60" rx="4" class="operation-node"/>
+  <text x="150" y="700" class="label-text">パフォーマンス最適化</text>
+  <text x="80" y="715" class="chapter-text">• 認証処理の高速化</text>
+  <text x="80" y="727" class="chapter-text">• キャッシュ戦略</text>
+  
+  <!-- Future Prospects -->
+  <rect x="520" y="600" width="160" height="60" rx="4" class="operation-node"/>
+  <text x="600" y="620" class="label-text">将来の展望</text>
+  <text x="530" y="635" class="chapter-text">• Zero Trust Architecture</text>
+  <text x="530" y="647" class="chapter-text">• Decentralized Identity</text>
+  
+  <!-- Connection Lines from Core -->
+  <line x1="340" y1="470" x2="150" y2="200" class="connection-line"/>
+  <line x1="460" y1="470" x2="670" y2="200" class="connection-line"/>
+  <line x1="400" y1="580" x2="400" y2="790" class="connection-line"/>
+  <line x1="340" y1="530" x2="150" y2="630" class="connection-line"/>
+  <line x1="460" y1="530" x2="600" y2="630" class="connection-line"/>
+  
+</svg>

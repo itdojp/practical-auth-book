@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="1000" viewBox="0 0 800 1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      /* Color Palette */
+      :root {
+        --bg-primary: #FFFFFF;
+        --bg-secondary: #F8F9FA;
+        --text-primary: #1A1A1A;
+        --text-secondary: #6B7280;
+        --primary: #3B82F6;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --error: #EF4444;
+        --neutral: #6B7280;
+        --border: #E5E7EB;
+        --gen1-bg: #ffebee;
+        --gen2-bg: #fff3e0;
+        --gen3-bg: #e8f5e8;
+        --gen4-bg: #e3f2fd;
+        --gen5-bg: #f3e5f5;
+      }
+      
+      /* Dark Theme */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-primary: #1A1A1A;
+          --bg-secondary: #2D2D2D;
+          --text-primary: #FFFFFF;
+          --text-secondary: #9CA3AF;
+          --primary: #60A5FA;
+          --success: #34D399;
+          --warning: #FBBF24;
+          --error: #F87171;
+          --neutral: #9CA3AF;
+          --border: #374151;
+          --gen1-bg: #B71C1C;
+          --gen2-bg: #E65100;
+          --gen3-bg: #1B5E20;
+          --gen4-bg: #1A237E;
+          --gen5-bg: #4A148C;
+        }
+      }
+      
+      /* Typography */
+      .title-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .generation-title {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        text-anchor: start;
+        fill: var(--text-primary);
+      }
+      
+      .year-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        text-anchor: start;
+        fill: var(--text-primary);
+      }
+      
+      .description-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 400;
+        text-anchor: start;
+        fill: var(--text-secondary);
+      }
+      
+      .problem-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 10px;
+        font-weight: 400;
+        text-anchor: start;
+        fill: var(--error);
+      }
+      
+      /* Timeline Styles */
+      .timeline-line {
+        stroke: var(--primary);
+        stroke-width: 4;
+      }
+      
+      .timeline-dot {
+        fill: var(--primary);
+        stroke: var(--bg-primary);
+        stroke-width: 2;
+      }
+      
+      /* Generation Node Styles */
+      .gen1-node {
+        fill: var(--gen1-bg);
+        stroke: var(--error);
+        stroke-width: 1.5;
+      }
+      
+      .gen2-node {
+        fill: var(--gen2-bg);
+        stroke: var(--warning);
+        stroke-width: 1.5;
+      }
+      
+      .gen3-node {
+        fill: var(--gen3-bg);
+        stroke: var(--success);
+        stroke-width: 1.5;
+      }
+      
+      .gen4-node {
+        fill: var(--gen4-bg);
+        stroke: var(--primary);
+        stroke-width: 1.5;
+      }
+      
+      .gen5-node {
+        fill: var(--gen5-bg);
+        stroke: var(--neutral);
+        stroke-width: 1.5;
+      }
+    </style>
+  </defs>
+  
+  <title>認証技術の歴史的進化</title>
+  <desc>パスワードからパスワードレス認証への技術発展</desc>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="var(--bg-primary)"/>
+  
+  <!-- Main Title -->
+  <text x="400" y="24" class="title-text">認証技術の歴史的進化</text>
+  
+  <!-- Timeline Main Line -->
+  <line x1="100" y1="80" x2="100" y2="950" class="timeline-line"/>
+  
+  <!-- Generation 1: Password Only (1960s~) -->
+  <circle cx="100" cy="120" r="8" class="timeline-dot"/>
+  <rect x="130" y="80" width="620" height="120" rx="6" class="gen1-node"/>
+  <text x="140" y="100" class="generation-title">第1世代: パスワードのみ (1960年代～)</text>
+  
+  <text x="150" y="125" class="year-text">1960s:</text>
+  <text x="200" y="125" class="description-text">メインフレーム時代・限られたユーザー・平文パスワード保存</text>
+  
+  <text x="150" y="145" class="year-text">問題点:</text>
+  <text x="150" y="160" class="problem-text">• 総当たり攻撃への脆弱性</text>
+  <text x="150" y="175" class="problem-text">• パスワードの使い回し・セキュリティ意識の不足</text>
+  
+  <!-- Generation 2: Encryption & Hashing (1970s~) -->
+  <circle cx="100" cy="240" r="8" class="timeline-dot"/>
+  <rect x="130" y="210" width="620" height="140" rx="6" class="gen2-node"/>
+  <text x="140" y="230" class="generation-title">第2世代: 暗号化・ハッシュ化 (1970年代～)</text>
+  
+  <text x="150" y="255" class="year-text">1970s:</text>
+  <text x="200" y="255" class="description-text">Unix crypt()関数・可逆暗号化の試み</text>
+  <text x="150" y="275" class="year-text">1990s:</text>
+  <text x="200" y="275" class="description-text">MD5ハッシュ化・ソルトの概念導入</text>
+  <text x="150" y="295" class="year-text">2000s:</text>
+  <text x="200" y="295" class="description-text">SHA-1, SHA-256・bcrypt (計算量的安全性)</text>
+  <text x="150" y="315" class="year-text">現在:</text>
+  <text x="200" y="315" class="description-text">Argon2 (推奨)・scrypt (代替案)</text>
+  
+  <!-- Generation 3: Multi-factor Authentication (2000s~) -->
+  <circle cx="100" cy="390" r="8" class="timeline-dot"/>
+  <rect x="130" y="360" width="620" height="140" rx="6" class="gen3-node"/>
+  <text x="140" y="380" class="generation-title">第3世代: 多要素認証 (2000年代～)</text>
+  
+  <text x="150" y="405" class="year-text">2000s:</text>
+  <text x="200" y="405" class="description-text">RSA SecurID・ハードウェアトークン</text>
+  <text x="150" y="425" class="year-text">2005:</text>
+  <text x="200" y="425" class="description-text">SMS認証の普及・携帯電話の普及と連動</text>
+  <text x="150" y="445" class="year-text">2010:</text>
+  <text x="200" y="445" class="description-text">TOTP/HOTP標準化・Google Authenticator</text>
+  <text x="150" y="465" class="year-text">2015:</text>
+  <text x="200" y="465" class="description-text">プッシュ通知認証・スマートフォンアプリ活用</text>
+  
+  <!-- Generation 4: Biometric Authentication (2010s~) -->
+  <circle cx="100" cy="540" r="8" class="timeline-dot"/>
+  <rect x="130" y="510" width="620" height="140" rx="6" class="gen4-node"/>
+  <text x="140" y="530" class="generation-title">第4世代: 生体認証 (2010年代～)</text>
+  
+  <text x="150" y="555" class="year-text">2013:</text>
+  <text x="200" y="555" class="description-text">iPhone 5s Touch ID・指紋認証の民主化</text>
+  <text x="150" y="575" class="year-text">2017:</text>
+  <text x="200" y="575" class="description-text">iPhone X Face ID・3D顔認証技術</text>
+  <text x="150" y="595" class="year-text">2018:</text>
+  <text x="200" y="595" class="description-text">Android指紋認証標準化・Windows Hello普及</text>
+  <text x="150" y="615" class="year-text">現在:</text>
+  <text x="200" y="615" class="description-text">行動的生体認証研究・歩行パターン・タイピング</text>
+  
+  <!-- Generation 5: Passwordless (2020s~) -->
+  <circle cx="100" cy="690" r="8" class="timeline-dot"/>
+  <rect x="130" y="660" width="620" height="160" rx="6" class="gen5-node"/>
+  <text x="140" y="680" class="generation-title">第5世代: パスワードレス (2020年代～)</text>
+  
+  <text x="150" y="705" class="year-text">2018:</text>
+  <text x="200" y="705" class="description-text">FIDO2/WebAuthn標準化・W3C勧告</text>
+  <text x="150" y="725" class="year-text">2020:</text>
+  <text x="200" y="725" class="description-text">Microsoft Passwordless・企業導入加速</text>
+  <text x="150" y="745" class="year-text">2021:</text>
+  <text x="200" y="745" class="description-text">Apple Passkeys・デバイス間同期</text>
+  <text x="150" y="765" class="year-text">2022:</text>
+  <text x="200" y="765" class="description-text">Google Passkeys・クロスプラットフォーム</text>
+  <text x="150" y="785" class="year-text">未来:</text>
+  <text x="200" y="785" class="description-text">Quantum-Safe認証・分散アイデンティティ</text>
+  
+  <!-- Future Trends -->
+  <rect x="50" y="840" width="700" height="140" rx="6" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+  <text x="400" y="860" class="generation-title" text-anchor="middle">技術進化の趋勢</text>
+  
+  <text x="70" y="885" class="year-text">セキュリティ強化:</text>
+  <text x="80" y="900" class="description-text">• 平文 → ハッシュ化 → ソルト → 高コストハッシュ → 量子コンピュータ耐性</text>
+  
+  <text x="70" y="920" class="year-text">利便性向上:</text>
+  <text x="80" y="935" class="description-text">• パスワード記憶 → デバイス認証 → 生体認証 → パスワードレス → 透明認証</text>
+  
+  <text x="70" y="955" class="year-text">多様化:</text>
+  <text x="80" y="970" class="description-text">• 単一要素 → 二要素 → 多要素 → 適応的 → 継続的認証</text>
+  
+</svg>
