@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="1200" viewBox="0 0 800 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      /* Color Palette */
+      :root {
+        --bg-primary: #FFFFFF;
+        --bg-secondary: #F8F9FA;
+        --text-primary: #1A1A1A;
+        --text-secondary: #6B7280;
+        --primary: #3B82F6;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --error: #EF4444;
+        --neutral: #6B7280;
+        --border: #E5E7EB;
+        --security-bg: #ffebee;
+        --ux-bg: #e8f5e8;
+        --tech-bg: #e3f2fd;
+        --future-bg: #f3e5f5;
+        --matrix-bg: #fff3e0;
+        --decision-bg: #fffbf0;
+      }
+      
+      /* Dark Theme */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-primary: #1A1A1A;
+          --bg-secondary: #2D2D2D;
+          --text-primary: #FFFFFF;
+          --text-secondary: #9CA3AF;
+          --primary: #60A5FA;
+          --success: #34D399;
+          --warning: #FBBF24;
+          --error: #F87171;
+          --neutral: #9CA3AF;
+          --border: #374151;
+          --security-bg: #B71C1C;
+          --ux-bg: #1B5E20;
+          --tech-bg: #1A237E;
+          --future-bg: #4A148C;
+          --matrix-bg: #E65100;
+          --decision-bg: #3E2723;
+        }
+      }
+      
+      /* Typography */
+      .title-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .phase-title {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .label-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        text-anchor: middle;
+        fill: var(--text-primary);
+      }
+      
+      .description-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 9px;
+        font-weight: 400;
+        text-anchor: start;
+        fill: var(--text-secondary);
+      }
+      
+      .evaluation-text {
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 8px;
+        font-weight: 400;
+        text-anchor: start;
+        fill: var(--text-primary);
+      }
+      
+      /* Node Styles */
+      .start-node {
+        fill: var(--success);
+        stroke: var(--success);
+        stroke-width: 2;
+      }
+      
+      .security-node {
+        fill: var(--security-bg);
+        stroke: var(--error);
+        stroke-width: 1.5;
+      }
+      
+      .ux-node {
+        fill: var(--ux-bg);
+        stroke: var(--success);
+        stroke-width: 1.5;
+      }
+      
+      .tech-node {
+        fill: var(--tech-bg);
+        stroke: var(--primary);
+        stroke-width: 1.5;
+      }
+      
+      .future-node {
+        fill: var(--future-bg);
+        stroke: var(--neutral);
+        stroke-width: 1.5;
+      }
+      
+      .matrix-node {
+        fill: var(--matrix-bg);
+        stroke: var(--warning);
+        stroke-width: 1.5;
+      }
+      
+      .decision-node {
+        fill: var(--decision-bg);
+        stroke: var(--neutral);
+        stroke-width: 2;
+      }
+      
+      /* Connection Lines */
+      .flow-line {
+        stroke: var(--primary);
+        stroke-width: 2;
+        marker-end: url(#arrow);
+      }
+      
+      .feedback-line {
+        stroke: var(--warning);
+        stroke-width: 1.5;
+        stroke-dasharray: 4,4;
+        marker-end: url(#arrow-orange);
+      }
+    </style>
+    
+    <!-- Arrow Markers -->
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--primary)"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="var(--warning)"/>
+    </marker>
+  </defs>
+  
+  <title>認証認可技術選択の意思決定フレームワーク</title>
+  <desc>体系的な技術選択のための包括的評価フレームワーク</desc>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="var(--bg-primary)"/>
+  
+  <!-- Main Title -->
+  <text x="400" y="24" class="title-text">認証認可技術選択の意思決定フレームワーク</text>
+  
+  <!-- Start Node -->
+  <rect x="350" y="50" width="100" height="40" rx="6" class="start-node"/>
+  <text x="400" y="74" class="label-text" fill="white">🚀 プロジェクト開始</text>
+  
+  <!-- Phase 1: Security Requirements -->
+  <rect x="50" y="130" width="150" height="20" rx="3" fill="var(--security-bg)" stroke="var(--error)" stroke-width="1"/>
+  <text x="125" y="144" class="phase-title">1️⃣ セキュリティ要件分析</text>
+  
+  <rect x="70" y="170" width="110" height="30" rx="4" class="security-node"/>
+  <text x="125" y="189" class="label-text">🔒 セキュリティ要件</text>
+  
+  <rect x="70" y="220" width="110" height="60" rx="4" class="security-node"/>
+  <text x="125" y="235" class="description-text">データ分類</text>
+  <text x="75" y="250" class="description-text">• 機密性レベル</text>
+  <text x="75" y="265" class="description-text">• 個人情報の有無</text>
+  <text x="75" y="280" class="description-text">• 金融データの有無</text>
+  
+  <rect x="70" y="300" width="110" height="60" rx="4" class="security-node"/>
+  <text x="125" y="315" class="description-text">規制要件</text>
+  <text x="75" y="330" class="description-text">• GDPR • PCI-DSS</text>
+  <text x="75" y="345" class="description-text">• HIPAA • SOX法</text>
+  
+  <rect x="70" y="380" width="110" height="60" rx="4" class="security-node"/>
+  <text x="125" y="395" class="description-text">脅威モデリング</text>
+  <text x="75" y="410" class="description-text">• 想定攻撃者</text>
+  <text x="75" y="425" class="description-text">• 攻撃手法・影響度評価</text>
+  
+  <!-- Phase 2: Usability Requirements -->
+  <rect x="250" y="130" width="150" height="20" rx="3" fill="var(--ux-bg)" stroke="var(--success)" stroke-width="1"/>
+  <text x="325" y="144" class="phase-title">2️⃣ ユーザビリティ要件</text>
+  
+  <rect x="270" y="170" width="110" height="30" rx="4" class="ux-node"/>
+  <text x="325" y="189" class="label-text">👥 ユーザビリティ要件</text>
+  
+  <rect x="270" y="220" width="110" height="60" rx="4" class="ux-node"/>
+  <text x="325" y="235" class="description-text">ユーザープロファイル</text>
+  <text x="275" y="250" class="description-text">• 技術リテラシー</text>
+  <text x="275" y="265" class="description-text">• 年齢層・利用環境</text>
+  
+  <rect x="270" y="300" width="110" height="60" rx="4" class="ux-node"/>
+  <text x="325" y="315" class="description-text">利用頻度</text>
+  <text x="275" y="330" class="description-text">• 1日複数回</text>
+  <text x="275" y="345" class="description-text">• 週数回・月数回</text>
+  
+  <rect x="270" y="380" width="110" height="60" rx="4" class="ux-node"/>
+  <text x="325" y="395" class="description-text">デバイス種類</text>
+  <text x="275" y="410" class="description-text">• PC・スマートフォン</text>
+  <text x="275" y="425" class="description-text">• IoTデバイス</text>
+  
+  <!-- Phase 3: Technical Constraints -->
+  <rect x="450" y="130" width="150" height="20" rx="3" fill="var(--tech-bg)" stroke="var(--primary)" stroke-width="1"/>
+  <text x="525" y="144" class="phase-title">3️⃣ 技術的制約</text>
+  
+  <rect x="470" y="170" width="110" height="30" rx="4" class="tech-node"/>
+  <text x="525" y="189" class="label-text">⚙️ 技術的制約</text>
+  
+  <rect x="470" y="220" width="110" height="60" rx="4" class="tech-node"/>
+  <text x="525" y="235" class="description-text">既存システム統合</text>
+  <text x="475" y="250" class="description-text">• レガシーシステム</text>
+  <text x="475" y="265" class="description-text">• API互換性・データ移行</text>
+  
+  <rect x="470" y="300" width="110" height="60" rx="4" class="tech-node"/>
+  <text x="525" y="315" class="description-text">パフォーマンス</text>
+  <text x="475" y="330" class="description-text">• レスポンス時間</text>
+  <text x="475" y="345" class="description-text">• 同時接続数・可用性要件</text>
+  
+  <rect x="470" y="380" width="110" height="60" rx="4" class="tech-node"/>
+  <text x="525" y="395" class="description-text">開発・運用コスト</text>
+  <text x="475" y="410" class="description-text">• 初期開発費・運用保守費</text>
+  <text x="475" y="425" class="description-text">• 人的リソース</text>
+  
+  <!-- Phase 4: Future Evaluation -->
+  <rect x="650" y="130" width="150" height="20" rx="3" fill="var(--future-bg)" stroke="var(--neutral)" stroke-width="1"/>
+  <text x="725" y="144" class="phase-title">4️⃣ 将来性評価</text>
+  
+  <rect x="670" y="170" width="110" height="30" rx="4" class="future-node"/>
+  <text x="725" y="189" class="label-text">🔮 将来性評価</text>
+  
+  <rect x="670" y="220" width="110" height="60" rx="4" class="future-node"/>
+  <text x="725" y="235" class="description-text">標準化状況</text>
+  <text x="675" y="250" class="description-text">• W3C勧告・IETF RFC</text>
+  <text x="675" y="265" class="description-text">• 業界標準</text>
+  
+  <rect x="670" y="300" width="110" height="60" rx="4" class="future-node"/>
+  <text x="725" y="315" class="description-text">コミュニティ</text>
+  <text x="675" y="330" class="description-text">• 開発活動・サポート体制</text>
+  <text x="675" y="345" class="description-text">• ドキュメント</text>
+  
+  <rect x="670" y="380" width="110" height="60" rx="4" class="future-node"/>
+  <text x="725" y="395" class="description-text">ベンダーロックイン</text>
+  <text x="675" y="410" class="description-text">• 移行可能性・技術の汎用性</text>
+  <text x="675" y="425" class="description-text">• ライセンス</text>
+  
+  <!-- Phase 5: Technology Selection Matrix -->
+  <rect x="200" y="480" width="400" height="20" rx="3" fill="var(--matrix-bg)" stroke="var(--warning)" stroke-width="1"/>
+  <text x="400" y="494" class="phase-title">5️⃣ 技術選択マトリックス</text>
+  
+  <rect x="350" y="520" width="100" height="40" rx="6" class="matrix-node"/>
+  <text x="400" y="544" class="label-text">技術選択マトリックス</text>
+  
+  <!-- Technology Options -->
+  <rect x="150" y="580" width="120" height="80" rx="4" class="matrix-node"/>
+  <text x="210" y="595" class="description-text">基本認証</text>
+  <text x="155" y="610" class="evaluation-text">📊 評価</text>
+  <text x="155" y="625" class="evaluation-text">セキュリティ: ⭐</text>
+  <text x="155" y="640" class="evaluation-text">ユーザビリティ: ⭐⭐⭐</text>
+  <text x="155" y="655" class="evaluation-text">コスト: ⭐⭐⭐⭐⭐</text>
+  
+  <rect x="290" y="580" width="120" height="80" rx="4" class="matrix-node"/>
+  <text x="350" y="595" class="description-text">多要素認証</text>
+  <text x="295" y="610" class="evaluation-text">📊 評価</text>
+  <text x="295" y="625" class="evaluation-text">セキュリティ: ⭐⭐⭐⭐</text>
+  <text x="295" y="640" class="evaluation-text">ユーザビリティ: ⭐⭐</text>
+  <text x="295" y="655" class="evaluation-text">将来性: ⭐⭐⭐⭐</text>
+  
+  <rect x="430" y="580" width="120" height="80" rx="4" class="matrix-node"/>
+  <text x="490" y="595" class="description-text">SSO</text>
+  <text x="435" y="610" class="evaluation-text">📊 評価</text>
+  <text x="435" y="625" class="evaluation-text">セキュリティ: ⭐⭐⭐</text>
+  <text x="435" y="640" class="evaluation-text">ユーザビリティ: ⭐⭐⭐⭐⭐</text>
+  <text x="435" y="655" class="evaluation-text">コスト: ⭐⭐</text>
+  
+  <rect x="570" y="580" width="120" height="80" rx="4" class="matrix-node"/>
+  <text x="630" y="595" class="description-text">パスワードレス</text>
+  <text x="575" y="610" class="evaluation-text">📊 評価</text>
+  <text x="575" y="625" class="evaluation-text">セキュリティ: ⭐⭐⭐⭐⭐</text>
+  <text x="575" y="640" class="evaluation-text">ユーザビリティ: ⭐⭐⭐⭐</text>
+  <text x="575" y="655" class="evaluation-text">将来性: ⭐⭐⭐⭐⭐</text>
+  
+  <!-- Phase 6: Final Decision -->
+  <rect x="250" y="700" width="300" height="20" rx="3" fill="var(--decision-bg)" stroke="var(--neutral)" stroke-width="1"/>
+  <text x="400" y="714" class="phase-title">6️⃣ 最終決定</text>
+  
+  <rect x="350" y="740" width="100" height="40" rx="6" class="decision-node"/>
+  <text x="400" y="764" class="label-text">🎯 技術選択決定</text>
+  
+  <rect x="200" y="800" width="150" height="80" rx="4" class="decision-node"/>
+  <text x="275" y="820" class="description-text">実装計画</text>
+  <text x="205" y="835" class="description-text">• フェーズ分け</text>
+  <text x="205" y="850" class="description-text">• リスク管理</text>
+  <text x="205" y="865" class="description-text">• 移行戦略</text>
+  
+  <rect x="450" y="800" width="150" height="80" rx="4" class="decision-node"/>
+  <text x="525" y="820" class="description-text">継続的評価</text>
+  <text x="455" y="835" class="description-text">• セキュリティ監視</text>
+  <text x="455" y="850" class="description-text">• パフォーマンス測定</text>
+  <text x="455" y="865" class="description-text">• ユーザーフィードバック</text>
+  
+  <!-- Flow Lines -->
+  <!-- Start to Phases -->
+  <line x1="350" y1="70" x2="125" y2="170" class="flow-line"/>
+  <line x1="400" y1="90" x2="325" y2="170" class="flow-line"/>
+  <line x1="450" y1="70" x2="525" y2="170" class="flow-line"/>
+  <line x1="400" y1="90" x2="725" y2="170" class="flow-line"/>
+  
+  <!-- Phases to Matrix -->
+  <line x1="125" y1="440" x2="350" y2="540" class="flow-line"/>
+  <line x1="325" y1="440" x2="375" y2="520" class="flow-line"/>
+  <line x1="525" y1="440" x2="425" y2="520" class="flow-line"/>
+  <line x1="725" y1="440" x2="450" y2="540" class="flow-line"/>
+  
+  <!-- Matrix to Options -->
+  <line x1="400" y1="560" x2="210" y2="580" class="flow-line"/>
+  <line x1="400" y1="560" x2="350" y2="580" class="flow-line"/>
+  <line x1="400" y1="560" x2="490" y2="580" class="flow-line"/>
+  <line x1="400" y1="560" x2="630" y2="580" class="flow-line"/>
+  
+  <!-- Options to Decision -->
+  <line x1="350" y1="660" x2="400" y2="740" class="flow-line"/>
+  <line x1="490" y1="660" x2="400" y2="740" class="flow-line"/>
+  
+  <!-- Decision to Implementation -->
+  <line x1="350" y1="760" x2="275" y2="800" class="flow-line"/>
+  <line x1="450" y1="760" x2="525" y2="800" class="flow-line"/>
+  
+  <!-- Feedback Loop -->
+  <line x1="525" y1="800" x2="200" y2="170" class="feedback-line"/>
+  
+  <!-- Benefits Section -->
+  <rect x="50" y="920" width="700" height="160" rx="6" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+  <text x="400" y="940" class="phase-title">フレームワーク活用のメリット</text>
+  
+  <text x="70" y="965" class="label-text" text-anchor="start">体系的評価:</text>
+  <text x="80" y="980" class="description-text">• 主観的判断の排除 • 見落としリスクの軽減 • 根拠ある意思決定</text>
+  
+  <text x="70" y="1005" class="label-text" text-anchor="start">ステークホルダー合意:</text>
+  <text x="80" y="1020" class="description-text">• 評価基準の透明化 • 関係者との合意形成 • 責任の明確化</text>
+  
+  <text x="70" y="1045" class="label-text" text-anchor="start">継続的改善:</text>
+  <text x="80" y="1060" class="description-text">• 定期的な見直し • フィードバックループ • 技術進歩への対応</text>
+  
+</svg>
