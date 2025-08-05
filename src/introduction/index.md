@@ -81,6 +81,10 @@
 
 本書の内容について、ご意見・ご感想がございましたら、GitHubリポジトリのIssueまたは著者のメールアドレスまでお寄せください。読者の皆様のフィードバックは、本書の改善に大いに役立ちます。
 
+![書籍構造マインドマップ](../../docs/assets/images/diagrams/introduction/book-structure-mindmap.svg)
+
+![学習ロードマップ](../../docs/assets/images/diagrams/introduction/learning-roadmap.svg)
+
 それでは、認証・認可システムの奥深い世界へ、一緒に踏み出しましょう。
 
 2024年7月  
