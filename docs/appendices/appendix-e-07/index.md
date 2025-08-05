@@ -1,8 +1,8 @@
 ---
 layout: book
-title: "第7章 演習問題解答"
+order: 26
+title: "付録E-7: 第7章演習問題解答"
 ---
-
 # 第7章 演習問題解答
 
 ## 問題1：OpenID Connect実装

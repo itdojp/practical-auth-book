@@ -1,31 +1,22 @@
-# Jekyll設定 - 書籍作成時に以下の値を必ず変更してください
-# ⚠️ 警告: デフォルト値のままでは正しく動作しません
-
 title: "実践 認証認可システム設計"
 description: "ゼロから学ぶアイデンティティ管理の実装"
-author: 
-  name: "ITDO Inc."
-  github: "itdojp"
-  email: "knowledge@itdo.jp"
-baseurl: "/practical-auth-book"
+author: "株式会社アイティードゥ"
+lang: "ja"
 url: "https://itdojp.github.io"
+baseurl: "/practical-auth-book"
+repository: "https://github.com/itdojp/practical-auth-book"
 
-# Repository settings for links
-repository:
-  github: https://github.com/itdojp/practical-auth-book
-  zenn: books/practical-auth-book
-
-# テーマ
-theme: minima
-plugins:
-  - jekyll-feed
-
-# 言語設定
-lang: ja
-
-# Markdown設定
+# Jekyll設定
 markdown: kramdown
 highlighter: rouge
+
+# プラグイン
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
 kramdown:
   input: GFM
   syntax_highlighter: rouge
