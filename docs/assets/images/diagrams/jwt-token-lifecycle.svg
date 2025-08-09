@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title-text { font-family: 'Noto Sans JP', sans-serif; font-size: 18px; font-weight: bold; fill: #2c3e50; }
+      .state-box { fill: #fff; stroke: #34495e; stroke-width: 2; }
+      .state-text { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; fill: #2c3e50; font-weight: bold; }
+      .transition-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #7f8c8d; }
+      .success-state { fill: #d4edda; stroke: #28a745; }
+      .error-state { fill: #f8d7da; stroke: #dc3545; }
+      .warning-state { fill: #fff3cd; stroke: #ffc107; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .start-end { fill: #2c3e50; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title-text" text-anchor="middle">JWT トークンライフサイクル</text>
+
+  <!-- Start State -->
+  <circle cx="100" cy="100" r="10" class="start-end"/>
+  
+  <!-- Created State -->
+  <rect x="160" y="80" width="100" height="40" class="state-box" rx="5"/>
+  <text x="210" y="105" class="state-text" text-anchor="middle">作成済</text>
+  
+  <!-- Signed State -->
+  <rect x="320" y="80" width="100" height="40" class="state-box" rx="5"/>
+  <text x="370" y="105" class="state-text" text-anchor="middle">署名済</text>
+  
+  <!-- Transmitted State -->
+  <rect x="480" y="80" width="100" height="40" class="state-box" rx="5"/>
+  <text x="530" y="105" class="state-text" text-anchor="middle">送信済</text>
+  
+  <!-- Stored State -->
+  <rect x="640" y="80" width="100" height="40" class="state-box" rx="5"/>
+  <text x="690" y="105" class="state-text" text-anchor="middle">保存済</text>
+  
+  <!-- Used State -->
+  <rect x="640" y="200" width="100" height="40" class="state-box" rx="5"/>
+  <text x="690" y="225" class="state-text" text-anchor="middle">使用中</text>
+  
+  <!-- Validated State -->
+  <rect x="480" y="200" width="100" height="40" class="state-box warning-state" rx="5"/>
+  <text x="530" y="225" class="state-text" text-anchor="middle">検証中</text>
+  
+  <!-- Accepted State -->
+  <rect x="320" y="280" width="100" height="40" class="state-box success-state" rx="5"/>
+  <text x="370" y="305" class="state-text" text-anchor="middle">承認済</text>
+  
+  <!-- Rejected State -->
+  <rect x="480" y="340" width="100" height="40" class="state-box error-state" rx="5"/>
+  <text x="530" y="365" class="state-text" text-anchor="middle">拒否</text>
+  
+  <!-- Refresh State -->
+  <rect x="320" y="400" width="100" height="40" class="state-box warning-state" rx="5"/>
+  <text x="370" y="425" class="state-text" text-anchor="middle">リフレッシュ</text>
+  
+  <!-- Expired State -->
+  <rect x="480" y="460" width="100" height="40" class="state-box error-state" rx="5"/>
+  <text x="530" y="485" class="state-text" text-anchor="middle">期限切れ</text>
+  
+  <!-- Revoked State -->
+  <rect x="640" y="340" width="100" height="40" class="state-box error-state" rx="5"/>
+  <text x="690" y="365" class="state-text" text-anchor="middle">無効化</text>
+  
+  <!-- End State -->
+  <circle cx="400" cy="540" r="10" class="start-end"/>
+
+  <!-- Transitions -->
+  <g id="transitions">
+    <!-- Start to Created -->
+    <path d="M 110 100 L 160 100" class="arrow"/>
+    <text x="135" y="95" class="transition-text" text-anchor="middle">ユーザー認証</text>
+    
+    <!-- Created to Signed -->
+    <path d="M 260 100 L 320 100" class="arrow"/>
+    <text x="290" y="95" class="transition-text" text-anchor="middle">クレーム追加・署名</text>
+    
+    <!-- Signed to Transmitted -->
+    <path d="M 420 100 L 480 100" class="arrow"/>
+    <text x="450" y="95" class="transition-text" text-anchor="middle">クライアント送信</text>
+    
+    <!-- Transmitted to Stored -->
+    <path d="M 580 100 L 640 100" class="arrow"/>
+    <text x="610" y="95" class="transition-text" text-anchor="middle">保存</text>
+    
+    <!-- Stored to Used -->
+    <path d="M 690 120 L 690 200" class="arrow"/>
+    <text x="710" y="160" class="transition-text">API要求</text>
+    
+    <!-- Used to Validated -->
+    <path d="M 640 220 L 580 220" class="arrow"/>
+    <text x="610" y="215" class="transition-text" text-anchor="middle">検証</text>
+    
+    <!-- Validated to Accepted -->
+    <path d="M 480 240 L 420 280" class="arrow"/>
+    <text x="440" y="255" class="transition-text">有効</text>
+    
+    <!-- Validated to Rejected -->
+    <path d="M 530 240 L 530 340" class="arrow"/>
+    <text x="550" y="290" class="transition-text">無効/期限切れ</text>
+    
+    <!-- Accepted back to Used -->
+    <path d="M 420 300 Q 550 180 640 210" class="arrow"/>
+    <text x="500" y="180" class="transition-text" text-anchor="middle">継続使用</text>
+    
+    <!-- Rejected to Refresh -->
+    <path d="M 480 360 L 420 400" class="arrow"/>
+    <text x="440" y="375" class="transition-text">リフレッシュトークンあり</text>
+    
+    <!-- Rejected to Expired -->
+    <path d="M 530 380 L 530 460" class="arrow"/>
+    <text x="550" y="420" class="transition-text">リフレッシュトークンなし</text>
+    
+    <!-- Refresh back to Created -->
+    <path d="M 320 420 Q 210 260 210 120" class="arrow"/>
+    <text x="250" y="300" class="transition-text">新トークン発行</text>
+    
+    <!-- Stored to Revoked -->
+    <path d="M 690 120 L 690 340" class="arrow"/>
+    <text x="710" y="230" class="transition-text">セキュリティイベント</text>
+    
+    <!-- Expired to End -->
+    <path d="M 530 500 L 410 540" class="arrow"/>
+    <text x="460" y="515" class="transition-text">再認証必要</text>
+    
+    <!-- Revoked to End -->
+    <path d="M 640 370 L 410 540" class="arrow"/>
+    <text x="520" y="450" class="transition-text">ブラックリスト登録</text>
+  </g>
+</svg>

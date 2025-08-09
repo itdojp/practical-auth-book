@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title-text { font-family: 'Noto Sans JP', sans-serif; font-size: 18px; font-weight: bold; fill: #2c3e50; }
+      .state-box { fill: #fff; stroke: #34495e; stroke-width: 2; }
+      .active-state { fill: #d4edda; stroke: #28a745; stroke-width: 2; }
+      .warning-state { fill: #fff3cd; stroke: #ffc107; stroke-width: 2; }
+      .expired-state { fill: #f8d7da; stroke: #dc3545; stroke-width: 2; }
+      .state-text { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; fill: #2c3e50; font-weight: bold; }
+      .transition-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #7f8c8d; }
+      .note-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #6c757d; font-style: italic; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .start-end { fill: #2c3e50; }
+      .note-box { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1; stroke-dasharray: 3,3; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title-text" text-anchor="middle">セッション管理状態図</text>
+
+  <!-- Start State -->
+  <circle cx="100" cy="100" r="10" class="start-end"/>
+  
+  <!-- Created State -->
+  <rect x="180" y="80" width="100" height="40" class="state-box" rx="5"/>
+  <text x="230" y="105" class="state-text" text-anchor="middle">作成済</text>
+  
+  <!-- Active State -->
+  <rect x="360" y="80" width="100" height="40" class="active-state" rx="5"/>
+  <text x="410" y="105" class="state-text" text-anchor="middle">アクティブ</text>
+  
+  <!-- Idle State -->
+  <rect x="540" y="80" width="100" height="40" class="state-box" rx="5"/>
+  <text x="590" y="105" class="state-text" text-anchor="middle">アイドル</text>
+  
+  <!-- Warning State -->
+  <rect x="540" y="200" width="100" height="40" class="warning-state" rx="5"/>
+  <text x="590" y="225" class="state-text" text-anchor="middle">警告</text>
+  
+  <!-- Expired State -->
+  <rect x="540" y="320" width="100" height="40" class="expired-state" rx="5"/>
+  <text x="590" y="345" class="state-text" text-anchor="middle">期限切れ</text>
+  
+  <!-- Invalidated State -->
+  <rect x="360" y="320" width="100" height="40" class="expired-state" rx="5"/>
+  <text x="410" y="345" class="state-text" text-anchor="middle">無効化</text>
+  
+  <!-- Revoked State -->
+  <rect x="180" y="320" width="100" height="40" class="expired-state" rx="5"/>
+  <text x="230" y="345" class="state-text" text-anchor="middle">取消済</text>
+  
+  <!-- End State -->
+  <circle cx="410" cy="450" r="10" class="start-end"/>
+
+  <!-- Notes -->
+  <g id="notes">
+    <!-- Note for Active -->
+    <rect x="280" y="140" width="160" height="40" class="note-box" rx="3"/>
+    <text x="360" y="155" class="note-text" text-anchor="middle">各アクティビティで</text>
+    <text x="360" y="170" class="note-text" text-anchor="middle">セッション更新</text>
+    
+    <!-- Note for Warning -->
+    <rect x="650" y="200" width="130" height="40" class="note-box" rx="3"/>
+    <text x="715" y="215" class="note-text" text-anchor="middle">期限切れ前に</text>
+    <text x="715" y="230" class="note-text" text-anchor="middle">警告表示</text>
+  </g>
+
+  <!-- Transitions -->
+  <g id="transitions">
+    <!-- Start to Created -->
+    <path d="M 110 100 L 180 100" class="arrow"/>
+    <text x="145" y="95" class="transition-text" text-anchor="middle">ユーザーログイン</text>
+    
+    <!-- Created to Active -->
+    <path d="M 280 100 L 360 100" class="arrow"/>
+    <text x="320" y="95" class="transition-text" text-anchor="middle">セッション確立</text>
+    
+    <!-- Active to Active (self-loop) -->
+    <path d="M 410 80 Q 410 40 410 80" class="arrow"/>
+    <text x="410" y="55" class="transition-text" text-anchor="middle">ユーザー活動</text>
+    
+    <!-- Active to Idle -->
+    <path d="M 460 100 L 540 100" class="arrow"/>
+    <text x="500" y="95" class="transition-text" text-anchor="middle">活動なし</text>
+    
+    <!-- Idle to Active -->
+    <path d="M 540 85 L 460 85" class="arrow"/>
+    <text x="500" y="80" class="transition-text" text-anchor="middle">ユーザー復帰</text>
+    
+    <!-- Idle to Warning -->
+    <path d="M 590 120 L 590 200" class="arrow"/>
+    <text x="610" y="160" class="transition-text">タイムアウト間近</text>
+    
+    <!-- Warning to Active -->
+    <path d="M 540 220 Q 450 150 460 110" class="arrow"/>
+    <text x="480" y="160" class="transition-text" text-anchor="middle">ユーザー活動</text>
+    
+    <!-- Warning to Expired -->
+    <path d="M 590 240 L 590 320" class="arrow"/>
+    <text x="610" y="280" class="transition-text">タイムアウト</text>
+    
+    <!-- Active to Invalidated -->
+    <path d="M 410 120 L 410 320" class="arrow"/>
+    <text x="430" y="220" class="transition-text">ユーザーログアウト</text>
+    
+    <!-- Active to Revoked -->
+    <path d="M 360 110 Q 230 200 230 320" class="arrow"/>
+    <text x="280" y="210" class="transition-text" text-anchor="middle">セキュリティイベント</text>
+    
+    <!-- Expired to End -->
+    <path d="M 590 360 L 420 450" class="arrow"/>
+    <text x="505" y="400" class="transition-text" text-anchor="middle">セッション終了</text>
+    
+    <!-- Invalidated to End -->
+    <path d="M 410 360 L 410 440" class="arrow"/>
+    <text x="430" y="400" class="transition-text">セッション終了</text>
+    
+    <!-- Revoked to End -->
+    <path d="M 230 360 L 400 440" class="arrow"/>
+    <text x="315" y="400" class="transition-text" text-anchor="middle">セッション終了</text>
+  </g>
+</svg>
