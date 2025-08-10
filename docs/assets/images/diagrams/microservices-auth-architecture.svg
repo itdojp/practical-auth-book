@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <title>マイクロサービス認証アーキテクチャ</title>
+  <desc>APIゲートウェイ、IDサービス、サービス間通信を示すマイクロサービス認証システムのコンポーネント図</desc>
+  <defs>
+    <style>
+      :root {
+        --svg-bg: #ffffff;
+        --svg-text: #1a1a1a;
+        --svg-primary: #0066cc;
+        --svg-success: #16a34a;
+        --svg-warning: #ca8a04;
+        --svg-error: #dc2626;
+        --svg-neutral: #6b7280;
+      }
+      .title-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; fill: var(--svg-text); }
+      .component-title { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 500; fill: var(--svg-bg); }
+      .service-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 400; fill: var(--svg-text); }
+      .annotation-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 400; fill: var(--svg-neutral); }
+      .client-zone { fill: var(--svg-primary); stroke: var(--svg-primary); stroke-width: 2; }
+      .gateway-zone { fill: var(--svg-warning); stroke: var(--svg-warning); stroke-width: 2; }
+      .auth-zone { fill: var(--svg-success); stroke: var(--svg-success); stroke-width: 2; }
+      .service-zone { fill: var(--svg-error); stroke: var(--svg-error); stroke-width: 2; }
+      .data-zone { fill: var(--svg-neutral); stroke: var(--svg-neutral); stroke-width: 2; }
+      .auth-flow { stroke: var(--svg-success); stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .api-flow { stroke: var(--svg-primary); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .internal-flow { stroke: var(--svg-error); stroke-width: 1; stroke-dasharray: 5,3; fill: none; marker-end: url(#arrowhead-red); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-primary)"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-success)"/>
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="8" refX="7" refY="2" orient="auto">
+      <polygon points="0 0, 8 2, 0 4" fill="var(--svg-error)"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title-text" text-anchor="middle">マイクロサービス認証アーキテクチャ</text>
+
+  <!-- Client Zone -->
+  <g id="client-zone">
+    <rect x="60" y="60" width="150" height="100" class="client-zone" rx="4"/>
+    <text x="135" y="80" class="component-title" text-anchor="middle">クライアント層</text>
+    
+    <!-- Web App -->
+    <rect x="80" y="90" width="50" height="30" fill="var(--svg-bg)" stroke="var(--svg-primary)" stroke-width="1" rx="4"/>
+    <text x="105" y="105" class="annotation-text" text-anchor="middle">Web App</text>
+    <text x="105" y="115" class="annotation-text" text-anchor="middle">React/Vue</text>
+    
+    <!-- Mobile App -->
+    <rect x="140" y="90" width="50" height="30" fill="var(--svg-bg)" stroke="var(--svg-primary)" stroke-width="1" rx="4"/>
+    <text x="165" y="105" class="annotation-text" text-anchor="middle">Mobile</text>
+    <text x="165" y="115" class="annotation-text" text-anchor="middle">iOS/Android</text>
+    
+    <text x="135" y="140" class="annotation-text" text-anchor="middle">• JWT トークン保存</text>
+    <text x="135" y="152" class="annotation-text" text-anchor="middle">• 認証状態管理</text>
+  </g>
+
+  <!-- API Gateway -->
+  <g id="api-gateway">
+    <rect x="250" y="60" width="180" height="100" class="gateway-zone" rx="4"/>
+    <text x="340" y="80" class="component-title" text-anchor="middle">APIゲートウェイ</text>
+    
+    <rect x="270" y="90" width="140" height="60" fill="var(--svg-bg)" stroke="var(--svg-warning)" stroke-width="1" rx="4"/>
+    <text x="340" y="105" class="service-text" text-anchor="middle" font-weight="500">Kong/Nginx/Envoy</text>
+    <text x="280" y="120" class="annotation-text">• JWT検証・デコード</text>
+    <text x="280" y="135" class="annotation-text">• レート制限・CORS</text>
+    <text x="280" y="145" class="annotation-text">• ルーティング・負荷分散</text>
+  </g>
+
+  <!-- Authentication Services -->
+  <g id="auth-services">
+    <rect x="470" y="60" width="270" height="100" class="auth-zone" rx="4"/>
+    <text x="605" y="80" class="component-title" text-anchor="middle">認証・認可サービス</text>
+    
+    <!-- Identity Service -->
+    <rect x="490" y="90" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-success)" stroke-width="1" rx="4"/>
+    <text x="525" y="105" class="annotation-text" text-anchor="middle">ID Service</text>
+    <text x="525" y="115" class="annotation-text" text-anchor="middle">ユーザー管理</text>
+    
+    <!-- OAuth Server -->
+    <rect x="570" y="90" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-success)" stroke-width="1" rx="4"/>
+    <text x="605" y="105" class="annotation-text" text-anchor="middle">OAuth2</text>
+    <text x="605" y="115" class="annotation-text" text-anchor="middle">トークン発行</text>
+    
+    <!-- RBAC Service -->
+    <rect x="650" y="90" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-success)" stroke-width="1" rx="4"/>
+    <text x="685" y="105" class="annotation-text" text-anchor="middle">RBAC</text>
+    <text x="685" y="115" class="annotation-text" text-anchor="middle">権限管理</text>
+    
+    <text x="605" y="140" class="annotation-text" text-anchor="middle">• JWT署名・検証</text>
+    <text x="605" y="152" class="annotation-text" text-anchor="middle">• セッション管理・MFA</text>
+  </g>
+
+  <!-- Business Services -->
+  <g id="business-services">
+    <rect x="80" y="200" width="640" height="120" fill="var(--svg-error)" fill-opacity="0.05" stroke="var(--svg-error)" stroke-width="2" rx="4"/>
+    <text x="400" y="220" class="service-text" text-anchor="middle" font-weight="500">ビジネスサービス群</text>
+    
+    <!-- User Service -->
+    <rect x="100" y="240" width="80" height="60" class="service-zone" rx="4"/>
+    <text x="140" y="260" class="component-title" text-anchor="middle">User Service</text>
+    <text x="110" y="275" class="annotation-text">• プロフィール</text>
+    <text x="110" y="290" class="annotation-text">• 設定管理</text>
+    
+    <!-- Order Service -->
+    <rect x="200" y="240" width="80" height="60" class="service-zone" rx="4"/>
+    <text x="240" y="260" class="component-title" text-anchor="middle">Order Service</text>
+    <text x="210" y="275" class="annotation-text">• 注文処理</text>
+    <text x="210" y="290" class="annotation-text">• 決済連携</text>
+    
+    <!-- Product Service -->
+    <rect x="300" y="240" width="80" height="60" class="service-zone" rx="4"/>
+    <text x="340" y="260" class="component-title" text-anchor="middle">Product Service</text>
+    <text x="310" y="275" class="annotation-text">• 商品管理</text>
+    <text x="310" y="290" class="annotation-text">• カタログAPI</text>
+    
+    <!-- Notification Service -->
+    <rect x="400" y="240" width="80" height="60" class="service-zone" rx="4"/>
+    <text x="440" y="260" class="component-title" text-anchor="middle">Notify Service</text>
+    <text x="410" y="275" class="annotation-text">• メール送信</text>
+    <text x="410" y="290" class="annotation-text">• プッシュ通知</text>
+    
+    <!-- Analytics Service -->
+    <rect x="500" y="240" width="80" height="60" class="service-zone" rx="4"/>
+    <text x="540" y="260" class="component-title" text-anchor="middle">Analytics</text>
+    <text x="510" y="275" class="annotation-text">• ログ集計</text>
+    <text x="510" y="290" class="annotation-text">• メトリクス</text>
+    
+    <!-- Audit Service -->
+    <rect x="600" y="240" width="80" height="60" class="service-zone" rx="4"/>
+    <text x="640" y="260" class="component-title" text-anchor="middle">Audit Service</text>
+    <text x="610" y="275" class="annotation-text">• 監査ログ</text>
+    <text x="610" y="290" class="annotation-text">• コンプライアンス</text>
+  </g>
+
+  <!-- Data Layer -->
+  <g id="data-layer">
+    <rect x="120" y="340" width="560" height="80" class="data-zone" rx="4"/>
+    <text x="400" y="360" class="component-title" text-anchor="middle">データ層</text>
+    
+    <!-- User DB -->
+    <rect x="140" y="370" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-neutral)" stroke-width="1" rx="4"/>
+    <text x="175" y="385" class="annotation-text" text-anchor="middle">User DB</text>
+    <text x="175" y="395" class="annotation-text" text-anchor="middle">PostgreSQL</text>
+    
+    <!-- Session Store -->
+    <rect x="230" y="370" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-neutral)" stroke-width="1" rx="4"/>
+    <text x="265" y="385" class="annotation-text" text-anchor="middle">Session</text>
+    <text x="265" y="395" class="annotation-text" text-anchor="middle">Redis</text>
+    
+    <!-- Business DB -->
+    <rect x="320" y="370" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-neutral)" stroke-width="1" rx="4"/>
+    <text x="355" y="385" class="annotation-text" text-anchor="middle">Business</text>
+    <text x="355" y="395" class="annotation-text" text-anchor="middle">MySQL</text>
+    
+    <!-- Event Store -->
+    <rect x="410" y="370" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-neutral)" stroke-width="1" rx="4"/>
+    <text x="445" y="385" class="annotation-text" text-anchor="middle">Event</text>
+    <text x="445" y="395" class="annotation-text" text-anchor="middle">Kafka</text>
+    
+    <!-- Log Store -->
+    <rect x="500" y="370" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-neutral)" stroke-width="1" rx="4"/>
+    <text x="535" y="385" class="annotation-text" text-anchor="middle">Logs</text>
+    <text x="535" y="395" class="annotation-text" text-anchor="middle">Elasticsearch</text>
+    
+    <!-- Config Store -->
+    <rect x="590" y="370" width="70" height="30" fill="var(--svg-bg)" stroke="var(--svg-neutral)" stroke-width="1" rx="4"/>
+    <text x="625" y="385" class="annotation-text" text-anchor="middle">Config</text>
+    <text x="625" y="395" class="annotation-text" text-anchor="middle">Consul/etcd</text>
+  </g>
+
+  <!-- Authentication Flow -->
+  <path d="M 210 110 L 250 110" class="auth-flow"/>
+  <path d="M 430 110 L 470 110" class="auth-flow"/>
+  
+  <!-- API Flow -->
+  <path d="M 340 160 L 140 240" class="api-flow"/>
+  <path d="M 340 160 L 240 240" class="api-flow"/>
+  <path d="M 340 160 L 340 240" class="api-flow"/>
+  <path d="M 340 160 L 440 240" class="api-flow"/>
+  <path d="M 340 160 L 540 240" class="api-flow"/>
+  <path d="M 340 160 L 640 240" class="api-flow"/>
+
+  <!-- Internal Service Communication -->
+  <path d="M 140 300 L 175 370" class="internal-flow"/>
+  <path d="M 240 300 L 265 370" class="internal-flow"/>
+  <path d="M 340 300 L 355 370" class="internal-flow"/>
+  <path d="M 540 300 L 535 370" class="internal-flow"/>
+
+  <!-- Security Patterns -->
+  <g id="security-patterns">
+    <rect x="100" y="440" width="600" height="80" fill="var(--svg-success)" fill-opacity="0.05" stroke="var(--svg-success)" stroke-width="2" rx="4"/>
+    <text x="400" y="460" class="service-text" text-anchor="middle" font-weight="500">セキュリティパターン</text>
+    
+    <text x="120" y="475" class="annotation-text" font-weight="500">認証:</text>
+    <text x="160" y="475" class="annotation-text">JWT + OAuth 2.0/OIDC</text>
+    
+    <text x="120" y="490" class="annotation-text" font-weight="500">認可:</text>
+    <text x="160" y="490" class="annotation-text">RBAC + ABAC (属性ベース)</text>
+    
+    <text x="120" y="505" class="annotation-text" font-weight="500">通信:</text>
+    <text x="160" y="505" class="annotation-text">mTLS + Service Mesh (Istio)</text>
+    
+    <text x="420" y="475" class="annotation-text" font-weight="500">監査:</text>
+    <text x="460" y="475" class="annotation-text">分散トレーシング + ログ集約</text>
+    
+    <text x="420" y="490" class="annotation-text" font-weight="500">セッション:</text>
+    <text x="480" y="490" class="annotation-text">Stateless JWT + Refresh Token</text>
+    
+    <text x="420" y="505" class="annotation-text" font-weight="500">可用性:</text>
+    <text x="470" y="505" class="annotation-text">Circuit Breaker + Retry</text>
+  </g>
+
+  <!-- Benefits -->
+  <g id="benefits">
+    <rect x="140" y="540" width="520" height="40" fill="var(--svg-primary)" fill-opacity="0.1" stroke="var(--svg-primary)" stroke-width="2" rx="4"/>
+    <text x="400" y="560" class="service-text" text-anchor="middle" font-weight="500">マイクロサービス認証の利点</text>
+    <text x="160" y="575" class="annotation-text">独立デプロイ • 技術スタック自由度 • 障害分離 • チーム自律性 • 水平スケーリング</text>
+  </g>
+</svg>
