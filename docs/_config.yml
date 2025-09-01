@@ -36,3 +36,11 @@ exclude:
   - LICENSE
   - CONTRIBUTING.md
   - src/
+permalink: pretty
+# Use custom book layout as default
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "book"
