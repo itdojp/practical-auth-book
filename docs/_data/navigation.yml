@@ -1,69 +1,99 @@
-# Navigation configuration
 introduction:
-  - title: "はじめに"
-    path: "/introduction/"
-
+- title: 序章
+  path: /introduction/
 chapters:
-  - title: "第1章 認証認可の全体像"
-    path: "/chapters/chapter-01-overview/"
-  - title: "第2章 認証の基礎"
-    path: "/chapters/chapter-02-authentication/"
-  - title: "第3章 認可の基礎"
-    path: "/chapters/chapter-03-authorization/"
-  - title: "第4章 セッション管理"
-    path: "/chapters/chapter-04-session/"
-  - title: "第5章 トークンベース認証"
-    path: "/chapters/chapter-05-token-auth/"
-  - title: "第6章 OAuth 2.0"
-    path: "/chapters/chapter-06-oauth2/"
-  - title: "第7章 OpenID ConnectとSAML"
-    path: "/chapters/chapter-07-oidc-saml/"
-  - title: "第8章 認証システムの設計"
-    path: "/chapters/chapter-08-auth-system-design/"
-  - title: "第9章 マイクロサービスでの認証認可"
-    path: "/chapters/chapter-09-microservices-auth/"
-  - title: "第10章 実装パターンとベストプラクティス"
-    path: "/chapters/chapter-10-implementation-patterns/"
-  - title: "第11章 セキュリティと脅威対策"
-    path: "/chapters/chapter-11-security-threats/"
-  - title: "第12章 パフォーマンスとスケーラビリティ"
-    path: "/chapters/chapter-12-performance/"
-  - title: "第13章 最新動向と将来展望"
-    path: "/chapters/chapter-13-future/"
-
+- title: 第1章：認証認可システム概要
+  path: /chapters/chapter-01-overview/
+- title: 第2章：認証システムの基礎
+  path: /chapters/chapter-02-authentication/
+- title: 第3章：認可システムの基礎
+  path: /chapters/chapter-03-authorization/
+- title: 第4章：セッション管理
+  path: /chapters/chapter-04-session/
+- title: 第5章：トークンベース認証
+  path: /chapters/chapter-05-token-auth/
+- title: 第6章：OAuth 2.0
+  path: /chapters/chapter-06-oauth2/
+- title: 第7章：OpenID Connect & SAML
+  path: /chapters/chapter-07-oidc-saml/
+- title: 第8章：認証システム設計
+  path: /chapters/chapter-08-auth-system-design/
+- title: 第9章：マイクロサービス認証
+  path: /chapters/chapter-09-microservices-auth/
+- title: 第10章：実装パターン
+  path: /chapters/chapter-10-implementation-patterns/
+- title: 第11章：セキュリティ脅威と対策
+  path: /chapters/chapter-11-security-threats/
+- title: 第12章：パフォーマンス最適化
+  path: /chapters/chapter-12-performance/
+- title: 第13章：将来展望と新技術
+  path: /chapters/chapter-13-future/
 appendices:
-  - title: "付録A 主要ライブラリ・フレームワークの比較"
-    path: "/appendices/appendix-a-libraries/"
-  - title: "付録B トラブルシューティングガイド"
-    path: "/appendices/appendix-b-troubleshooting/"
-  - title: "付録C 用語集"
-    path: "/appendices/appendix-c-glossary/"
-  - title: "付録D 参考文献・リソース"
-    path: "/appendices/appendix-d-references/"
-  - title: "第1章 演習問題解答"
-    path: "/appendices/appendix-e-01/"
-  - title: "第2章 演習問題解答"
-    path: "/appendices/appendix-e-02/"
-  - title: "第3章 演習問題解答"
-    path: "/appendices/appendix-e-03/"
-  - title: "第4章 演習問題解答"
-    path: "/appendices/appendix-e-04/"
-  - title: "第5章 演習問題解答"
-    path: "/appendices/appendix-e-05/"
-  - title: "第6章 演習問題解答"
-    path: "/appendices/appendix-e-06/"
-  - title: "第7章 演習問題解答"
-    path: "/appendices/appendix-e-07/"
-  - title: "第8章 演習問題解答"
-    path: "/appendices/appendix-e-08/"
-  - title: "第9章 演習問題解答"
-    path: "/appendices/appendix-e-09/"
-  - title: "第10章 演習問題解答"
-    path: "/appendices/appendix-e-10/"
-  - title: "第11章 演習問題解答"
-    path: "/appendices/appendix-e-11/"
-  - title: "第12章 演習問題解答"
-    path: "/appendices/appendix-e-12/"
-  - title: "第13章 演習問題解答"
-    path: "/appendices/appendix-e-13/"
-
+- title: '付録A: ライブラリとツール'
+  path: /appendices/appendix-a-libraries/
+- title: appendix-a-libraries
+  path: /appendices/appendix-a-libraries/
+- title: '付録B: トラブルシューティング'
+  path: /appendices/appendix-b-troubleshooting/
+- title: appendix-b-troubleshooting
+  path: /appendices/appendix-b-troubleshooting/
+- title: '付録C: 用語集'
+  path: /appendices/appendix-c-glossary/
+- title: appendix-c-glossary
+  path: /appendices/appendix-c-glossary/
+- title: '付録D: 参考資料'
+  path: /appendices/appendix-d-references/
+- title: appendix-d-references
+  path: /appendices/appendix-d-references/
+- title: '付録E-1: 第1章演習問題解答'
+  path: /appendices/appendix-e-01/
+- title: appendix-e-01
+  path: /appendices/appendix-e-01/
+- title: '付録E-2: 第2章演習問題解答'
+  path: /appendices/appendix-e-02/
+- title: appendix-e-02
+  path: /appendices/appendix-e-02/
+- title: '付録E-3: 第3章演習問題解答'
+  path: /appendices/appendix-e-03/
+- title: appendix-e-03
+  path: /appendices/appendix-e-03/
+- title: '付録E-4: 第4章演習問題解答'
+  path: /appendices/appendix-e-04/
+- title: appendix-e-04
+  path: /appendices/appendix-e-04/
+- title: '付録E-5: 第5章演習問題解答'
+  path: /appendices/appendix-e-05/
+- title: appendix-e-05
+  path: /appendices/appendix-e-05/
+- title: '付録E-6: 第6章演習問題解答'
+  path: /appendices/appendix-e-06/
+- title: appendix-e-06
+  path: /appendices/appendix-e-06/
+- title: '付録E-7: 第7章演習問題解答'
+  path: /appendices/appendix-e-07/
+- title: appendix-e-07
+  path: /appendices/appendix-e-07/
+- title: '付録E-8: 第8章演習問題解答'
+  path: /appendices/appendix-e-08/
+- title: appendix-e-08
+  path: /appendices/appendix-e-08/
+- title: '付録E-9: 第9章演習問題解答'
+  path: /appendices/appendix-e-09/
+- title: appendix-e-09
+  path: /appendices/appendix-e-09/
+- title: '付録E-10: 第10章演習問題解答'
+  path: /appendices/appendix-e-10/
+- title: appendix-e-10
+  path: /appendices/appendix-e-10/
+- title: '付録E-11: 第11章演習問題解答'
+  path: /appendices/appendix-e-11/
+- title: appendix-e-11
+  path: /appendices/appendix-e-11/
+- title: '付録E-12: 第12章演習問題解答'
+  path: /appendices/appendix-e-12/
+- title: appendix-e-12
+  path: /appendices/appendix-e-12/
+- title: '付録E-13: 第13章演習問題解答'
+  path: /appendices/appendix-e-13/
+- title: appendix-e-13
+  path: /appendices/appendix-e-13/
