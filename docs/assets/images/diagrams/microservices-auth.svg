@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="700" viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title-text { font-family: 'Noto Sans JP', sans-serif; font-size: 18px; font-weight: bold; fill: #2c3e50; }
+      .section-title { font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: bold; fill: #34495e; }
+      .component-text { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; fill: #2c3e50; }
+      .small-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #7f8c8d; }
+      .client-area { fill: #e6f3ff; stroke: #3498db; stroke-width: 2; stroke-dasharray: 10,5; }
+      .gateway-area { fill: #e6ffe6; stroke: #27ae60; stroke-width: 2; stroke-dasharray: 10,5; }
+      .identity-area { fill: #fff3e6; stroke: #f39c12; stroke-width: 2; stroke-dasharray: 10,5; }
+      .services-area { fill: #f3e6ff; stroke: #9b59b6; stroke-width: 2; stroke-dasharray: 10,5; }
+      .component-box { fill: #fff; stroke: #34495e; stroke-width: 2; }
+      .identity-box { fill: #e6f3ff; stroke: #3498db; stroke-width: 2; }
+      .token-box { fill: #ffe6e6; stroke: #e74c3c; stroke-width: 2; }
+      .filter-box { fill: #e6ffe6; stroke: #27ae60; stroke-width: 2; }
+      .database { fill: #95a5a6; stroke: #7f8c8d; stroke-width: 2; }
+      .solid-arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .dashed-arrow { stroke: #95a5a6; stroke-width: 1; fill: none; stroke-dasharray: 5,3; marker-end: url(#arrowhead-gray); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#34495e"/>
+    </marker>
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#95a5a6"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="30" class="title-text" text-anchor="middle">マイクロサービス認証アーキテクチャ</text>
+
+  <!-- Client Applications Section -->
+  <g id="client-section">
+    <rect x="50" y="60" width="250" height="150" class="client-area" rx="10"/>
+    <text x="175" y="85" class="section-title" text-anchor="middle">クライアントアプリケーション</text>
+    
+    <rect x="70" y="100" width="70" height="40" class="component-box" rx="5"/>
+    <text x="105" y="125" class="component-text" text-anchor="middle">Web App</text>
+    
+    <rect x="150" y="100" width="70" height="40" class="component-box" rx="5"/>
+    <text x="185" y="125" class="component-text" text-anchor="middle">Mobile</text>
+    
+    <rect x="125" y="155" width="70" height="40" class="component-box" rx="5"/>
+    <text x="160" y="180" class="component-text" text-anchor="middle">Desktop</text>
+  </g>
+
+  <!-- API Gateway Section -->
+  <g id="gateway-section">
+    <rect x="50" y="250" width="250" height="150" class="gateway-area" rx="10"/>
+    <text x="175" y="275" class="section-title" text-anchor="middle">API ゲートウェイ</text>
+    
+    <rect x="100" y="300" width="150" height="40" class="component-box" rx="5"/>
+    <text x="175" y="325" class="component-text" text-anchor="middle">API Gateway</text>
+    
+    <rect x="100" y="350" width="150" height="30" class="filter-box" rx="5"/>
+    <text x="175" y="370" class="component-text" text-anchor="middle">認証フィルター</text>
+  </g>
+
+  <!-- Identity Service Section -->
+  <g id="identity-section">
+    <rect x="350" y="250" width="250" height="200" class="identity-area" rx="10"/>
+    <text x="475" y="275" class="section-title" text-anchor="middle">アイデンティティサービス</text>
+    
+    <rect x="400" y="300" width="150" height="40" class="identity-box" rx="5"/>
+    <text x="475" y="325" class="component-text" text-anchor="middle">Identity Provider</text>
+    
+    <rect x="400" y="350" width="150" height="30" class="token-box" rx="5"/>
+    <text x="475" y="370" class="component-text" text-anchor="middle">トークンサービス</text>
+    
+    <ellipse cx="475" cy="420" rx="60" ry="25" class="database"/>
+    <text x="475" y="420" class="component-text" text-anchor="middle">ユーザーDB</text>
+    <text x="475" y="435" class="small-text" text-anchor="middle">(User Database)</text>
+  </g>
+
+  <!-- Microservices Section -->
+  <g id="services-section">
+    <rect x="50" y="490" width="800" height="180" class="services-area" rx="10"/>
+    <text x="450" y="515" class="section-title" text-anchor="middle">マイクロサービス</text>
+    
+    <rect x="100" y="540" width="150" height="50" class="component-box" rx="5"/>
+    <text x="175" y="560" class="component-text" text-anchor="middle">ユーザーサービス</text>
+    <text x="175" y="575" class="small-text" text-anchor="middle">User Service</text>
+    
+    <rect x="280" y="540" width="150" height="50" class="component-box" rx="5"/>
+    <text x="355" y="560" class="component-text" text-anchor="middle">注文サービス</text>
+    <text x="355" y="575" class="small-text" text-anchor="middle">Order Service</text>
+    
+    <rect x="460" y="540" width="150" height="50" class="component-box" rx="5"/>
+    <text x="535" y="560" class="component-text" text-anchor="middle">決済サービス</text>
+    <text x="535" y="575" class="small-text" text-anchor="middle">Payment Service</text>
+    
+    <rect x="640" y="540" width="150" height="50" class="component-box" rx="5"/>
+    <text x="715" y="560" class="component-text" text-anchor="middle">在庫サービス</text>
+    <text x="715" y="575" class="small-text" text-anchor="middle">Inventory Service</text>
+  </g>
+
+  <!-- Connections -->
+  <g id="connections">
+    <!-- Clients to Gateway -->
+    <path d="M 105 140 L 175 300" class="solid-arrow"/>
+    <path d="M 185 140 L 175 300" class="solid-arrow"/>
+    <path d="M 160 195 L 175 300" class="solid-arrow"/>
+    
+    <!-- Gateway to Identity -->
+    <path d="M 250 365 L 400 325" class="solid-arrow"/>
+    <path d="M 400 365 L 250 380" class="solid-arrow"/>
+    
+    <!-- Identity internal -->
+    <path d="M 475 340 L 475 350" class="solid-arrow"/>
+    <path d="M 475 380 L 475 395" class="solid-arrow"/>
+    
+    <!-- Gateway to Services -->
+    <path d="M 175 400 L 175 540" class="solid-arrow"/>
+    <path d="M 200 400 L 355 540" class="solid-arrow"/>
+    <path d="M 225 400 L 535 540" class="solid-arrow"/>
+    <path d="M 250 400 L 715 540" class="solid-arrow"/>
+    
+    <!-- Services to Token Service (verification) -->
+    <path d="M 175 590 Q 175 470 400 365" class="dashed-arrow"/>
+    <text x="280" y="480" class="small-text">検証</text>
+    
+    <path d="M 355 590 Q 355 470 450 380" class="dashed-arrow"/>
+    <text x="380" y="480" class="small-text">検証</text>
+    
+    <path d="M 535 590 Q 535 470 500 380" class="dashed-arrow"/>
+    <text x="520" y="480" class="small-text">検証</text>
+    
+    <path d="M 715 590 Q 715 470 550 365" class="dashed-arrow"/>
+    <text x="630" y="480" class="small-text">検証</text>
+  </g>
+</svg>
