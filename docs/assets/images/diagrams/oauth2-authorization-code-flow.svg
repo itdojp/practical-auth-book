@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <title>OAuth 2.0 認可コードフロー完全シーケンス</title>
+  <desc>クライアント、認可サーバー、リソースサーバー間のリダイレクトを含む完全なOAuth 2.0認可コードフローのシーケンス図</desc>
+  <defs>
+    <style>
+      :root {
+        --svg-bg: #ffffff;
+        --svg-text: #1a1a1a;
+        --svg-primary: #0066cc;
+        --svg-success: #16a34a;
+        --svg-warning: #ca8a04;
+        --svg-error: #dc2626;
+        --svg-neutral: #6b7280;
+      }
+      .title-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; fill: var(--svg-text); }
+      .actor-title { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 500; fill: var(--svg-text); }
+      .step-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 400; fill: var(--svg-text); }
+      .annotation-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 9px; font-weight: 400; fill: var(--svg-neutral); }
+      .user-actor { fill: var(--svg-primary); stroke: var(--svg-primary); stroke-width: 2; }
+      .client-actor { fill: var(--svg-success); stroke: var(--svg-success); stroke-width: 2; }
+      .auth-server-actor { fill: var(--svg-warning); stroke: var(--svg-warning); stroke-width: 2; }
+      .resource-server-actor { fill: var(--svg-error); stroke: var(--svg-error); stroke-width: 2; }
+      .sequence-line { stroke: var(--svg-neutral); stroke-width: 2; stroke-dasharray: 3,3; fill: none; }
+      .message-arrow { stroke: var(--svg-primary); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .redirect-arrow { stroke: var(--svg-warning); stroke-width: 2; fill: none; marker-end: url(#arrowhead-warning); stroke-dasharray: 5,3; }
+      .secure-arrow { stroke: var(--svg-success); stroke-width: 2; fill: none; marker-end: url(#arrowhead-success); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-primary)"/>
+    </marker>
+    <marker id="arrowhead-warning" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-warning)"/>
+    </marker>
+    <marker id="arrowhead-success" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-success)"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title-text" text-anchor="middle">OAuth 2.0 認可コードフロー完全シーケンス</text>
+
+  <!-- Actors -->
+  <g id="actors">
+    <!-- User -->
+    <rect x="60" y="60" width="100" height="40" class="user-actor" rx="4"/>
+    <text x="110" y="75" class="actor-title" text-anchor="middle" fill="white">ユーザー</text>
+    <text x="110" y="90" class="annotation-text" text-anchor="middle" fill="white">ブラウザ</text>
+    
+    <!-- Client -->
+    <rect x="200" y="60" width="100" height="40" class="client-actor" rx="4"/>
+    <text x="250" y="75" class="actor-title" text-anchor="middle" fill="white">クライアント</text>
+    <text x="250" y="90" class="annotation-text" text-anchor="middle" fill="white">Webアプリ</text>
+    
+    <!-- Authorization Server -->
+    <rect x="340" y="60" width="120" height="40" class="auth-server-actor" rx="4"/>
+    <text x="400" y="75" class="actor-title" text-anchor="middle" fill="white">認可サーバー</text>
+    <text x="400" y="90" class="annotation-text" text-anchor="middle" fill="white">OAuth Provider</text>
+    
+    <!-- Resource Server -->
+    <rect x="500" y="60" width="120" height="40" class="resource-server-actor" rx="4"/>
+    <text x="560" y="75" class="actor-title" text-anchor="middle" fill="white">リソースサーバー</text>
+    <text x="560" y="90" class="annotation-text" text-anchor="middle" fill="white">API Server</text>
+  </g>
+
+  <!-- Lifelines -->
+  <line x1="110" y1="100" x2="110" y2="520" class="sequence-line"/>
+  <line x1="250" y1="100" x2="250" y2="520" class="sequence-line"/>
+  <line x1="400" y1="100" x2="400" y2="520" class="sequence-line"/>
+  <line x1="560" y1="100" x2="560" y2="520" class="sequence-line"/>
+
+  <!-- Sequence Steps -->
+  <g id="sequence-steps">
+    <!-- Step 1: User Access -->
+    <path d="M 110 130 L 240 130" class="message-arrow"/>
+    <text x="175" y="125" class="step-text" text-anchor="middle">1. リソースアクセス要求</text>
+    <text x="175" y="138" class="annotation-text" text-anchor="middle">GET /protected-resource</text>
+    
+    <!-- Step 2: Redirect to Authorization Server -->
+    <path d="M 250 150 L 110 150" class="redirect-arrow"/>
+    <text x="180" y="145" class="step-text" text-anchor="middle">2. 認可サーバーへリダイレクト</text>
+    <text x="180" y="158" class="annotation-text" text-anchor="middle">Location: /authorize?client_id=...&amp;redirect_uri=...&amp;scope=...</text>
+    
+    <!-- Step 3: User to Authorization Server -->
+    <path d="M 110 170 L 390 170" class="redirect-arrow"/>
+    <text x="250" y="165" class="step-text" text-anchor="middle">3. 認証・認可画面表示</text>
+    <text x="250" y="178" class="annotation-text" text-anchor="middle">GET /authorize (ログイン画面)</text>
+    
+    <!-- Step 4: User Authentication -->
+    <rect x="350" y="190" width="100" height="30" fill="var(--svg-warning)" fill-opacity="0.1" stroke="var(--svg-warning)" stroke-width="1" rx="4"/>
+    <text x="400" y="205" class="step-text" text-anchor="middle">4. ユーザー認証</text>
+    <text x="400" y="215" class="annotation-text" text-anchor="middle">ID/PWD, MFA等</text>
+    
+    <!-- Step 5: Authorization Grant -->
+    <path d="M 400 230 L 120 230" class="redirect-arrow"/>
+    <text x="260" y="225" class="step-text" text-anchor="middle">5. 認可コード発行 (リダイレクト)</text>
+    <text x="260" y="238" class="annotation-text" text-anchor="middle">Location: callback?code=AUTH_CODE&amp;state=...</text>
+    
+    <!-- Step 6: Authorization Code to Client -->
+    <path d="M 110 250 L 240 250" class="message-arrow"/>
+    <text x="175" y="245" class="step-text" text-anchor="middle">6. コールバック</text>
+    <text x="175" y="258" class="annotation-text" text-anchor="middle">GET /callback?code=...</text>
+    
+    <!-- Step 7: Token Request -->
+    <path d="M 250 280 L 390 280" class="secure-arrow"/>
+    <text x="320" y="275" class="step-text" text-anchor="middle">7. アクセストークン要求</text>
+    <text x="320" y="288" class="annotation-text" text-anchor="middle">POST /token (code, client_secret)</text>
+    
+    <!-- Step 8: Token Response -->
+    <path d="M 400 300 L 260 300" class="secure-arrow"/>
+    <text x="330" y="295" class="step-text" text-anchor="middle">8. トークン応答</text>
+    <text x="330" y="308" class="annotation-text" text-anchor="middle">access_token, refresh_token, id_token</text>
+    
+    <!-- Step 9: Protected Resource Request -->
+    <path d="M 250 330 L 550 330" class="secure-arrow"/>
+    <text x="400" y="325" class="step-text" text-anchor="middle">9. 保護リソース要求</text>
+    <text x="400" y="338" class="annotation-text" text-anchor="middle">GET /api/data (Authorization: Bearer token)</text>
+    
+    <!-- Step 10: Token Validation -->
+    <rect x="510" y="350" width="100" height="30" fill="var(--svg-error)" fill-opacity="0.1" stroke="var(--svg-error)" stroke-width="1" rx="4"/>
+    <text x="560" y="365" class="step-text" text-anchor="middle">10. トークン検証</text>
+    <text x="560" y="375" class="annotation-text" text-anchor="middle">JWT署名検証等</text>
+    
+    <!-- Step 11: Resource Response -->
+    <path d="M 560 390 L 260 390" class="secure-arrow"/>
+    <text x="410" y="385" class="step-text" text-anchor="middle">11. リソース応答</text>
+    <text x="410" y="398" class="annotation-text" text-anchor="middle">JSON データ</text>
+    
+    <!-- Step 12: Final Response to User -->
+    <path d="M 250 410 L 120 410" class="message-arrow"/>
+    <text x="185" y="405" class="step-text" text-anchor="middle">12. ユーザーへ応答</text>
+    <text x="185" y="418" class="annotation-text" text-anchor="middle">HTML/JSON レスポンス</text>
+  </g>
+
+  <!-- Security Notes -->
+  <g id="security-notes">
+    <rect x="80" y="440" width="640" height="60" fill="var(--svg-success)" fill-opacity="0.05" stroke="var(--svg-success)" stroke-width="2" rx="4"/>
+    <text x="400" y="460" class="actor-title" text-anchor="middle">セキュリティポイント</text>
+    <text x="100" y="475" class="annotation-text">• 認可コードは短期間有効（10分以内推奨）</text>
+    <text x="100" y="490" class="annotation-text">• state パラメータでCSRF攻撃防止</text>
+    <text x="400" y="475" class="annotation-text">• HTTPS必須（認可コード・トークン保護）</text>
+    <text x="400" y="490" class="annotation-text">• PKCE (Proof Key for Code Exchange) 推奨</text>
+  </g>
+
+  <!-- Flow Summary -->
+  <g id="flow-summary">
+    <rect x="100" y="520" width="600" height="40" fill="var(--svg-primary)" fill-opacity="0.1" stroke="var(--svg-primary)" stroke-width="2" rx="4"/>
+    <text x="400" y="535" class="actor-title" text-anchor="middle">フロー概要</text>
+    <text x="400" y="550" class="annotation-text" text-anchor="middle">認可コード → アクセストークン → リソースアクセス (最も安全なOAuth 2.0フロー)</text>
+  </g>
+</svg>

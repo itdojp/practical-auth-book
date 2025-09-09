@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <title>認証システム セキュリティ脅威と攻撃ベクトル</title>
+  <desc>CSRF、XSS、セッションハイジャックなど認証システムに対する一般的な攻撃の視覚的表現と対策</desc>
+  <defs>
+    <style>
+      :root {
+        --svg-bg: #ffffff;
+        --svg-text: #1a1a1a;
+        --svg-primary: #0066cc;
+        --svg-success: #16a34a;
+        --svg-warning: #ca8a04;
+        --svg-error: #dc2626;
+        --svg-neutral: #6b7280;
+      }
+      .title-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; fill: var(--svg-text); }
+      .threat-title { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 500; fill: var(--svg-bg); }
+      .attack-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 400; fill: var(--svg-text); }
+      .annotation-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 400; fill: var(--svg-neutral); }
+      .attack-box { fill: var(--svg-error); stroke: var(--svg-error); stroke-width: 2; }
+      .target-box { fill: var(--svg-warning); stroke: var(--svg-warning); stroke-width: 2; }
+      .defense-box { fill: var(--svg-success); stroke: var(--svg-success); stroke-width: 2; }
+      .victim-box { fill: var(--svg-primary); stroke: var(--svg-primary); stroke-width: 2; }
+      .attack-flow { stroke: var(--svg-error); stroke-width: 2; fill: none; marker-end: url(#arrowhead-red); }
+      .defense-flow { stroke: var(--svg-success); stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+    </style>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-error)"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-success)"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title-text" text-anchor="middle">認証システム セキュリティ脅威と攻撃ベクトル</text>
+
+  <!-- CSRF Attack -->
+  <g id="csrf-attack">
+    <rect x="60" y="60" width="320" height="140" fill="var(--svg-error)" fill-opacity="0.05" stroke="var(--svg-error)" stroke-width="2" rx="4"/>
+    <text x="220" y="80" class="attack-text" text-anchor="middle" font-weight="500">CSRF (Cross-Site Request Forgery)</text>
+    
+    <!-- Attacker -->
+    <rect x="80" y="90" width="80" height="40" class="attack-box" rx="4"/>
+    <text x="120" y="105" class="threat-title" text-anchor="middle">攻撃者</text>
+    <text x="120" y="120" class="annotation-text" text-anchor="middle">悪意サイト</text>
+    
+    <!-- Victim -->
+    <rect x="180" y="90" width="80" height="40" class="victim-box" rx="4"/>
+    <text x="220" y="105" class="threat-title" text-anchor="middle">被害者</text>
+    <text x="220" y="120" class="annotation-text" text-anchor="middle">ユーザー</text>
+    
+    <!-- Target -->
+    <rect x="280" y="90" width="80" height="40" class="target-box" rx="4"/>
+    <text x="320" y="105" class="threat-title" text-anchor="middle">標的</text>
+    <text x="320" y="120" class="annotation-text" text-anchor="middle">正規サイト</text>
+    
+    <!-- Attack Flow -->
+    <text x="220" y="150" class="annotation-text" text-anchor="middle">1. 被害者が正規サイトにログイン状態</text>
+    <text x="220" y="165" class="annotation-text" text-anchor="middle">2. 攻撃者が悪意のリンク/フォームを送信</text>
+    <text x="220" y="180" class="annotation-text" text-anchor="middle">3. 被害者のブラウザが認証済みリクエスト実行</text>
+    
+    <!-- Arrows -->
+    <path d="M 160 110 L 180 110" class="attack-flow"/>
+    <path d="M 260 110 L 280 110" class="attack-flow"/>
+  </g>
+
+  <!-- XSS Attack -->
+  <g id="xss-attack">
+    <rect x="420" y="60" width="320" height="140" fill="var(--svg-error)" fill-opacity="0.05" stroke="var(--svg-error)" stroke-width="2" rx="4"/>
+    <text x="580" y="80" class="attack-text" text-anchor="middle" font-weight="500">XSS (Cross-Site Scripting)</text>
+    
+    <!-- Stored XSS -->
+    <rect x="440" y="90" width="90" height="40" class="attack-box" rx="4"/>
+    <text x="485" y="105" class="threat-title" text-anchor="middle">格納型XSS</text>
+    <text x="485" y="120" class="annotation-text" text-anchor="middle">DB保存</text>
+    
+    <!-- Reflected XSS -->
+    <rect x="550" y="90" width="90" height="40" class="attack-box" rx="4"/>
+    <text x="595" y="105" class="threat-title" text-anchor="middle">反射型XSS</text>
+    <text x="595" y="120" class="annotation-text" text-anchor="middle">URL埋込</text>
+    
+    <!-- DOM XSS -->
+    <rect x="660" y="90" width="90" height="40" class="attack-box" rx="4"/>
+    <text x="705" y="105" class="threat-title" text-anchor="middle">DOM型XSS</text>
+    <text x="705" y="120" class="annotation-text" text-anchor="middle">JS実行</text>
+    
+    <!-- Impact -->
+    <text x="580" y="150" class="annotation-text" text-anchor="middle">影響: セッション窃取、画面改竄、キーロガー</text>
+    <text x="580" y="165" class="annotation-text" text-anchor="middle">対策: 入力検証、出力エスケープ、CSP</text>
+    <text x="580" y="180" class="annotation-text" text-anchor="middle">HTTPOnly Cookie、SameSite属性</text>
+  </g>
+
+  <!-- Session Hijacking -->
+  <g id="session-hijacking">
+    <rect x="60" y="220" width="320" height="120" fill="var(--svg-error)" fill-opacity="0.05" stroke="var(--svg-error)" stroke-width="2" rx="4"/>
+    <text x="220" y="240" class="attack-text" text-anchor="middle" font-weight="500">セッションハイジャック</text>
+    
+    <!-- Session Fixation -->
+    <rect x="80" y="250" width="90" height="35" class="attack-box" rx="4"/>
+    <text x="125" y="265" class="threat-title" text-anchor="middle">固定化攻撃</text>
+    <text x="125" y="278" class="annotation-text" text-anchor="middle">Session ID</text>
+    
+    <!-- Session Sidejacking -->
+    <rect x="190" y="250" width="90" height="35" class="attack-box" rx="4"/>
+    <text x="235" y="265" class="threat-title" text-anchor="middle">盗聴攻撃</text>
+    <text x="235" y="278" class="annotation-text" text-anchor="middle">HTTP通信</text>
+    
+    <!-- Brute Force -->
+    <rect x="300" y="250" width="90" height="35" class="attack-box" rx="4"/>
+    <text x="345" y="265" class="threat-title" text-anchor="middle">総当たり</text>
+    <text x="345" y="278" class="annotation-text" text-anchor="middle">Session ID</text>
+    
+    <text x="220" y="305" class="annotation-text" text-anchor="middle">対策: HTTPS必須、セッション再生成</text>
+    <text x="220" y="320" class="annotation-text" text-anchor="middle">タイムアウト設定、IPアドレス固定</text>
+  </g>
+
+  <!-- Password Attacks -->
+  <g id="password-attacks">
+    <rect x="420" y="220" width="320" height="120" fill="var(--svg-error)" fill-opacity="0.05" stroke="var(--svg-error)" stroke-width="2" rx="4"/>
+    <text x="580" y="240" class="attack-text" text-anchor="middle" font-weight="500">パスワード攻撃</text>
+    
+    <!-- Brute Force -->
+    <rect x="440" y="250" width="70" height="35" class="attack-box" rx="4"/>
+    <text x="475" y="268" class="threat-title" text-anchor="middle">総当たり</text>
+    
+    <!-- Dictionary -->
+    <rect x="520" y="250" width="70" height="35" class="attack-box" rx="4"/>
+    <text x="555" y="268" class="threat-title" text-anchor="middle">辞書攻撃</text>
+    
+    <!-- Credential Stuffing -->
+    <rect x="600" y="250" width="70" height="35" class="attack-box" rx="4"/>
+    <text x="635" y="268" class="threat-title" text-anchor="middle">認証情報</text>
+    <text x="635" y="278" class="annotation-text" text-anchor="middle">使い回し</text>
+    
+    <!-- Rainbow Table -->
+    <rect x="680" y="250" width="70" height="35" class="attack-box" rx="4"/>
+    <text x="715" y="268" class="threat-title" text-anchor="middle">レインボー</text>
+    <text x="715" y="278" class="annotation-text" text-anchor="middle">テーブル</text>
+    
+    <text x="580" y="305" class="annotation-text" text-anchor="middle">対策: 強いパスワード、MFA、レート制限</text>
+    <text x="580" y="320" class="annotation-text" text-anchor="middle">ソルト付きハッシュ、アカウントロック</text>
+  </g>
+
+  <!-- Defense Strategies -->
+  <g id="defense-strategies">
+    <rect x="80" y="360" width="640" height="120" fill="var(--svg-success)" fill-opacity="0.05" stroke="var(--svg-success)" stroke-width="2" rx="4"/>
+    <text x="400" y="380" class="attack-text" text-anchor="middle" font-weight="500">多層防御戦略</text>
+    
+    <!-- Authentication Layer -->
+    <rect x="100" y="390" width="110" height="40" class="defense-box" rx="4"/>
+    <text x="155" y="405" class="threat-title" text-anchor="middle">認証層</text>
+    <text x="110" y="420" class="annotation-text">• MFA必須</text>
+    <text x="110" y="430" class="annotation-text">• 強固認証</text>
+    
+    <!-- Session Management -->
+    <rect x="230" y="390" width="110" height="40" class="defense-box" rx="4"/>
+    <text x="285" y="405" class="threat-title" text-anchor="middle">セッション管理</text>
+    <text x="240" y="420" class="annotation-text">• JWT + Refresh</text>
+    <text x="240" y="430" class="annotation-text">• 適切有効期限</text>
+    
+    <!-- Input Validation -->
+    <rect x="360" y="390" width="110" height="40" class="defense-box" rx="4"/>
+    <text x="415" y="405" class="threat-title" text-anchor="middle">入力検証</text>
+    <text x="370" y="420" class="annotation-text">• 厳格検証</text>
+    <text x="370" y="430" class="annotation-text">• サニタイズ</text>
+    
+    <!-- Network Security -->
+    <rect x="490" y="390" width="110" height="40" class="defense-box" rx="4"/>
+    <text x="545" y="405" class="threat-title" text-anchor="middle">ネットワーク</text>
+    <text x="500" y="420" class="annotation-text">• HTTPS必須</text>
+    <text x="500" y="430" class="annotation-text">• WAF設置</text>
+    
+    <!-- Monitoring -->
+    <rect x="620" y="390" width="110" height="40" class="defense-box" rx="4"/>
+    <text x="675" y="405" class="threat-title" text-anchor="middle">監視・分析</text>
+    <text x="630" y="420" class="annotation-text">• 異常検知</text>
+    <text x="630" y="430" class="annotation-text">• インシデント</text>
+    
+    <text x="400" y="455" class="annotation-text" text-anchor="middle">継続的セキュリティ評価とペネトレーションテスト</text>
+  </g>
+
+  <!-- Risk Matrix -->
+  <g id="risk-matrix">
+    <rect x="100" y="500" width="600" height="80" fill="var(--svg-warning)" fill-opacity="0.05" stroke="var(--svg-warning)" stroke-width="2" rx="4"/>
+    <text x="400" y="520" class="attack-text" text-anchor="middle" font-weight="500">リスク評価マトリックス</text>
+    
+    <text x="120" y="535" class="annotation-text" font-weight="500">高リスク:</text>
+    <text x="180" y="535" class="annotation-text">XSS、SQL Injection、認証バイパス</text>
+    
+    <text x="120" y="550" class="annotation-text" font-weight="500">中リスク:</text>
+    <text x="180" y="550" class="annotation-text">CSRF、セッションハイジャック、総当たり攻撃</text>
+    
+    <text x="120" y="565" class="annotation-text" font-weight="500">低リスク:</text>
+    <text x="180" y="565" class="annotation-text">情報漏洩、権限昇格、サービス妨害</text>
+    
+    <text x="450" y="535" class="annotation-text" font-weight="500">対策優先度:</text>
+    <text x="530" y="535" class="annotation-text">高→中→低</text>
+    
+    <text x="450" y="550" class="annotation-text" font-weight="500">評価基準:</text>
+    <text x="510" y="550" class="annotation-text">影響度×発生確率</text>
+    
+    <text x="450" y="565" class="annotation-text" font-weight="500">レビュー頻度:</text>
+    <text x="530" y="565" class="annotation-text">四半期毎</text>
+  </g>
+</svg>

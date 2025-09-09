@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <title>多要素認証 (MFA) フロー</title>
+  <desc>SMS、TOTP、ハードウェアトークンを含む多要素認証プロセスのステップバイステップ図</desc>
+  <defs>
+    <style>
+      :root {
+        --svg-bg: #ffffff;
+        --svg-text: #1a1a1a;
+        --svg-primary: #0066cc;
+        --svg-success: #16a34a;
+        --svg-warning: #ca8a04;
+        --svg-error: #dc2626;
+        --svg-neutral: #6b7280;
+      }
+      .title-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; fill: var(--svg-text); }
+      .step-title { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 500; fill: var(--svg-bg); }
+      .factor-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 400; fill: var(--svg-text); }
+      .annotation-text { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 400; fill: var(--svg-neutral); }
+      .factor1-box { fill: var(--svg-primary); stroke: var(--svg-primary); stroke-width: 2; }
+      .factor2-box { fill: var(--svg-warning); stroke: var(--svg-warning); stroke-width: 2; }
+      .factor3-box { fill: var(--svg-success); stroke: var(--svg-success); stroke-width: 2; }
+      .verification-box { fill: var(--svg-error); stroke: var(--svg-error); stroke-width: 2; }
+      .mfa-flow { stroke: var(--svg-primary); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .decision-diamond { fill: var(--svg-warning); stroke: var(--svg-warning); stroke-width: 2; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="var(--svg-primary)"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title-text" text-anchor="middle">多要素認証 (MFA) フロー</text>
+
+  <!-- Step 1: Primary Authentication -->
+  <g id="primary-auth">
+    <rect x="50" y="60" width="140" height="80" class="factor1-box" rx="4"/>
+    <text x="120" y="80" class="step-title" text-anchor="middle">第1要素</text>
+    <text x="120" y="95" class="step-title" text-anchor="middle">知識要素</text>
+    <rect x="70" y="105" width="100" height="25" fill="var(--svg-bg)" stroke="var(--svg-primary)" stroke-width="1" rx="4"/>
+    <text x="120" y="120" class="factor-text" text-anchor="middle">パスワード認証</text>
+  </g>
+
+  <!-- Decision Point -->
+  <g id="decision-point">
+    <polygon points="250,100 300,80 350,100 300,120" class="decision-diamond"/>
+    <text x="300" y="95" class="factor-text" text-anchor="middle" fill="white">1要素</text>
+    <text x="300" y="108" class="factor-text" text-anchor="middle" fill="white">成功？</text>
+  </g>
+
+  <!-- MFA Options -->
+  <g id="mfa-options">
+    <rect x="400" y="50" width="350" height="100" fill="var(--svg-neutral)" fill-opacity="0.05" stroke="var(--svg-text)" stroke-width="2" rx="4"/>
+    <text x="575" y="70" class="factor-text" text-anchor="middle" font-weight="500">第2要素選択 (所有要素・生体要素)</text>
+    
+    <!-- SMS Option -->
+    <rect x="420" y="80" width="90" height="60" class="factor2-box" rx="4"/>
+    <text x="465" y="100" class="step-title" text-anchor="middle">SMS</text>
+    <text x="430" y="115" class="annotation-text">• 携帯電話</text>
+    <text x="430" y="130" class="annotation-text">• 6桁コード</text>
+    
+    <!-- TOTP Option -->
+    <rect x="530" y="80" width="90" height="60" class="factor2-box" rx="4"/>
+    <text x="575" y="100" class="step-title" text-anchor="middle">TOTP</text>
+    <text x="540" y="115" class="annotation-text">• アプリ認証</text>
+    <text x="540" y="130" class="annotation-text">• 時間ベース</text>
+    
+    <!-- Hardware Token -->
+    <rect x="640" y="80" width="90" height="60" class="factor3-box" rx="4"/>
+    <text x="685" y="100" class="step-title" text-anchor="middle">ハード</text>
+    <text x="685" y="113" class="step-title" text-anchor="middle">トークン</text>
+    <text x="650" y="130" class="annotation-text">• FIDO2/WebAuthn</text>
+  </g>
+
+  <!-- SMS Flow -->
+  <g id="sms-flow">
+    <rect x="80" y="180" width="200" height="120" fill="var(--svg-warning)" fill-opacity="0.05" stroke="var(--svg-warning)" stroke-width="2" rx="4"/>
+    <text x="180" y="200" class="factor-text" text-anchor="middle" font-weight="500">SMS認証フロー</text>
+    
+    <rect x="100" y="210" width="160" height="80" fill="var(--svg-bg)" stroke="var(--svg-warning)" stroke-width="1" rx="4"/>
+    <text x="180" y="230" class="factor-text" text-anchor="middle" font-weight="500">処理ステップ</text>
+    <text x="110" y="245" class="annotation-text">1. 登録済み電話番号に送信</text>
+    <text x="110" y="260" class="annotation-text">2. 6桁の認証コード生成</text>
+    <text x="110" y="275" class="annotation-text">3. 5分間の有効期限設定</text>
+    <text x="110" y="285" class="annotation-text">4. ユーザーがコード入力</text>
+  </g>
+
+  <!-- TOTP Flow -->
+  <g id="totp-flow">
+    <rect x="300" y="180" width="200" height="120" fill="var(--svg-primary)" fill-opacity="0.05" stroke="var(--svg-primary)" stroke-width="2" rx="4"/>
+    <text x="400" y="200" class="factor-text" text-anchor="middle" font-weight="500">TOTP認証フロー</text>
+    
+    <rect x="320" y="210" width="160" height="80" fill="var(--svg-bg)" stroke="var(--svg-primary)" stroke-width="1" rx="4"/>
+    <text x="400" y="230" class="factor-text" text-anchor="middle" font-weight="500">処理ステップ</text>
+    <text x="330" y="245" class="annotation-text">1. 共有シークレット使用</text>
+    <text x="330" y="260" class="annotation-text">2. 現在時刻ベースでコード生成</text>
+    <text x="330" y="275" class="annotation-text">3. 30秒間隔で更新</text>
+    <text x="330" y="285" class="annotation-text">4. Google Auth等で表示</text>
+  </g>
+
+  <!-- Hardware Token Flow -->
+  <g id="hardware-flow">
+    <rect x="520" y="180" width="200" height="120" fill="var(--svg-success)" fill-opacity="0.05" stroke="var(--svg-success)" stroke-width="2" rx="4"/>
+    <text x="620" y="200" class="factor-text" text-anchor="middle" font-weight="500">ハードウェア認証</text>
+    
+    <rect x="540" y="210" width="160" height="80" fill="var(--svg-bg)" stroke="var(--svg-success)" stroke-width="1" rx="4"/>
+    <text x="620" y="230" class="factor-text" text-anchor="middle" font-weight="500">処理ステップ</text>
+    <text x="550" y="245" class="annotation-text">1. デバイス接続確認</text>
+    <text x="550" y="260" class="annotation-text">2. チャレンジ/レスポンス</text>
+    <text x="550" y="275" class="annotation-text">3. 公開鍵暗号化</text>
+    <text x="550" y="285" class="annotation-text">4. 生体認証組み合わせ</text>
+  </g>
+
+  <!-- Verification Process -->
+  <g id="verification">
+    <rect x="250" y="320" width="300" height="80" class="verification-box" rx="4"/>
+    <text x="400" y="340" class="step-title" text-anchor="middle">第2要素検証</text>
+    
+    <rect x="270" y="350" width="260" height="40" fill="var(--svg-bg)" stroke="var(--svg-error)" stroke-width="1" rx="4"/>
+    <text x="400" y="365" class="factor-text" text-anchor="middle" font-weight="500">統合検証処理</text>
+    <text x="280" y="380" class="annotation-text">• タイムアウト管理 • 試行回数制限 • セッション管理</text>
+  </g>
+
+  <!-- Success/Failure Paths -->
+  <g id="result-paths">
+    <!-- Success -->
+    <rect x="80" y="430" width="140" height="60" fill="var(--svg-success)" fill-opacity="0.1" stroke="var(--svg-success)" stroke-width="2" rx="4"/>
+    <text x="150" y="450" class="factor-text" text-anchor="middle" font-weight="500">認証成功</text>
+    <text x="90" y="465" class="annotation-text">• セッション確立</text>
+    <text x="90" y="480" class="annotation-text">• リソースアクセス許可</text>
+    
+    <!-- Failure -->
+    <rect x="580" y="430" width="140" height="60" fill="var(--svg-error)" fill-opacity="0.1" stroke="var(--svg-error)" stroke-width="2" rx="4"/>
+    <text x="650" y="450" class="factor-text" text-anchor="middle" font-weight="500">認証失敗</text>
+    <text x="590" y="465" class="annotation-text">• アカウントロック</text>
+    <text x="590" y="480" class="annotation-text">• セキュリティログ</text>
+  </g>
+
+  <!-- Flow Arrows -->
+  <path d="M 190 100 L 250 100" class="mfa-flow"/>
+  <path d="M 350 100 L 400 100" class="mfa-flow"/>
+  
+  <!-- MFA Option Arrows -->
+  <path d="M 465 150 L 180 180" class="mfa-flow"/>
+  <path d="M 575 150 L 400 180" class="mfa-flow"/>
+  <path d="M 685 150 L 620 180" class="mfa-flow"/>
+  
+  <!-- Verification Arrows -->
+  <path d="M 180 300 L 300 320" class="mfa-flow"/>
+  <path d="M 400 300 L 400 320" class="mfa-flow"/>
+  <path d="M 620 300 L 500 320" class="mfa-flow"/>
+  
+  <!-- Result Arrows -->
+  <path d="M 350 360 L 150 430" class="mfa-flow"/>
+  <path d="M 450 360 L 650 430" class="mfa-flow"/>
+
+  <!-- Security Benefits -->
+  <g id="security-benefits">
+    <rect x="100" y="510" width="600" height="60" fill="var(--svg-primary)" fill-opacity="0.05" stroke="var(--svg-primary)" stroke-width="2" rx="4"/>
+    <text x="400" y="530" class="factor-text" text-anchor="middle" font-weight="500">MFAセキュリティ利点</text>
+    <text x="120" y="545" class="annotation-text">• パスワード単体攻撃の無効化</text>
+    <text x="120" y="560" class="annotation-text">• フィッシング攻撃耐性の向上</text>
+    <text x="400" y="545" class="annotation-text">• アカウント乗っ取りリスク大幅削減</text>
+    <text x="400" y="560" class="annotation-text">• コンプライアンス要件満足</text>
+  </g>
+
+  <!-- Decision Labels -->
+  <text x="320" y="65" class="annotation-text" fill="var(--svg-success)">Yes</text>
+  <text x="320" y="135" class="annotation-text" fill="var(--svg-error)">No → 認証失敗</text>
+</svg>
