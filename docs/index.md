@@ -72,3 +72,4 @@ Email: [knowledge@itdo.jp](mailto:knowledge@itdo.jp)
 ---
 
 © 2025 株式会社アイティードゥ (ITDO Inc.)
+{% include page-navigation.html %}
