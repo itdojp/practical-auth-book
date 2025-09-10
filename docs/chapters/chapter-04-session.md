@@ -1086,7 +1086,7 @@ class CSRFProtection:
             'attack_site': '''
             <!-- 攻撃者のサイト -->
             <h1>かわいい猫の画像です！</h1>
-            <img src="cat.jpg">
+            <img src="cat.jpg" alt="cat image placeholder">
             
             <!-- 見えない形で銀行への送金リクエスト -->
             <form id="evil" action="https://bank.com/transfer" method="POST">
