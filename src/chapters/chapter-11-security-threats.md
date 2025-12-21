@@ -1640,7 +1640,7 @@ class AdvancedThreatDetection:
 
 ## 11.3 ペネトレーションテスト
 
-### 11.2.1 認証認可システムのペンテスト
+### 11.3.1 認証認可システムのペンテスト
 
 ```python
 class AuthenticationPenetrationTesting:
@@ -1954,9 +1954,9 @@ class AuthenticationPenetrationTesting:
         }
 ```
 
-## 11.3 インシデント対応
+## 11.4 インシデント対応
 
-### 11.3.1 インシデント対応計画
+### 11.4.1 インシデント対応計画
 
 ```python
 class IncidentResponsePlan:
@@ -2245,9 +2245,9 @@ class IncidentResponsePlan:
         }
 ```
 
-## 11.4 定期的なセキュリティ監査
+## 11.5 定期的なセキュリティ監査
 
-### 11.4.1 セキュリティ監査の実施
+### 11.5.1 セキュリティ監査の実施
 
 ```python
 class SecurityAuditFramework:

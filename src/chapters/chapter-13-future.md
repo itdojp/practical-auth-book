@@ -1052,9 +1052,9 @@ class BlockchainIdentityService:
         raise AuthenticationFailedException()
 ```
 
-## 13.3 AIとリスクベース認証
+## 13.4 AIとリスクベース認証
 
-### 13.3.1 機械学習による異常検知
+### 13.4.1 機械学習による異常検知
 
 ```python
 import numpy as np
@@ -1200,7 +1200,7 @@ class AIAuthenticationRiskAnalyzer:
             }
 ```
 
-### 13.3.2 継続的認証とゼロトラスト
+### 13.4.2 継続的認証とゼロトラスト
 
 ```python
 class ContinuousAuthenticationSystem:
@@ -1272,9 +1272,9 @@ class ContinuousAuthenticationSystem:
             )
 ```
 
-## 13.4 量子暗号時代への準備
+## 13.5 量子暗号時代への準備
 
-### 13.4.1 ポスト量子暗号への移行
+### 13.5.1 ポスト量子暗号への移行
 
 ```python
 import oqs  # Open Quantum Safe library
@@ -1366,7 +1366,7 @@ class QuantumResistantAuthService:
         return HybridAuth()
 ```
 
-### 13.4.2 量子鍵配送（QKD）の統合
+### 13.5.2 量子鍵配送（QKD）の統合
 
 ```python
 class QuantumKeyDistributionAuth:
