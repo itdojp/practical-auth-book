@@ -36,4 +36,3 @@
     "enableMobileOptimization": true
   }
 }
-EOF < /dev/null
