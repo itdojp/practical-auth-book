@@ -638,6 +638,12 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
+            {% assign repository_url = site.repository.github | default: site.repository %}
+            {% if repository_url %}
+                {% unless repository_url contains 'http' %}
+                    {% assign repository_url = 'https://github.com/' | append: repository_url %}
+                {% endunless %}
+            {% endif %}
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>📖 コンテンツ</h4>
@@ -651,7 +657,7 @@
                 <div class="footer-section">
                     <h4>🔗 プラットフォーム</h4>
                     <ul>
-                        <li><a href="https://github.com/{{ site.repository.github | default: site.author.github }}/{{ site.repository.name }}">GitHub</a></li>
+                        <li><a href="{{ repository_url | default: '#' }}">GitHub</a></li>
                         <li><a href="https://zenn.dev/{{ site.author.github }}/books/{{ site.repository.zenn | default: site.repository.name }}">Zenn</a></li>
                         <li><a href="{{ site.kindle_url | default: '#' }}">Kindle</a></li>
                         <li><a href="{{ '/feed.xml' | relative_url }}">RSS</a></li>
@@ -660,9 +666,9 @@
                 <div class="footer-section">
                     <h4>🤝 コミュニティ</h4>
                     <ul>
-                        <li><a href="https://github.com/{{ site.repository.github }}/discussions">Discussions</a></li>
-                        <li><a href="https://github.com/{{ site.repository.github }}/issues">Issues</a></li>
-                        <li><a href="https://github.com/{{ site.repository.github }}/pulls">Pull Requests</a></li>
+                        <li><a href="{{ repository_url | default: '#' }}/discussions">Discussions</a></li>
+                        <li><a href="{{ repository_url | default: '#' }}/issues">Issues</a></li>
+                        <li><a href="{{ repository_url | default: '#' }}/pulls">Pull Requests</a></li>
                         <li><a href="{{ '/contributing.html' | relative_url }}">貢献ガイド</a></li>
                     </ul>
                 </div>
