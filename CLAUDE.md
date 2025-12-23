@@ -36,4 +36,3 @@ npm run clean               # Clean build artifacts
 **Author**: ITDO Inc.（株式会社アイティードゥ）  
 **Email**: knowledge@itdo.jp  
 **GitHub**: [@itdojp](https://github.com/itdojp)
-EOF < /dev/null
