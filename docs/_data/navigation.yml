@@ -31,69 +31,35 @@ chapters:
 appendices:
 - title: '付録A: ライブラリとツール'
   path: /appendices/appendix-a-libraries/
-- title: appendix-a-libraries
-  path: /appendices/appendix-a-libraries/
 - title: '付録B: トラブルシューティング'
-  path: /appendices/appendix-b-troubleshooting/
-- title: appendix-b-troubleshooting
   path: /appendices/appendix-b-troubleshooting/
 - title: '付録C: 用語集'
   path: /appendices/appendix-c-glossary/
-- title: appendix-c-glossary
-  path: /appendices/appendix-c-glossary/
 - title: '付録D: 参考資料'
-  path: /appendices/appendix-d-references/
-- title: appendix-d-references
   path: /appendices/appendix-d-references/
 - title: '付録E-1: 第1章演習問題解答'
   path: /appendices/appendix-e-01/
-- title: appendix-e-01
-  path: /appendices/appendix-e-01/
 - title: '付録E-2: 第2章演習問題解答'
-  path: /appendices/appendix-e-02/
-- title: appendix-e-02
   path: /appendices/appendix-e-02/
 - title: '付録E-3: 第3章演習問題解答'
   path: /appendices/appendix-e-03/
-- title: appendix-e-03
-  path: /appendices/appendix-e-03/
 - title: '付録E-4: 第4章演習問題解答'
-  path: /appendices/appendix-e-04/
-- title: appendix-e-04
   path: /appendices/appendix-e-04/
 - title: '付録E-5: 第5章演習問題解答'
   path: /appendices/appendix-e-05/
-- title: appendix-e-05
-  path: /appendices/appendix-e-05/
 - title: '付録E-6: 第6章演習問題解答'
-  path: /appendices/appendix-e-06/
-- title: appendix-e-06
   path: /appendices/appendix-e-06/
 - title: '付録E-7: 第7章演習問題解答'
   path: /appendices/appendix-e-07/
-- title: appendix-e-07
-  path: /appendices/appendix-e-07/
 - title: '付録E-8: 第8章演習問題解答'
-  path: /appendices/appendix-e-08/
-- title: appendix-e-08
   path: /appendices/appendix-e-08/
 - title: '付録E-9: 第9章演習問題解答'
   path: /appendices/appendix-e-09/
-- title: appendix-e-09
-  path: /appendices/appendix-e-09/
 - title: '付録E-10: 第10章演習問題解答'
-  path: /appendices/appendix-e-10/
-- title: appendix-e-10
   path: /appendices/appendix-e-10/
 - title: '付録E-11: 第11章演習問題解答'
   path: /appendices/appendix-e-11/
-- title: appendix-e-11
-  path: /appendices/appendix-e-11/
 - title: '付録E-12: 第12章演習問題解答'
   path: /appendices/appendix-e-12/
-- title: appendix-e-12
-  path: /appendices/appendix-e-12/
 - title: '付録E-13: 第13章演習問題解答'
-  path: /appendices/appendix-e-13/
-- title: appendix-e-13
   path: /appendices/appendix-e-13/
