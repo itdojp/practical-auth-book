@@ -49,7 +49,7 @@
 - **違い**: 
   - Branch: GitHubが自動的にJekyllビルド
   - Actions: カスタムビルドプロセスを使用可能
-- **選択基準**:
+- **選択基準**
   - 通常 → "Deploy from a branch"
   - Jekyll競合が多い → "GitHub Actions"
 - **注意**: 勝手に変更せず、ユーザーの意向を確認
@@ -70,7 +70,7 @@
 
 #### 解決策
 1. エスケープ: `{{ }}` → `\{\{ \}\}`
-2. 自動検出・修正スクリプトの使用:
+2. 自動検出・修正スクリプトの使用
    ```bash
    npm run check-conflicts
    npm run fix-conflicts
@@ -180,19 +180,19 @@ npm run build:safe
 
 ### 4. デバッグ手順
 
-1. **シンプルなテスト**:
+1. **シンプルなテスト**
    ```bash
    # test.htmlを作成してアクセス確認
    echo "<h1>Test</h1>" > docs/test.html
    git add docs/test.html && git commit -m "Test" && git push
    ```
 
-2. **ビルド状況確認**:
+2. **ビルド状況確認**
    ```bash
    gh api repos/owner/repo/pages/builds/latest --jq '{status, error}'
    ```
 
-3. **キャッシュ考慮**:
+3. **キャッシュ考慮**
    - GitHub Pagesは最大10分のキャッシュ
    - 強制リロード: Ctrl+F5
 
