@@ -640,7 +640,7 @@
         <div class="container">
             {% assign repository_url = site.repository.github | default: site.repository %}
             {% if repository_url %}
-                {% unless repository_url contains 'http' %}
+                {% unless repository_url contains '://' %}
                     {% assign repository_url = 'https://github.com/' | append: repository_url %}
                 {% endunless %}
             {% endif %}
@@ -666,9 +666,11 @@
                 <div class="footer-section">
                     <h4>🤝 コミュニティ</h4>
                     <ul>
-                        <li><a href="{{ repository_url | default: '#' }}/discussions">Discussions</a></li>
-                        <li><a href="{{ repository_url | default: '#' }}/issues">Issues</a></li>
-                        <li><a href="{{ repository_url | default: '#' }}/pulls">Pull Requests</a></li>
+                        {% if repository_url %}
+                        <li><a href="{{ repository_url }}/discussions">Discussions</a></li>
+                        <li><a href="{{ repository_url }}/issues">Issues</a></li>
+                        <li><a href="{{ repository_url }}/pulls">Pull Requests</a></li>
+                        {% endif %}
                         <li><a href="{{ '/contributing.html' | relative_url }}">貢献ガイド</a></li>
                     </ul>
                 </div>
