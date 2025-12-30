@@ -44,9 +44,16 @@
 <body>
     {% assign repository_url = site.repository.github | default: site.repository %}
     {% if repository_url %}
-        {% unless repository_url contains 'http' %}
+        {% assign repository_url_lower = repository_url | downcase %}
+        {% if repository_url_lower contains '://' %}
+            {% assign repository_url = repository_url %}
+        {% elsif repository_url_lower contains 'github.com/' %}
+            {% assign repository_url = 'https://' | append: repository_url %}
+        {% elsif repository_url contains '.' %}
+            {% assign repository_url = 'https://' | append: repository_url %}
+        {% else %}
             {% assign repository_url = 'https://github.com/' | append: repository_url %}
-        {% endunless %}
+        {% endif %}
     {% endif %}
 
     <div class="book-layout">

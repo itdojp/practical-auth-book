@@ -56,7 +56,7 @@ title: "実践 認証認可システム設計"
 
 ## フィードバック
 
-本書へのご意見・ご感想は [GitHubリポジトリ]({{ site.repository.github }}) までお寄せください。
+本書へのご意見・ご感想は [GitHubリポジトリ]({{ site.repository.github | default: site.repository }}) までお寄せください。
 
 ## 📄 ライセンス
 
