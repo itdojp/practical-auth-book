@@ -217,12 +217,12 @@ biometric_types = {
     },
     '行動的生体認証': {
         'キーストローク': {
-            'accuracy': '80-95%',
+            'accuracy': '80〜95%',
             'continuous_auth': True,
             'user_training': 'required'
         },
         '歩行認証': {
-            'accuracy': '90-95%',
+            'accuracy': '90〜95%',
             'passive': True,
             'device_dependent': True
         }

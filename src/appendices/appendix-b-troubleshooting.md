@@ -57,7 +57,7 @@ email_configuration:
 
 token_generation:
   - [ ] トークンの一意性
-  - [ ] 適切な有効期限（推奨：1-2時間）
+  - [ ] 適切な有効期限（推奨：1〜2時間）
   - [ ] 使用済みトークンの無効化
   - [ ] タイムゾーンの扱い
 
@@ -447,7 +447,7 @@ database_optimization:
 
 caching_strategy:
   - [ ] ユーザー情報のキャッシュ
-    - TTL: 5-10分
+    - TTL: 5〜10分
     - 更新時の無効化
   - [ ] 権限情報のキャッシュ
     - TTL: 1時間

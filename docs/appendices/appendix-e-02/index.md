@@ -63,7 +63,7 @@ class SecurePasswordSystem:
     def hash_password(self, password: str) -> bytes:
         """パスワードをbcryptでハッシュ化"""
         # ワークファクターの動的調整
-        # 目標: ハッシュ化に0.2-0.5秒かかるように調整
+        # 目標: ハッシュ化に0.2〜0.5秒かかるように調整
         start_time = time.time()
         
         salt = bcrypt.gensalt(self.work_factor)
@@ -217,7 +217,7 @@ if __name__ == "__main__":
 ### 実装のポイント
 
 1. **ワークファクターの選択**
-   - 現在のハードウェアで0.2-0.5秒かかる値を選択
+   - 現在のハードウェアで0.2〜0.5秒かかる値を選択
    - 定期的な見直しが必要（ムーアの法則）
 
 2. **タイミング攻撃対策**
@@ -770,7 +770,7 @@ class BiometricBreachResponse:
         }
     
     def investigation_phase(self):
-        """影響調査（24-72時間）"""
+        """影響調査（24〜72時間）"""
         return {
             'technical_investigation': {
                 'log_analysis': [

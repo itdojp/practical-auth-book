@@ -1826,7 +1826,7 @@ class OptimizedAuthSystem:
         # L1 Cache: Local memory (sub-millisecond)
         cache_key = f"user:email:{email}"
         
-        # L2 Cache: Redis (1-2ms)
+        # L2 Cache: Redis (1〜2ms)
         cached_data = await self.redis_cluster.get(cache_key)
         if cached_data:
             return User.from_json(cached_data)

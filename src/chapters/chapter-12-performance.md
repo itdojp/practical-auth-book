@@ -1812,7 +1812,7 @@ class PerformanceTestAutomation:
                 });
               }
               
-              sleep(Math.random() * 3 + 1);  // 1-4秒のランダム待機
+              sleep(Math.random() * 3 + 1);  // 1〜4秒のランダム待機
             }
             
             export function handleSummary(data) {

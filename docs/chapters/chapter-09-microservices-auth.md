@@ -131,15 +131,15 @@ class PerformanceScalabilityChallenges:
                 },
                 
                 'naive_microservices': {
-                    'per_service_auth': '10-20ms',
-                    'service_chain_5_deep': '50-100ms just for auth',
-                    'total_request': '200-300ms'
+                    'per_service_auth': '10〜20ms',
+                    'service_chain_5_deep': '50〜100ms just for auth',
+                    'total_request': '200〜300ms'
                 },
                 
                 'optimized_microservices': {
                     'edge_auth': '10ms',
                     'service_trust': '< 1ms (JWT validation)',
-                    'total_request': '60-80ms'
+                    'total_request': '60〜80ms'
                 }
             },
             

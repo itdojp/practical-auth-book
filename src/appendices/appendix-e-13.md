@@ -861,14 +861,12 @@ migration_timeline:
     - limited_production_rollout (1%)
     - monitor_and_optimize
     
-  phase_3_gradual_rollout: # 2026 Q1-Q2
-    - 10%_of_traffic
+  phase_3_gradual_rollout: # 2026 Q1-Q2〜10%_of_traffic
     - 50%_of_traffic
     - performance_tuning
     - user_education
     
-  phase_4_full_migration: # 2026 Q3-Q4
-    - 100%_hybrid_mode
+  phase_4_full_migration: # 2026 Q3-Q4〜100%_hybrid_mode
     - classical_only_deprecated
     - emergency_fallback_ready
     

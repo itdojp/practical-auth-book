@@ -159,6 +159,6 @@
   <g id="best-practices">
     <rect x="140" y="540" width="520" height="40" fill="var(--svg-success)" fill-opacity="0.1" stroke="var(--svg-success)" stroke-width="2" rx="4"/>
     <text x="400" y="560" class="component-text" text-anchor="middle" font-weight="500">ベストプラクティス</text>
-    <text x="160" y="575" class="annotation-text">短期間有効期限 (15-30分) • セキュアなリフレッシュトークン • 適切なクレーム設計 • トークンローテーション</text>
+    <text x="160" y="575" class="annotation-text">短期間有効期限 (15〜30分) • セキュアなリフレッシュトークン • 適切なクレーム設計 • トークンローテーション</text>
   </g>
 </svg>

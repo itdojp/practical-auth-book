@@ -1146,7 +1146,7 @@ class AuthPerformanceOptimization:
                         
                         return data
                 ''',
-                'expected_improvement': '60-80% reduction in DB calls'
+                'expected_improvement': '60〜80% reduction in DB calls'
             },
             
             '2_jwt_optimization': {
