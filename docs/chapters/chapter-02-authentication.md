@@ -324,7 +324,7 @@ print(f"三要素: {three_factor * 100}%")
 
 #### 平文保存時代の教訓
 
-**1960-1970年代の実装：**
+**1960〜1970年代の実装：**
 ```python
 # 絶対にやってはいけない実装例
 class InsecurePasswordAuth:
