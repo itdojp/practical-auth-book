@@ -2007,7 +2007,7 @@ class ImprovedSSOImplementation:
 
 3. **改善提案**
    - 1週目：CRITICAL項目の修正
-   - 2-4週目：HIGH項目の対処
+   - 2〜4週目：HIGH項目の対処
    - 2ヶ月目：MEDIUM項目とセキュリティ強化
 
 4. **ポジティブな発見**

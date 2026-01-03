@@ -1121,14 +1121,14 @@ class RefreshTokenRationale:
                 'separation_of_concerns': {
                     'access_token': {
                         'purpose': 'APIアクセス',
-                        'lifetime': '5-15分',
+                        'lifetime': '5〜15分',
                         'usage': '頻繁',
                         'storage': 'メモリ推奨'
                     },
                     
                     'refresh_token': {
                         'purpose': '新しいアクセストークンの取得',
-                        'lifetime': '7-30日',
+                        'lifetime': '7〜30日',
                         'usage': 'まれ（アクセストークン更新時のみ）',
                         'storage': 'HttpOnly Cookie推奨'
                     }

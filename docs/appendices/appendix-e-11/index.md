@@ -640,7 +640,7 @@ class EcommerceIncidentResponsePlan:
         self.detection_time = "2024-03-15 16:15:00 UTC"
         
     def immediate_response(self):
-        """即時対応（0-2時間）"""
+        """即時対応（0〜2時間）"""
         return {
             'phase': 'IMMEDIATE_CONTAINMENT',
             'timeline': '0-2 hours',
@@ -723,7 +723,7 @@ class EcommerceIncidentResponsePlan:
         }
     
     def investigation_phase(self):
-        """調査フェーズ（2-6時間）"""
+        """調査フェーズ（2〜6時間）"""
         return {
             'phase': 'INVESTIGATION',
             'timeline': '2-6 hours',
@@ -782,7 +782,7 @@ class EcommerceIncidentResponsePlan:
         }
     
     def containment_strategy(self):
-        """封じ込め戦略（6-12時間）"""
+        """封じ込め戦略（6〜12時間）"""
         return {
             'phase': 'CONTAINMENT',
             'timeline': '6-12 hours',
@@ -849,7 +849,7 @@ class EcommerceIncidentResponsePlan:
         }
     
     def recovery_plan(self):
-        """復旧計画（12-48時間）"""
+        """復旧計画（12〜48時間）"""
         return {
             'phase': 'RECOVERY',
             'timeline': '12-48 hours',

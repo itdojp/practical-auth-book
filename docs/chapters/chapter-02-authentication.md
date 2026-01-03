@@ -220,12 +220,12 @@ biometric_types = {
     },
     '行動的生体認証': {
         'キーストローク': {
-            'accuracy': '80-95%',
+            'accuracy': '80〜95%',
             'continuous_auth': True,
             'user_training': 'required'
         },
         '歩行認証': {
-            'accuracy': '90-95%',
+            'accuracy': '90〜95%',
             'passive': True,
             'device_dependent': True
         }
@@ -324,7 +324,7 @@ print(f"三要素: {three_factor * 100}%")
 
 #### 平文保存時代の教訓
 
-**1960-1970年代の実装：**
+**1960〜1970年代の実装：**
 ```python
 # 絶対にやってはいけない実装例
 class InsecurePasswordAuth:
