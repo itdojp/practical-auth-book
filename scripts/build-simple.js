@@ -115,7 +115,54 @@ class SimpleBuild {
     try {
       const configPath = path.join(process.cwd(), 'book-config.json');
       const configContent = await fs.readFile(configPath, 'utf-8');
-      this.config = JSON.parse(configContent);
+      const rawConfig = JSON.parse(configContent);
+
+      // Normalize legacy config formats to the build script expectations.
+      // Some repositories keep book metadata at the top level (e.g., {title, description, author})
+      // and do not define `contentSections`. In that case, derive a sane default.
+      if (rawConfig && Array.isArray(rawConfig.contentSections)) {
+        this.config = rawConfig;
+      } else {
+        let authorName = 'Author';
+        const author = rawConfig?.book?.author ?? rawConfig?.author;
+        if (typeof author === 'string' && author.trim()) {
+          authorName = author.trim();
+        } else if (author && typeof author === 'object' && typeof author.name === 'string' && author.name.trim()) {
+          authorName = author.name.trim();
+        }
+
+        this.config = {
+          book: {
+            title: rawConfig?.book?.title || rawConfig?.title || 'My Book',
+            description: rawConfig?.book?.description || rawConfig?.description || '',
+            author: { name: authorName }
+          },
+          contentSections: [
+            { name: 'introduction', directory: 'introduction', enabled: true, order: 1 },
+            { name: 'chapters', directory: 'chapters', enabled: true, order: 2 },
+            { name: 'appendices', directory: 'appendices', enabled: true, order: 3 },
+            { name: 'afterword', directory: 'afterword', enabled: true, order: 4 }
+          ],
+          excludePatterns: rawConfig?.excludePatterns || ['draft.md', '*.tmp'],
+          contentExcludePatterns: rawConfig?.contentExcludePatterns || ['<!-- PRIVATE:', '<!-- TODO:'],
+          build: rawConfig?.build || {}
+        };
+
+        this.log('book-config.json をビルド用に正規化しました', 'warning');
+      }
+
+      // Ensure defaults exist even if config is partial.
+      this.config.book = this.config.book || { title: 'My Book', author: { name: 'Author' } };
+      this.config.book.author = this.config.book.author || { name: 'Author' };
+      this.config.contentSections = this.config.contentSections || [
+        { name: 'introduction', directory: 'introduction', enabled: true, order: 1 },
+        { name: 'chapters', directory: 'chapters', enabled: true, order: 2 },
+        { name: 'appendices', directory: 'appendices', enabled: true, order: 3 },
+        { name: 'afterword', directory: 'afterword', enabled: true, order: 4 }
+      ];
+      this.config.excludePatterns = this.config.excludePatterns || ['draft.md', '*.tmp'];
+      this.config.contentExcludePatterns = this.config.contentExcludePatterns || ['<!-- PRIVATE:', '<!-- TODO:'];
+
       this.log('設定ファイルを読み込みました');
     } catch (error) {
       // Fallback to default config
