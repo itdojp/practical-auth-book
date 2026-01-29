@@ -1,6 +1,7 @@
 title: "実践 認証認可システム設計"
 description: "ゼロから学ぶアイデンティティ管理の実装"
 author: "株式会社アイティードゥ"
+license: "CC BY-NC-SA 4.0 (commercial use requires a separate agreement)"
 lang: "ja"
 url: "https://itdojp.github.io"
 baseurl: "/practical-auth-book"
