@@ -1,10 +1,10 @@
 {
-  "title": "\u5b9f\u8df5 \u8a8d\u8a3c\u8a8d\u53ef\u30b7\u30b9\u30c6\u30e0\u8a2d\u8a08",
-  "description": "\u8a8d\u8a3c\u30fb\u8a8d\u53ef\u30b7\u30b9\u30c6\u30e0\u306e\u8a2d\u8a08\u3068\u5b9f\u88c5\u3092\u4f53\u7cfb\u7684\u306b\u5b66\u3076\u5b9f\u8df5\u7684\u306a\u6280\u8853\u66f8",
-  "author": "ITDO Inc.\uff08\u682a\u5f0f\u4f1a\u793e\u30a2\u30a4\u30c6\u30a3\u30fc\u30c9\u30a5\uff09",
+  "title": "実践 認証認可システム設計",
+  "description": "認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書",
+  "author": "ITDO Inc.（株式会社アイティードゥ）",
   "version": "1.0.0",
   "language": "ja",
-  "license": "CC BY-NC-SA 4.0",
+  "license": "CC-BY-NC-SA-4.0",
   "repository": {
     "url": "https://github.com/itdojp/practical-auth-book.git",
     "branch": "main"
@@ -13,18 +13,18 @@
     "chapters": [
       {
         "id": "chapter01",
-        "title": "\u7b2c1\u7ae0\uff1a\u8a8d\u8a3c\u8a8d\u53ef\u306e\u57fa\u790e\u6982\u5ff5",
-        "description": "\u57fa\u672c\u7684\u306a\u6982\u5ff5\u3068\u539f\u7406"
+        "title": "第1章：認証認可の基礎概念",
+        "description": "基本的な概念と原理"
       },
       {
         "id": "chapter02",
-        "title": "\u7b2c2\u7ae0\uff1aJWT\u5b9f\u88c5\u3068\u8a2d\u8a08",
-        "description": "JSON Web Token\u306e\u5b9f\u88c5"
+        "title": "第2章：JWT実装と設計",
+        "description": "JSON Web Tokenの実装"
       },
       {
         "id": "chapter03",
-        "title": "\u7b2c3\u7ae0\uff1aOAuth 2.0\u3068OpenID Connect",
-        "description": "OAuth 2.0\u30d5\u30ed\u30fc\u306e\u5b9f\u88c5"
+        "title": "第3章：OAuth 2.0とOpenID Connect",
+        "description": "OAuth 2.0フローの実装"
       }
     ]
   },
