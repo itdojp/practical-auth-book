@@ -910,7 +910,7 @@ class AuthenticationPenetrationTesting:
                             'technique': 'unicode_substitution'
                         },
                         {
-                            'password': 'Admin123!​',  # Zero-width space
+                            'password': 'Admin123!\u200b',  # Zero-width space
                             'technique': 'invisible_characters'
                         },
                         {
