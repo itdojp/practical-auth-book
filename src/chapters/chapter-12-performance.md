@@ -886,9 +886,9 @@ class AuthSystemCICDStrategy:
                       
                   - name: Run E2E authentication flow tests
                     run: |
-                      docker-compose -f docker-compose.test.yml up -d
+                      docker compose -f docker-compose.test.yml up -d
                       npm run test:e2e
-                      docker-compose -f docker-compose.test.yml down
+                      docker compose -f docker-compose.test.yml down
               
               performance-tests:
                 name: Performance and Load Tests
