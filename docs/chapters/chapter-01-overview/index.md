@@ -453,7 +453,7 @@ def determine_auth_method(risk_score):
 # 本書のサンプルコード環境
 git clone https://github.com/[organization]/practical-auth-book
 cd practical-auth-book
-docker-compose up -d
+docker compose up -d
 ```
 
 **段階的な実装**：
