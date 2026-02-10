@@ -14,7 +14,7 @@ cd my-book
 ### Step 2: 自動セットアップ実行
 
 ```bash
-# Node.js 18以上が必要
+# Node.js 20以上が必要
 node easy-setup.js
 ```
 
