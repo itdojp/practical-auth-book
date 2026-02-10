@@ -767,7 +767,7 @@ class AuthSystemCICDStrategy:
                 name: Security Vulnerability Checks
                 runs-on: ubuntu-latest
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Run Security Audit
                     run: |
@@ -807,7 +807,7 @@ class AuthSystemCICDStrategy:
                     node-version: [16, 18, 20]
                 
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Set up Python ${{ matrix.python-version }}
                     uses: actions/setup-python@v4
@@ -829,7 +829,7 @@ class AuthSystemCICDStrategy:
                         --cov-fail-under=80
                       
                   - name: Set up Node.js ${{ matrix.node-version }}
-                    uses: actions/setup-node@v3
+                    uses: actions/setup-node@v4
                     with:
                       node-version: ${{ matrix.node-version }}
                       
@@ -874,7 +874,7 @@ class AuthSystemCICDStrategy:
                       - 6379:6379
                 
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Run integration tests
                     env:
@@ -896,7 +896,7 @@ class AuthSystemCICDStrategy:
                 needs: [integration-tests]
                 
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Run performance benchmarks
                     run: |
@@ -951,7 +951,7 @@ class AuthSystemCICDStrategy:
                 if: github.ref == 'refs/heads/main'
                 
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Set up Docker Buildx
                     uses: docker/setup-buildx-action@v2
@@ -1086,7 +1086,7 @@ class AuthSystemCICDStrategy:
                     environment: [dev, staging]
                 
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Set up Kubectl
                     uses: azure/setup-kubectl@v3
@@ -1149,7 +1149,7 @@ class AuthSystemCICDStrategy:
                 if: github.ref == 'refs/heads/main'
                 
                 steps:
-                  - uses: actions/checkout@v3
+                  - uses: actions/checkout@v4
                   
                   - name: Create deployment record
                     uses: actions/github-script@v6
