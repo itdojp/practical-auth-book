@@ -839,7 +839,7 @@ class AuthSystemCICDStrategy:
                       npm run test:unit -- --coverage
                       
                   - name: Upload coverage reports
-                    uses: codecov/codecov-action@v3
+                    uses: codecov/codecov-action@v5
                     with:
                       token: ${{ secrets.CODECOV_TOKEN }}
                       files: ./coverage.xml,./coverage/lcov.info
@@ -1089,12 +1089,12 @@ class AuthSystemCICDStrategy:
                   - uses: actions/checkout@v4
                   
                   - name: Set up Kubectl
-                    uses: azure/setup-kubectl@v3
+                    uses: azure/setup-kubectl@v4
                     with:
                       version: 'v1.28.0'
                       
                   - name: Set up Helm
-                    uses: azure/setup-helm@v3
+                    uses: azure/setup-helm@v4
                     with:
                       version: 'v3.12.0'
                       
