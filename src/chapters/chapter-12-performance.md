@@ -810,7 +810,7 @@ class AuthSystemCICDStrategy:
                   - uses: actions/checkout@v4
                   
                   - name: Set up Python ${{ matrix.python-version }}
-                    uses: actions/setup-python@v4
+                    uses: actions/setup-python@v6
                     with:
                       python-version: ${{ matrix.python-version }}
                       
