@@ -964,7 +964,7 @@ class AuthSystemCICDStrategy:
                       password: ${{ secrets.REGISTRY_PASSWORD }}
                       
                   - name: Build and push auth service
-                    uses: docker/build-push-action@v4
+                    uses: docker/build-push-action@v6
                     with:
                       context: ./services/auth
                       push: true
