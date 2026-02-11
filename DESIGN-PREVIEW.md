@@ -2,7 +2,7 @@
 
 ## 🔗 ライブプレビュー
 
-**✨ [ライブデザインプレビューを見る](https://itdojp.github.io/book-publishing-template2/)**
+**✨ [ライブデザインプレビューを見る](https://itdojp.github.io/practical-auth-book/)**
 
 > 上記リンクをクリックして、実際のデザインをインタラクティブに体験できます。右上のボタンでライト/ダークモードの切り替えも可能です。
 
@@ -173,7 +173,7 @@ git clone https://github.com/itdojp/practical-auth-book.git
 open design-preview.html
 
 # または GitHub Pages で確認
-# https://itdojp.github.io/book-publishing-template2/
+# https://itdojp.github.io/practical-auth-book/
 ```
 
 ### 書籍作成者向け
@@ -184,7 +184,7 @@ open design-preview.html
 ## 🔗 関連リンク
 
 - **📋 提案イシュー**: [book-formatter Issues](https://github.com/itdojp/book-formatter/issues)
-- **🔄 ライブプレビュー**: [GitHub Pages](https://itdojp.github.io/book-publishing-template2/)
+- **🔄 ライブプレビュー**: [GitHub Pages](https://itdojp.github.io/practical-auth-book/)
 - **📁 ソースコード**: [design-preview.html](https://github.com/itdojp/practical-auth-book/blob/main/design-preview.html)
 - **📖 実装ガイド**: [Templates フォルダ](https://github.com/itdojp/book-formatter/tree/main/templates)
 
