@@ -91,7 +91,7 @@ jobs:
 
       # 出力先は書籍の構成に合わせて調整（例: Jekyllなら docs/_site）
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./docs/_site
 
