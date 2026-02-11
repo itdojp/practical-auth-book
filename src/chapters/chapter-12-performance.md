@@ -792,7 +792,7 @@ class AuthSystemCICDStrategy:
                       head: HEAD
                       
                   - name: Container Security Scan
-                    uses: aquasecurity/trivy-action@master
+                    uses: aquasecurity/trivy-action@0.33.1
                     with:
                       image-ref: 'auth-service:${{ github.sha }}'
                       format: 'sarif'
