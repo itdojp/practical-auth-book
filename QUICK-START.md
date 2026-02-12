@@ -55,7 +55,7 @@ git push -u origin main
 
 ### ディレクトリ構造
 
-```
+```text
 my-book/
 ├── src/
 │   ├── introduction/index.md    # はじめに

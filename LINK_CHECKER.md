@@ -51,12 +51,12 @@ Automatically skips:
 ## Output
 
 ### Success
-```
+```text
 ✅ All links valid! (152 links checked in 2.35s)
 ```
 
 ### Errors
-```
+```text
 ❌ Found 3 broken links in 1.82s
 
 Broken Links:
