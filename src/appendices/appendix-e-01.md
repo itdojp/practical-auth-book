@@ -41,14 +41,14 @@
 **対策：**
 
 1. **即時対応**
-   ```
+   ```text
    - 該当アカウントの即時無効化
    - 全従業員のパスワード強制変更
    - アクセスログの詳細調査
    ```
 
 2. **プロセス改善**
-   ```
+   ```text
    退職時チェックリスト：
    □ ADアカウントの無効化
    □ メールアカウントの停止
@@ -142,7 +142,7 @@ async function assessRisk(request, user) {
 ### 実装計画
 
 #### Phase 1：基本認証（2週間）
-```
+```text
 Week 1-2:
 - ユーザー登録機能
 - パスワードハッシュ化（bcrypt）
@@ -151,7 +151,7 @@ Week 1-2:
 ```
 
 #### Phase 2：セキュリティ強化（2週間）
-```
+```text
 Week 3-4:
 - パスワードポリシー実装
 - アカウントロックアウト機能
@@ -160,7 +160,7 @@ Week 3-4:
 ```
 
 #### Phase 3：利便性向上（1週間）
-```
+```text
 Week 5:
 - パスワードリセット機能
 - Remember Me機能
@@ -168,7 +168,7 @@ Week 5:
 ```
 
 #### Phase 4：高度な機能（2週間）
-```
+```text
 Week 6-7:
 - MFA導入（TOTP）
 - OAuth2.0連携準備
@@ -224,7 +224,7 @@ CREATE TABLE auth_methods (
 ```
 
 2. **APIの設計**：
-```
+```text
 POST   /api/auth/register
 POST   /api/auth/login
 POST   /api/auth/logout
@@ -319,7 +319,7 @@ DELETE /api/auth/mfa         # MFA解除
 
 ### リスク評価マトリクス
 
-```
+```text
 影響度
   高│ [1,2,3] │ [4,5]  │        │
   中│         │        │        │

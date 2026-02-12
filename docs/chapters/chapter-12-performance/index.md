@@ -88,7 +88,7 @@ class AuthenticationProfiler:
 ```
 
 **典型的な測定結果**：
-```
+```text
 User Lookup: 15.23ms
 Password Verification: 251.45ms  # ボトルネック
 Session Creation: 8.12ms
@@ -612,7 +612,7 @@ dashboard_queries = {
 ### 問題1：ボトルネック分析
 以下の認証処理のプロファイリング結果を分析し、改善策を提案しなさい。
 
-```
+```text
 Database connection: 45ms
 User query: 120ms
 Password hash verification: 15ms (MD5)
@@ -693,7 +693,7 @@ class AuthenticationService:
 以下の認証システムアーキテクチャの問題点を指摘し、改善案を提示しなさい。
 
 **現在のアーキテクチャ**：
-```
+```text
 [ロードバランサー]
     ↓
 [Webサーバー×3]

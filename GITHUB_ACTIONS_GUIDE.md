@@ -89,7 +89,7 @@ To disable a specific workflow:
 5. Updates on each new commit
 
 ### Preview URL Format
-```
+```text
 https://{owner}.github.io/{repo}/pr-preview/pr-{number}/
 ```
 
