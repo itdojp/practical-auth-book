@@ -482,6 +482,7 @@ class JWTAlgorithms:
         
         return RS256Implementation
 
+```
 
 ### 5.1.4 JWT セキュリティベストプラクティス（2024年版）
 
