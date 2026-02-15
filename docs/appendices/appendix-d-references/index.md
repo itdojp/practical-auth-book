@@ -123,9 +123,9 @@ title: "付録D: 参考資料"
   - URL: https://developer.okta.com/docs/
   - 内容: エンタープライズ認証の実装ガイド
 
-- **Google Identity Platform Best Practices**
-  - URL: https://cloud.google.com/identity-platform/docs/best-practices
-  - 内容: Googleの認証実装ベストプラクティス
+- **Google OAuth 2.0 Best Practices**
+  - URL: https://developers.google.com/identity/protocols/oauth2/resources/best-practices
+  - 内容: Google OAuth 2.0 の実装・運用ベストプラクティス
 
 ## D.3 書籍
 
@@ -400,9 +400,9 @@ title: "付録D: 参考資料"
   - URL: https://github.com/casbin/awesome-auth
   - 内容: 認証・認可リソースのキュレーション
 
-- **awesome-oauth2**
-  - URL: https://github.com/oauth2/awesome-oauth2
-  - 内容: OAuth 2.0関連リソース集
+- **awesome-oauth-sec**
+  - URL: https://github.com/b1narygl1tch/awesome-oauth-sec
+  - 内容: OAuth 2.0 / OpenID Connect のセキュリティ関連リソース集
 
 - **WebAuthn Awesome**
   - URL: https://github.com/herrjemand/awesome-webauthn
