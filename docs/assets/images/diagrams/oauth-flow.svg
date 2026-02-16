@@ -2,11 +2,11 @@
 <svg width="900" height="700" viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
-      .title-text { font-family: 'Noto Sans JP', sans-serif; font-size: 18px; font-weight: bold; fill: #2c3e50; }
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 18px; font-weight: bold; fill: #2c3e50; }
       .participant-box { fill: #fff; stroke: #34495e; stroke-width: 2; }
-      .participant-text { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; fill: #2c3e50; font-weight: bold; }
-      .message-text { font-family: 'Noto Sans JP', sans-serif; font-size: 11px; fill: #34495e; }
-      .note-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #7f8c8d; font-style: italic; }
+      .participant-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 12px; fill: #2c3e50; font-weight: bold; }
+      .message-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 11px; fill: #34495e; }
+      .note-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 10px; fill: #7f8c8d; font-style: italic; }
       .lifeline { stroke: #95a5a6; stroke-width: 1; stroke-dasharray: 3,3; }
       .message-arrow { stroke: #3498db; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
       .return-arrow { stroke: #27ae60; stroke-width: 2; fill: none; stroke-dasharray: 5,3; marker-end: url(#arrowhead-green); }
