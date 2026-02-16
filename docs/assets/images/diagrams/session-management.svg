@@ -2,14 +2,14 @@
 <svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
-      .title-text { font-family: 'Noto Sans JP', sans-serif; font-size: 18px; font-weight: bold; fill: #2c3e50; }
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 18px; font-weight: bold; fill: #2c3e50; }
       .state-box { fill: #fff; stroke: #34495e; stroke-width: 2; }
       .active-state { fill: #d4edda; stroke: #28a745; stroke-width: 2; }
       .warning-state { fill: #fff3cd; stroke: #ffc107; stroke-width: 2; }
       .expired-state { fill: #f8d7da; stroke: #dc3545; stroke-width: 2; }
-      .state-text { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; fill: #2c3e50; font-weight: bold; }
-      .transition-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #7f8c8d; }
-      .note-text { font-family: 'Noto Sans JP', sans-serif; font-size: 10px; fill: #6c757d; font-style: italic; }
+      .state-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 12px; fill: #2c3e50; font-weight: bold; }
+      .transition-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 10px; fill: #7f8c8d; }
+      .note-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; font-size: 10px; fill: #6c757d; font-style: italic; }
       .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
       .start-end { fill: #2c3e50; }
       .note-box { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1; stroke-dasharray: 3,3; }
