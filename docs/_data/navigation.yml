@@ -1,5 +1,5 @@
 introduction:
-- title: 序章
+- title: はじめに
   path: /introduction/
 chapters:
 - title: 第1章：認証認可システム概要
