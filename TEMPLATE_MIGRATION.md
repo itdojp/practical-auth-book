@@ -36,8 +36,10 @@ node scripts/navigation-cleaner.js
 # Review changes
 git diff
 
-# Commit if satisfied
-git add -A && git commit -m "Remove duplicate navigation includes"
+# Commit if satisfied (stage only intended paths)
+git status
+git add docs/
+git commit -m "Remove duplicate navigation includes"
 ```
 
 #### 3. Rebuild Your Book

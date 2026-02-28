@@ -32,7 +32,9 @@ npm run preview
 ### Step 4: GitHubへプッシュ
 
 ```bash
-git add -A
+git status
+# 変更内容を確認して、コミット対象だけをステージ（例）
+git add book-config.json package.json src/ docs/
 git commit -m "Initial commit"
 # GitHubでリポジトリを作成後
 # git remote add origin https://github.com/yourusername/my-book.git
