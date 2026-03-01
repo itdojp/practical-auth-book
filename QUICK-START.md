@@ -34,7 +34,7 @@ npm run preview
 ```bash
 git status
 # 変更内容を確認して、コミット対象だけをステージ（例）
-git add book-config.json package.json src/ docs/
+git add book-config.json package.json package-lock.json README.md .gitignore src/ docs/
 git commit -m "Initial commit"
 # GitHubでリポジトリを作成後
 # git remote add origin https://github.com/yourusername/my-book.git

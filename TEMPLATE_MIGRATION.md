@@ -38,7 +38,7 @@ git diff
 
 # Commit if satisfied (stage only intended paths)
 git status
-git add docs/
+git add docs/ scripts/
 git commit -m "Remove duplicate navigation includes"
 ```
 
