@@ -85,7 +85,7 @@ class NavigationCleaner {
     if (this.cleanedCount > 0) {
       console.log('\n💡 Next steps:');
       console.log('1. Review the changes with: git diff');
-      console.log('2. Commit the changes: git add -A && git commit -m "Remove duplicate navigation includes"');
+      console.log('2. Commit the changes: git add docs/ && git commit -m "Remove duplicate navigation includes"');
       console.log('3. Test the site locally: npm run preview');
     }
   }

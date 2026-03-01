@@ -154,7 +154,9 @@ node easy-setup.js
 npm run build
 
 # 4. Gitにコミット
-git add -A
+git status
+# 変更内容を確認して、コミット対象だけをステージ（例）
+git add book-config.json package.json package-lock.json README.md .gitignore src/ docs/
 git commit -m "Initial commit"
 
 # 5. GitHubにリポジトリ作成してプッシュ
