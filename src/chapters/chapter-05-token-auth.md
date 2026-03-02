@@ -378,7 +378,7 @@ class JWTAlgorithms:
                 'security': 'INSECURE - NEVER USE IN PRODUCTION',
                 'warning': '署名なしトークンは改ざん可能',
                 'critical_warning': '''
-                ⚠️ 絶対に本番環境で使用しないでください！
+                注意: 絶対に本番環境で使用しないでください。
                 "alg": "none" は JWT の署名を無効化し、
                 誰でもトークンを偽造できるようになります。
                 '''
@@ -501,13 +501,13 @@ class JWTSecurityBestPractices:
                 'rule': 'アルゴリズムを明示的に指定する',
                 'reason': 'アルゴリズム混同攻撃の防止',
                 'bad_example': '''
-                # ❌ 危険な実装 - アルゴリズムを指定していない
+                # [NG] 危険な実装 - アルゴリズムを指定していない
                 def verify_token_unsafe(token: str, key: str):
                     # ヘッダーのアルゴリズムを信頼してしまう
                     return jwt.decode(token, key)  # algorithms パラメータなし
                 ''',
                 'good_example': '''
-                # ✅ 安全な実装 - アルゴリズムを明示的に指定
+                # [OK] 安全な実装 - アルゴリズムを明示的に指定
                 def verify_token_safe(token: str, key: str):
                     # 期待するアルゴリズムのみを許可
                     return jwt.decode(
@@ -537,7 +537,7 @@ class JWTSecurityBestPractices:
             'none_algorithm_prevention': {
                 'rule': '"alg": "none" を絶対に許可しない',
                 'implementation': '''
-                # ✅ none アルゴリズムを確実に拒否
+                # [OK] none アルゴリズムを確実に拒否
                 ALLOWED_ALGORITHMS = ['RS256', 'ES256']  # none は含めない
                 
                 def verify_token(token: str, key: str):
@@ -564,12 +564,12 @@ class JWTSecurityBestPractices:
                 'implementation': '''
                 import secrets
                 
-                # ✅ 強力な秘密鍵の生成
+                # [OK] 強力な秘密鍵の生成
                 def generate_strong_secret():
                     # 256ビット（32バイト）の暗号学的に安全なランダム値
                     return secrets.token_bytes(32)
                 
-                # ✅ 鍵強度の検証
+                # [OK] 鍵強度の検証
                 def validate_key_strength(key: bytes, algorithm: str):
                     if algorithm == 'HS256' and len(key) < 32:
                         raise ValueError("HS256 requires at least 256-bit key")
@@ -606,15 +606,15 @@ class JWTSecurityBestPractices:
         
         # アルゴリズム指定のチェック
         if 'jwt.decode(' in code and 'algorithms=' not in code:
-            issues.append("🚨 Critical: JWT decode without algorithm specification")
+            issues.append("[CRITICAL] JWT decode without algorithm specification")
         
         # none アルゴリズムのチェック
         if '"none"' in code or "'none'" in code:
-            issues.append("🚨 Critical: Potential 'none' algorithm usage")
+            issues.append("[CRITICAL] Potential 'none' algorithm usage")
         
         # 鍵の強度チェック（簡易版）
         if 'secret' in code.lower() and len(code) < 32:
-            issues.append("⚠️ Warning: Potentially weak secret key")
+            issues.append("[WARN] Potentially weak secret key")
         
         return issues
 ```

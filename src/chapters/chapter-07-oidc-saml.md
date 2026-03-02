@@ -387,7 +387,7 @@ class OpenIDConnectRationale:
                 'common_misuse': '''
                 # OAuth 2.0の誤用例
                 
-                # ❌ 間違い：OAuth 2.0を認証に使う
+                # [NG] 間違い：OAuth 2.0を認証に使う
                 def authenticate_with_oauth(access_token):
                     # アクセストークンがあるから認証済み？
                     # 誰のトークンかわからない！
@@ -624,7 +624,7 @@ class OpenIDConnectFlows:
         
         return {
             'deprecation_notice': '''
-            ⚠️ 重要：Implicit Flowは非推奨
+            重要: Implicit Flow は非推奨
             
             理由：
             1. トークンがURLフラグメントに露出
