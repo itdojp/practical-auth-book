@@ -1171,13 +1171,13 @@ class StatePitfalls:
             {
                 'mistake': '予測可能なstate値',
                 'bad_example': '''
-                # ❌ 悪い例：予測可能
+                # [NG] 悪い例：予測可能
                 state = str(int(time.time()))
                 state = f"oauth_state_{user_id}"
                 state = hashlib.md5(session_id.encode()).hexdigest()
                 ''',
                 'good_example': '''
-                # ✅ 良い例：暗号学的に安全な乱数
+                # [OK] 良い例：暗号学的に安全な乱数
                 import secrets
                 state = secrets.token_urlsafe(32)
                 ''',
@@ -1187,7 +1187,7 @@ class StatePitfalls:
             {
                 'mistake': 'stateの再利用',
                 'bad_example': '''
-                # ❌ 悪い例：stateを使い回し
+                # [NG] 悪い例：stateを使い回し
                 class OAuthClient:
                     def __init__(self):
                         self.state = "my_oauth_state"  # 固定値
@@ -1196,7 +1196,7 @@ class StatePitfalls:
                         return f"{auth_url}?state={self.state}"
                 ''',
                 'good_example': '''
-                # ✅ 良い例：毎回新しいstateを生成
+                # [OK] 良い例：毎回新しいstateを生成
                 def create_auth_url():
                     state = secrets.token_urlsafe(32)
                     session['oauth_state'] = state
@@ -1209,12 +1209,12 @@ class StatePitfalls:
             {
                 'mistake': 'stateの有効期限なし',
                 'bad_example': '''
-                # ❌ 悪い例：無期限に有効
+                # [NG] 悪い例：無期限に有効
                 def verify_state(state):
                     return state == session.get('oauth_state')
                 ''',
                 'good_example': '''
-                # ✅ 良い例：有効期限付き
+                # [OK] 良い例：有効期限付き
                 def verify_state(state):
                     stored_state = session.get('oauth_state')
                     timestamp = session.get('oauth_state_timestamp', 0)
@@ -1247,7 +1247,7 @@ class TokenHandlingMistakes:
         return {
             'localStorage_abuse': {
                 'bad_example': '''
-                // ❌ 悪い例：LocalStorageに生のトークン
+                // [NG] 悪い例：LocalStorageに生のトークン
                 fetch('/oauth/callback?code=' + code)
                     .then(res => res.json())
                     .then(data => {
@@ -1261,7 +1261,7 @@ class TokenHandlingMistakes:
                     'デバッグツールで誰でも見える'
                 ],
                 'good_example': '''
-                // ✅ 良い例：メモリ内管理 + HttpOnly Cookie
+                // [OK] 良い例：メモリ内管理 + HttpOnly Cookie
                 class TokenManager {
                     constructor() {
                         this.accessToken = null;
@@ -1288,7 +1288,7 @@ class TokenHandlingMistakes:
             
             'token_in_url': {
                 'bad_example': '''
-                # ❌ 悪い例：URLにトークン
+                # [NG] 悪い例：URLにトークン
                 @app.route('/api/data')
                 def get_data():
                     token = request.args.get('access_token')  # URLパラメータ
@@ -1304,7 +1304,7 @@ class TokenHandlingMistakes:
                     'プロキシログに記録'
                 ],
                 'good_example': '''
-                # ✅ 良い例：Authorizationヘッダー
+                # [OK] 良い例：Authorizationヘッダー
                 @app.route('/api/data')
                 def get_data():
                     auth_header = request.headers.get('Authorization')
@@ -1327,7 +1327,7 @@ class TokenHandlingMistakes:
         return {
             'no_expiration_check': {
                 'bad_example': '''
-                # ❌ 悪い例：有効期限チェックなし
+                # [NG] 悪い例：有効期限チェックなし
                 def validate_token(token):
                     try:
                         payload = jwt.decode(token, key, options={"verify_exp": False})
@@ -1336,7 +1336,7 @@ class TokenHandlingMistakes:
                         return None
                 ''',
                 'good_example': '''
-                # ✅ 良い例：適切な検証
+                # [OK] 良い例：適切な検証
                 def validate_token(token):
                     try:
                         # 有効期限も含めて検証
@@ -1379,7 +1379,7 @@ class ErrorHandlingPitfalls:
         return {
             'detailed_error_messages': {
                 'bad_example': '''
-                # ❌ 悪い例：詳細すぎるエラー情報
+                # [NG] 悪い例：詳細すぎるエラー情報
                 @app.route('/oauth/token', methods=['POST'])
                 def token_endpoint():
                     try:
@@ -1408,7 +1408,7 @@ class ErrorHandlingPitfalls:
                 ''',
                 
                 'good_example': '''
-                # ✅ 良い例：最小限のエラー情報
+                # [OK] 良い例：最小限のエラー情報
                 @app.route('/oauth/token', methods=['POST'])
                 def token_endpoint():
                     try:
@@ -1435,7 +1435,7 @@ class ErrorHandlingPitfalls:
             
             'timing_attacks': {
                 'bad_example': '''
-                # ❌ 悪い例：タイミング攻撃に脆弱
+                # [NG] 悪い例：タイミング攻撃に脆弱
                 def verify_client_secret(client_id, provided_secret):
                     client = get_client(client_id)
                     if not client:
@@ -1446,7 +1446,7 @@ class ErrorHandlingPitfalls:
                 ''',
                 
                 'good_example': '''
-                # ✅ 良い例：定数時間比較
+                # [OK] 良い例：定数時間比較
                 import hmac
                 
                 def verify_client_secret(client_id, provided_secret):
@@ -1476,7 +1476,7 @@ class ConfigurationMistakes:
         return {
             'development_settings_in_production': {
                 'bad_example': '''
-                # ❌ 悪い例：開発設定が本番に
+                # [NG] 悪い例：開発設定が本番に
                 class OAuthConfig:
                     # デバッグモードが有効
                     DEBUG = True
@@ -1492,7 +1492,7 @@ class ConfigurationMistakes:
                 ''',
                 
                 'good_example': '''
-                # ✅ 良い例：環境別設定
+                # [OK] 良い例：環境別設定
                 class OAuthConfig:
                     def __init__(self, env='production'):
                         self.env = env
@@ -1516,7 +1516,7 @@ class ConfigurationMistakes:
             'grant_type_misconfiguration': {
                 'scenario': '不要なグラントタイプの有効化',
                 'bad_example': '''
-                # ❌ 悪い例：すべてのグラントタイプを有効化
+                # [NG] 悪い例：すべてのグラントタイプを有効化
                 ENABLED_GRANT_TYPES = [
                     'authorization_code',
                     'implicit',  # 非推奨
@@ -1527,7 +1527,7 @@ class ConfigurationMistakes:
                 ''',
                 
                 'good_example': '''
-                # ✅ 良い例：必要最小限のグラントタイプ
+                # [OK] 良い例：必要最小限のグラントタイプ
                 def get_allowed_grant_types(client):
                     if client.type == 'public':
                         # パブリッククライアントは限定的
