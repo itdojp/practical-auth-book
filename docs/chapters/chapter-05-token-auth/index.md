@@ -6,6 +6,10 @@ title: "第5章：トークンベース認証"
 
 # 第5章：トークンベース認証
 
+## なぜこの章が重要か
+
+SPA（Single Page Application）やモバイルアプリケーションの普及により、従来のセッションベース認証だけでは対応が難しい要件が増えました。この章では、JWT（JSON Web Token）の利点と課題、そして安全に実装するための要点を整理します。
+
 ## 5.1 JWTの構造と仕組み - なぜJWTが広く採用されているのか
 
 ### 5.1.1 トークンベース認証が生まれた背景
@@ -1607,14 +1611,22 @@ class JWTRevocationChallenge:
 ### 5.4.2 トークン無効化の実装戦略
 
 ```python
+import hashlib
+import json
+import logging
+import time
+
+import jwt
 import redis
-from typing import Set, Optional
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
 class TokenRevocationStrategies:
     """トークン無効化の各種戦略"""
     
-    def __init__(self):
+    def __init__(self, jwt_key: str, jwt_algorithm: str = "HS256"):
+        # 注意: 鍵管理（HS256/RS256/JWKS等）は構成に依存するため要確認
+        self.jwt_key = jwt_key
+        self.jwt_algorithm = jwt_algorithm
         self.redis_client = redis.Redis()
         self.strategies = self._setup_strategies()
     
@@ -1633,16 +1645,39 @@ class TokenRevocationStrategies:
         """ブラックリスト戦略の実装"""
         
         class BlacklistStrategy:
-            def __init__(self, redis_client):
+            def __init__(self, redis_client, jwt_key: str, jwt_algorithm: str):
                 self.redis = redis_client
+                self.jwt_key = jwt_key
+                self.jwt_algorithm = jwt_algorithm
                 self.blacklist_prefix = "revoked_token:"
+
+            def _decode_verified(self, token: str) -> Dict:
+                """署名検証済みのペイロードを取得（期限検証はここでは行わない）"""
+                return jwt.decode(
+                    token,
+                    self.jwt_key,
+                    algorithms=[self.jwt_algorithm],
+                    options={"verify_exp": False, "verify_nbf": False}
+                )
+
+            def _revoke_jti(self, jti: str, exp: int, reason: str) -> bool:
+                ttl = max(int(exp) - int(time.time()), 0)
+                if ttl <= 0:
+                    return False
+
+                self.redis.setex(
+                    f"{self.blacklist_prefix}{jti}",
+                    ttl,
+                    json.dumps({"revoked_at": time.time(), "reason": reason})
+                )
+                return True
             
             def revoke_token(self, token: str):
                 """トークンをブラックリストに追加"""
                 
                 try:
-                    # トークンをデコード（検証なし）
-                    payload = jwt.decode(token, options={"verify_signature": False})
+                    # 注意: 署名未検証のdecode結果を、jti/exp等の判断に使わない
+                    payload = self._decode_verified(token)
                     
                     # JTI（JWT ID）を取得
                     jti = payload.get('jti')
@@ -1651,19 +1686,12 @@ class TokenRevocationStrategies:
                         jti = hashlib.sha256(token.encode()).hexdigest()
                     
                     # 有効期限を取得
-                    exp = payload.get('exp', 0)
-                    ttl = max(exp - int(time.time()), 0)
+                    exp = payload.get('exp')
+                    if exp is None:
+                        return False
                     
                     # ブラックリストに追加（有効期限まで保持）
-                    if ttl > 0:
-                        self.redis.setex(
-                            f"{self.blacklist_prefix}{jti}",
-                            ttl,
-                            json.dumps({
-                                'revoked_at': time.time(),
-                                'reason': 'user_logout'
-                            })
-                        )
+                    if self._revoke_jti(jti, exp, reason="user_logout"):
                         
                         # 統計情報を更新
                         self._update_revocation_stats(jti)
@@ -1678,7 +1706,7 @@ class TokenRevocationStrategies:
                 """トークンが無効化されているかチェック"""
                 
                 try:
-                    payload = jwt.decode(token, options={"verify_signature": False})
+                    payload = self._decode_verified(token)
                     jti = payload.get('jti')
                     
                     if not jti:
@@ -1699,7 +1727,10 @@ class TokenRevocationStrategies:
                 
                 for key in self.redis.scan_iter(match=pattern):
                     token_info = json.loads(self.redis.get(key))
-                    self.revoke_token(token_info['jti'])
+                    jti = token_info.get("jti")
+                    exp = token_info.get("exp")
+                    if jti and exp:
+                        self._revoke_jti(jti, exp, reason="user_disabled")
                 
                 # ユーザーレベルの無効化フラグも設定
                 self.redis.setex(
@@ -1709,17 +1740,8 @@ class TokenRevocationStrategies:
                 )
             
             def cleanup_expired_entries(self):
-                """期限切れエントリのクリーンアップ"""
-                
-                # Redisの有効期限機能により自動削除されるが、
-                # 統計情報などの追加クリーンアップ
-                
-                cleanup_count = 0
-                for key in self.redis.scan_iter(match=f"{self.blacklist_prefix}*"):
-                    if not self.redis.exists(key):
-                        cleanup_count += 1
-                
-                logging.info(f"Cleaned up {cleanup_count} expired blacklist entries")
+                """期限切れエントリのクリーンアップ（Redis TTLにより自動削除）"""
+                pass
                 
             def get_blacklist_stats(self):
                 """ブラックリストの統計情報"""
@@ -1743,20 +1765,30 @@ class TokenRevocationStrategies:
                 
                 return stats
         
-        return BlacklistStrategy(self.redis_client)
+        return BlacklistStrategy(self.redis_client, self.jwt_key, self.jwt_algorithm)
     
     def implement_whitelist_strategy(self):
         """ホワイトリスト戦略の実装"""
         
         class WhitelistStrategy:
-            def __init__(self, redis_client):
+            def __init__(self, redis_client, jwt_key: str, jwt_algorithm: str):
                 self.redis = redis_client
+                self.jwt_key = jwt_key
+                self.jwt_algorithm = jwt_algorithm
                 self.whitelist_prefix = "valid_token:"
+
+            def _decode_verified(self, token: str) -> Dict:
+                return jwt.decode(
+                    token,
+                    self.jwt_key,
+                    algorithms=[self.jwt_algorithm],
+                    options={"verify_exp": False, "verify_nbf": False}
+                )
             
             def register_token(self, token: str, user_id: str):
                 """トークンをホワイトリストに登録"""
                 
-                payload = jwt.decode(token, options={"verify_signature": False})
+                payload = self._decode_verified(token)
                 jti = payload['jti']
                 exp = payload['exp']
                 
@@ -1776,7 +1808,7 @@ class TokenRevocationStrategies:
                 """トークンがホワイトリストに存在するかチェック"""
                 
                 try:
-                    payload = jwt.decode(token, options={"verify_signature": False})
+                    payload = self._decode_verified(token)
                     jti = payload['jti']
                     
                     return self.redis.exists(f"{self.whitelist_prefix}{jti}") > 0
@@ -1787,7 +1819,7 @@ class TokenRevocationStrategies:
             def revoke_token(self, token: str):
                 """トークンをホワイトリストから削除"""
                 
-                payload = jwt.decode(token, options={"verify_signature": False})
+                payload = self._decode_verified(token)
                 jti = payload['jti']
                 
                 self.redis.delete(f"{self.whitelist_prefix}{jti}")
@@ -1809,7 +1841,7 @@ class TokenRevocationStrategies:
                 
                 return sessions
         
-        return WhitelistStrategy(self.redis_client)
+        return WhitelistStrategy(self.redis_client, self.jwt_key, self.jwt_algorithm)
     
     def implement_short_expiry_strategy(self):
         """短い有効期限戦略"""

@@ -1,9 +1,9 @@
 ---
 layout: book
-title: "付録C 用語集"
+order: 18
+title: "付録C: 用語集"
 ---
-
-# 付録C 用語集
+# 付録C: 用語集
 
 ## A
 
