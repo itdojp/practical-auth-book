@@ -6,6 +6,10 @@ title: "第12章：パフォーマンス最適化"
 
 # 第12章：パフォーマンス最適化
 
+## なぜこの章が重要か
+
+認証・認可は全リクエストの入口になりやすく、遅延がユーザー体験やシステム全体のスループットに直結します。この章では、認証処理のボトルネックを特定し、スケーラブルに最適化するための考え方と実装の要点を整理します。
+
 ## 12.1 認証処理のボトルネック
 
 ### 12.1.1 ボトルネックが生まれる理由
@@ -19,12 +23,12 @@ title: "第12章：パフォーマンス最適化"
    # bcryptの例：意図的に遅い処理
    import bcrypt
    
-   # コスト係数12の場合、1回の検証に約250ms
+   # コスト係数12の場合の所要時間は、CPU等の環境で大きく変動します（要確認）
    password = "user_password"
    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(12))
    
    # この検証処理がボトルネック
-   bcrypt.checkpw(password.encode('utf-8'), hashed)  # 250ms
+   bcrypt.checkpw(password.encode('utf-8'), hashed)  # 例
    ```
 
 2. **データベースアクセス**

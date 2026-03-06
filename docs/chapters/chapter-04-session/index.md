@@ -6,6 +6,10 @@ title: "第4章：セッション管理"
 
 # 第4章：セッション管理
 
+## なぜこの章が重要か
+
+HTTPのステートレス性はWebの成功要因ですが、ログイン状態を維持するには別の仕組みが必要です。セッション管理の設計・実装を誤ると、なりすましや権限昇格などのインシデントに直結します。この章では、セッション管理の本質と代表的な実装方式、注意点を整理します。
+
 ## 4.1 HTTPのステートレス性とセッション - なぜセッションが必要になったのか
 
 ### 4.1.1 HTTPプロトコルの設計思想
@@ -741,20 +745,34 @@ class JWTSessionManager:
     def revoke_token(self, token: str):
         """トークンの取り消し"""
         try:
-            # JTIを抽出（検証なしでデコード）
+            # 注意: 署名未検証のペイロードを信頼すると、改ざんトークンによるDoS等の原因になります。
+            # 本番では署名を検証したうえで、jti/exp等を参照してください。
             payload = jwt.decode(
-                token, 
-                options={"verify_signature": False}
+                token,
+                self.secret_key,
+                algorithms=[self.algorithm],
+                options={"verify_exp": False, "verify_nbf": False}
             )
             
             jti = payload.get('jti')
             if jti:
                 self.revoked_tokens.add(jti)
-                # 有効期限まで保持する必要がある
-                self._schedule_cleanup(jti, payload['exp'])
+                # 簡易サンプルとして、有効期限到来後にメモリ上の失効一覧から削除する
+                if 'exp' in payload:
+                    self._schedule_cleanup(jti, payload['exp'])
                 
         except Exception:
             pass  # 無効なトークンは無視
+    
+    def _schedule_cleanup(self, jti: str, exp):
+        """失効済み JTI を有効期限後に削除する簡易実装"""
+        import threading
+        import time
+        
+        delay = max(float(exp) - time.time(), 0)
+        timer = threading.Timer(delay, lambda: self.revoked_tokens.discard(jti))
+        timer.daemon = True
+        timer.start()
     
     def compare_implementations(self):
         """サーバーサイドとクライアントサイドの比較"""

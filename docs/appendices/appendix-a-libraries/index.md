@@ -153,13 +153,15 @@ public class SecurityConfig {
 
 ### A.2.1 商用サービス
 
+※ 価格は変更されるため、公式料金表で要確認です。以下は傾向の整理です。
+
 | サービス | 特徴 | 価格帯 | 適用場面 |
 |----------|------|---------|----------|
-| **Auth0** | - 開発者フレンドリー<br>- 豊富な統合<br>- グローバル展開 | 7,000 MAU無料<br>$23~/月 | - スタートアップ<br>- B2C向け<br>- 迅速な開発 |
-| **Okta** | - エンタープライズ向け<br>- 高度な管理機能<br>- コンプライアンス対応 | 要見積もり<br>$2~/user/月 | - 大企業<br>- B2B/B2E<br>- 規制業界 |
-| **AWS Cognito** | - AWS統合<br>- サーバーレス対応<br>- 従量課金 | 50,000 MAU無料<br>$0.0055/MAU | - AWSユーザー<br>- コスト重視<br>- シンプル要件 |
-| **Firebase Auth** | - Google統合<br>- リアルタイムDB連携<br>- モバイル最適化 | 無料枠大<br>$0.06/認証 | - モバイルアプリ<br>- Google生態系<br>- プロトタイプ |
-| **Azure AD B2C** | - Microsoft統合<br>- エンタープライズ機能<br>- ハイブリッドID | 50,000 MAU無料<br>$0.00325/MAU | - Microsoft環境<br>- ハイブリッドクラウド |
+| **Auth0** | - 開発者フレンドリー<br>- 豊富な統合<br>- グローバル展開 | 無料枠あり/従量課金（要確認） | - スタートアップ<br>- B2C向け<br>- 迅速な開発 |
+| **Okta** | - エンタープライズ向け<br>- 高度な管理機能<br>- コンプライアンス対応 | 要見積もり/ユーザー課金（要確認） | - 大企業<br>- B2B/B2E<br>- 規制業界 |
+| **AWS Cognito** | - AWS統合<br>- サーバーレス対応<br>- 従量課金 | 無料枠あり/従量課金（要確認） | - AWSユーザー<br>- コスト重視<br>- シンプル要件 |
+| **Firebase Auth** | - Google統合<br>- リアルタイムDB連携<br>- モバイル最適化 | 無料枠あり/従量課金（要確認） | - モバイルアプリ<br>- Google生態系<br>- プロトタイプ |
+| **Azure AD B2C** | - Microsoft統合<br>- エンタープライズ機能<br>- ハイブリッドID | 無料枠あり/従量課金（要確認） | - Microsoft環境<br>- ハイブリッドクラウド |
 
 ### A.2.2 オープンソース
 
@@ -177,7 +179,7 @@ public class SecurityConfig {
 | アルゴリズム | ライブラリ | 特徴 | 推奨設定 |
 |------------|-----------|------|----------|
 | **Argon2** | argon2-cffi (Python)<br>argon2 (Node.js)<br>Spring Security | - 最新標準<br>- メモリハード<br>- 並列化可能 | memory: 64MB<br>iterations: 3<br>parallelism: 2 |
-| **bcrypt** | bcrypt (各言語)<br>広くサポート | - 実績豊富<br>- 広範なサポート<br>- 固定メモリ | cost factor: 12<br>(2024年基準) |
+| **bcrypt** | bcrypt (各言語)<br>広くサポート | - 実績豊富<br>- 広範なサポート<br>- 固定メモリ | cost factor: 12<br>（目安。環境で要確認） |
 | **scrypt** | scrypt (Node.js)<br>hashlib (Python) | - メモリハード<br>- ASIC耐性<br>- 調整可能 | N: 16384<br>r: 8<br>p: 1 |
 | **PBKDF2** | 標準ライブラリ<br>全言語対応 | - 標準化<br>- 軽量<br>- FIPS認証 | iterations: 600,000<br>SHA-256 |
 
