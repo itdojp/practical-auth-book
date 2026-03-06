@@ -757,12 +757,22 @@ class JWTSessionManager:
             jti = payload.get('jti')
             if jti:
                 self.revoked_tokens.add(jti)
-                # 有効期限まで保持する必要がある
+                # 簡易サンプルとして、有効期限到来後にメモリ上の失効一覧から削除する
                 if 'exp' in payload:
                     self._schedule_cleanup(jti, payload['exp'])
                 
         except Exception:
             pass  # 無効なトークンは無視
+    
+    def _schedule_cleanup(self, jti: str, exp):
+        """失効済み JTI を有効期限後に削除する簡易実装"""
+        import threading
+        import time
+        
+        delay = max(float(exp) - time.time(), 0)
+        timer = threading.Timer(delay, lambda: self.revoked_tokens.discard(jti))
+        timer.daemon = True
+        timer.start()
     
     def compare_implementations(self):
         """サーバーサイドとクライアントサイドの比較"""

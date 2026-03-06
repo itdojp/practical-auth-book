@@ -1813,6 +1813,14 @@ class TokenRevocationStrategies:
                     logging.error(f"Token revocation failed: {e}")
                     return False
             
+            def _update_revocation_stats(self, jti: str):
+                """無効化統計の簡易更新（実運用ではメトリクス基盤に連携）"""
+                self.redis.hincrby("token_revocation_stats", "total_revoked", 1)
+                self.redis.hset("token_revocation_stats", mapping={
+                    "last_revoked_jti": jti,
+                    "last_revoked_at": time.time()
+                })
+            
             def is_token_revoked(self, token: str) -> bool:
                 """トークンが無効化されているかチェック"""
                 
@@ -1837,7 +1845,10 @@ class TokenRevocationStrategies:
                 pattern = f"active_token:user:{user_id}:*"
                 
                 for key in self.redis.scan_iter(match=pattern):
-                    token_info = json.loads(self.redis.get(key))
+                    raw_token_info = self.redis.get(key)
+                    if raw_token_info is None:
+                        continue
+                    token_info = json.loads(raw_token_info)
                     self.revoke_token(token_info['jti'])
                 
                 # ユーザーレベルの無効化フラグも設定
@@ -1937,7 +1948,10 @@ class TokenRevocationStrategies:
                 sessions = []
                 
                 for key in self.redis.scan_iter(match=f"{self.whitelist_prefix}*"):
-                    data = json.loads(self.redis.get(key))
+                    raw_data = self.redis.get(key)
+                    if raw_data is None:
+                        continue
+                    data = json.loads(raw_data)
                     
                     if data['user_id'] == user_id:
                         sessions.append({
