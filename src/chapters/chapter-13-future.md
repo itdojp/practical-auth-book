@@ -1480,7 +1480,7 @@ class RiskBasedAuthenticator:
             'medium': 60,
             'high': 80
         }
-        # TODO: 初期化処理を追加
+        # 演習: 初期化処理を追加してください（例: モデル/特徴量の初期化）
     
     async def authenticate(self, credentials, context):
         """
@@ -1493,7 +1493,7 @@ class RiskBasedAuthenticator:
         Returns:
             認証結果とリスク評価
         """
-        # TODO: 実装を完成させる
+        # 演習: authenticate を実装してください
         pass
     
     def calculate_risk_score(self, user_profile, current_context):
@@ -1506,7 +1506,7 @@ class RiskBasedAuthenticator:
         - デバイスの信頼性
         - 最近のアクティビティ
         """
-        # TODO: リスク計算ロジックを実装
+        # 演習: リスク計算ロジックを実装してください
         pass
 ```
 
@@ -1561,7 +1561,7 @@ class RiskBasedAuthenticator:
 class ZeroKnowledgeAuth:
     def __init__(self, security_parameter=128):
         self.security_parameter = security_parameter
-        # TODO: 初期化処理
+        # 演習: 初期化処理（パラメータ生成等）を実装してください
     
     def setup(self):
         """システムパラメータの生成"""
