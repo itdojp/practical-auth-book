@@ -25,6 +25,13 @@ title: "実践 認証認可システム設計"
 - 実装やアーキテクチャ設計に関心が高い読者は、第8〜10章（設計・マイクロサービス・実装パターン）を先に読み、その後前半章や付録で詳細仕様を確認する形でもよい。
 - 実運用フェーズの課題に直面している読者は、第11〜12章（脅威・性能と監視）を優先し、第1〜10章は必要な部分をピックアップする読み方を想定している。
 
+## 演習・付録の使い方
+
+- 各章末の演習問題は、まず自力で解いたうえで、対応する Appendix E-1〜E-13 の解答を参照すると理解を定着させやすい。
+- 実装や設定で詰まった場合は、[付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/) を先に確認する。
+- 用語や略語を確認したい場合は、[付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/) を辞書として併用する。
+- ライブラリ比較や追加調査を行う場合は、[付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/) と [付録D：参考文献]({{ site.baseurl }}/appendices/appendix-d-references/) を起点にすると判断しやすい。
+
 ## 想定読者
 - Web / モバイルアプリケーションの開発者（ログイン / 権限管理を設計・実装する必要がある方）
 - テックリード / アーキテクト（認証基盤の方式選定、移行、標準化を担う方）
@@ -76,6 +83,7 @@ title: "実践 認証認可システム設計"
 - [付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/)
 - [付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/)
 - [付録D：参考文献]({{ site.baseurl }}/appendices/appendix-d-references/)
+- [付録E：各章演習問題の解答]({{ site.baseurl }}/appendices/appendix-e-01/)（Appendix E-1〜E-13。左側の目次から各章の解答へ移動できます）
 
 ---
 
