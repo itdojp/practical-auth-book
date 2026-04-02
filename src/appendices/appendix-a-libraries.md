@@ -8,7 +8,7 @@
 |-----------|------|----------|--------|
 | **Passport.js** | - 500+の認証戦略<br>- 柔軟なミドルウェア設計<br>- 大規模コミュニティ | - Express/Koa等のNode.jsアプリ<br>- 多様な認証方式が必要な場合 | - セッション管理は別途必要<br>- TypeScript型定義が不完全 |
 | **Auth0 SDK** | - マネージドサービス<br>- 豊富な機能<br>- 優れたドキュメント | - 迅速な開発が必要<br>- エンタープライズ要件 | - ベンダーロックイン<br>- コスト（MAU課金） |
-| **NextAuth.js** | - Next.js最適化<br>- OAuth統合が簡単<br>- TypeScript完全対応 | - Next.jsプロジェクト<br>- JAMstack架構 | - Next.js以外では使いづらい<br>- カスタマイズに限界 |
+| **Auth.js（旧 NextAuth.js）** | - Next.js最適化<br>- OAuth統合が簡単<br>- TypeScript完全対応 | - Next.jsプロジェクト<br>- JAMstack架構 | - Next.js以外では使いづらい<br>- カスタマイズに限界 |
 | **node-oidc-provider** | - OpenID Connect準拠<br>- 高度なカスタマイズ可能<br>- 認定実装 | - OIDCプロバイダー構築<br>- 標準準拠が必須 | - 学習曲線が急<br>- 設定が複雑 |
 
 **実装例：Passport.js**
@@ -378,7 +378,7 @@ cost:
 ### 推奨構成例
 
 **小規模アプリケーション（〜1万ユーザー）**
-- 認証: NextAuth.js or Django-Allauth
+- 認証: Auth.js（旧 NextAuth.js） or Django-Allauth
 - パスワード: bcrypt (cost=12)
 - セッション: JWTまたはCookieセッション
 - MFA: TOTP (Google Authenticator互換)
