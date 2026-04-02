@@ -27,10 +27,10 @@ title: "実践 認証認可システム設計"
 
 ## 演習・付録の使い方
 
-- 各章末の演習問題は、まず自力で解いたうえで、対応する Appendix E-1〜E-13 の解答を参照すると理解を定着させやすい。
+- 各章末の演習問題は、まず自力で解いたうえで、対応する [付録E-1〜E-13]({{ site.baseurl }}/appendices/appendix-e-01/) の解答を参照すると理解を定着させやすい。
 - 実装や設定で詰まった場合は、[付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/) を先に確認する。
 - 用語や略語を確認したい場合は、[付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/) を辞書として併用する。
-- ライブラリ比較や追加調査を行う場合は、[付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/) と [付録D：参考文献]({{ site.baseurl }}/appendices/appendix-d-references/) を起点にすると判断しやすい。
+- ライブラリ比較や追加調査を行う場合は、[付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/) と [付録D：参考資料]({{ site.baseurl }}/appendices/appendix-d-references/) を起点にすると判断しやすい。
 
 ## 想定読者
 - Web / モバイルアプリケーションの開発者（ログイン / 権限管理を設計・実装する必要がある方）
@@ -82,8 +82,8 @@ title: "実践 認証認可システム設計"
 - [付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/)
 - [付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/)
 - [付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/)
-- [付録D：参考文献]({{ site.baseurl }}/appendices/appendix-d-references/)
-- [付録E：各章演習問題の解答]({{ site.baseurl }}/appendices/appendix-e-01/)（Appendix E-1〜E-13。左側の目次から各章の解答へ移動できます）
+- [付録D：参考資料]({{ site.baseurl }}/appendices/appendix-d-references/)
+- [付録E（E-1〜E-13）：各章演習問題の解答]({{ site.baseurl }}/appendices/appendix-e-01/)（左側の目次から各章の解答へ移動できます）
 
 ---
 
