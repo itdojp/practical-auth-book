@@ -71,11 +71,11 @@
 ### SAML
 
 - **SAML 2.0 Core**
-  - URL: http://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf
+  - URL: https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf
   - 説明: SAML 2.0の中核仕様
 
 - **SAML 2.0 Profiles**
-  - URL: http://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
+  - URL: https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
   - 説明: SAML 2.0の使用プロファイル
 
 ## D.2 実装ガイド・ベストプラクティス
