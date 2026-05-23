@@ -18,6 +18,16 @@ title: "実践 認証認可システム設計"
 - 単一システムだけでなくマイクロサービス構成における認証・認可の設計パターンを理解し、実装・移行時の注意点を検討できるようになる。
 - 実運用を想定したセキュリティ脅威・性能・監視の観点から、認証認可システム全体を見直し、改善ポイントを洗い出せるようになる。
 
+## 実務適用とレビューゲート
+
+この書籍のコード例と設計例を実務に適用する前に、次の確認を必須とする。
+
+- **公式仕様の確認日を記録する**: OAuth 2.0 Security BCP（RFC 9700）、OAuth 2.1 draft、OpenID Connect Core、JWT BCP（RFC 8725）、NIST SP 800-63-4、OWASP Cheat Sheet Series の確認日を PR または設計記録に残す。
+- **方式選定を明確にする**: ブラウザアプリ、サーバーサイド Web、ネイティブアプリ、M2M、管理者操作で、Authorization Code + PKCE、Client Credentials、Device Authorization Grant、セッション Cookie、BFF などの採用理由を分けて記録する。
+- **トークン保管と失効を設計する**: アクセストークン、リフレッシュトークン、ID Token、セッション ID を混同せず、保存場所、有効期限、ローテーション、失効、監査ログ、鍵ローテーションを設計単位にする。
+- **Cookie / CSRF / CORS をセットで確認する**: `Secure`、`HttpOnly`、`SameSite`、`__Host-` prefix、CSRF token、Origin / Referer 検証、CORS allowlist を、画面遷移と API 呼び出しごとに確認する。
+- **レビュー完了を merge 条件にする**: GitHub Copilot review の本文、inline comment、suggestion を全件確認し、未解決 review thread が 0 件であることを記録してから merge する。
+
 ## 読み方ガイド
 
 - 認証・認可そのものが初めての読者は、第I部（第1〜3章）を順に読み進めることで、用語と基本構造を一通り押さえてから第II部以降に進むことを推奨する。

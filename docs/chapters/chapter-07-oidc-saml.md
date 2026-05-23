@@ -10,6 +10,16 @@ title: "第7章：OpenID Connect & SAML"
 
 SSO（シングルサインオン）は、「一度のログインで複数のシステムを利用できる」体験を実現します。OpenID ConnectとSAMLは、企業利用を含むフェデレーション認証の中核技術です。一方で、選定や実装を誤ると、セキュリティリスクや運用コストの増大につながります。この章では、フェデレーション認証の基本と、技術選択・実装の要点を整理します。
 
+## 7.0 実務レビューゲート: OIDC / SAML フェデレーション
+
+フェデレーション認証では「ログインできる」ことだけでなく、RP、IdP、テナント、クライアント、API の信頼境界を検証する。OpenID Connect Core と NIST SP 800-63C-4 の考え方を踏まえ、次をレビュー条件にする。
+
+- ID Token は `iss`、`aud`、`exp`、`iat`、署名、鍵 ID、必要に応じて `nonce` と `azp` を検証し、UserInfo やローカルユーザーとの紐付けは `sub` を主キーにする。
+- 複数 IdP / 複数テナントを扱う場合は、issuer ごとに JWKS、client ID、redirect URI、許可ドメイン、属性マッピングを分離する。
+- SAML では署名検証、Audience、Recipient、InResponseTo、NotBefore / NotOnOrAfter、NameID の扱いを確認し、XML 署名ラッピング対策をライブラリ設定で検証する。
+- ログアウトはローカルセッション、IdP セッション、リフレッシュトークン、バックチャネル通知の責務を分け、未対応部分を仕様上の制約として明記する。
+- 個人情報を含む claim / assertion は最小化し、監査ログでは token、assertion、authorization code、session ID をマスクする。
+
 ## 7.1 フェデレーション認証の概念 - 組織間連携の必要性
 
 ### 7.1.1 なぜフェデレーション認証が必要なのか

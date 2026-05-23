@@ -23,13 +23,21 @@ title: "付録D: 参考資料"
   - 説明: 公開クライアントのセキュリティ強化
 
 #### セキュリティ関連
-- **RFC 6819**: OAuth 2.0 Threat Model and Security Considerations
-  - URL: https://datatracker.ietf.org/doc/html/rfc6819
-  - 説明: OAuth 2.0の脅威モデルとセキュリティ考慮事項
+- **RFC 9700**: Best Current Practice for OAuth 2.0 Security
+  - URL: https://www.rfc-editor.org/info/rfc9700
+  - 説明: OAuth 2.0 Security Best Current Practice。RFC 6749、RFC 6750、RFC 6819を更新する現行の実装判断基準
 
-- **OAuth 2.0 Security Best Current Practice**
-  - URL: https://datatracker.ietf.org/doc/draft-ietf-oauth-security-topics/
-  - 説明: 最新のセキュリティベストプラクティス
+- **RFC 9207**: OAuth 2.0 Authorization Server Issuer Identification
+  - URL: https://www.rfc-editor.org/rfc/rfc9207
+  - 説明: mix-up attack対策として認可レスポンスにissuerを含める仕様
+
+- **RFC 9449**: OAuth 2.0 Demonstrating Proof of Possession (DPoP)
+  - URL: https://www.rfc-editor.org/rfc/rfc9449
+  - 説明: sender-constrained tokenをアプリケーション層で実現する仕様
+
+- **OAuth 2.1 Authorization Framework (Internet-Draft)**
+  - URL: https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/
+  - 説明: OAuth 2.0 Security BCP等を取り込む作業中の仕様。実装時はdraft番号と確認日を記録する
 
 ### OpenID Connect
 
@@ -48,8 +56,12 @@ title: "付録D: 参考資料"
 ### JWT/JWS/JWE
 
 - **RFC 7519**: JSON Web Token (JWT)
-  - URL: https://datatracker.ietf.org/doc/html/rfc7519
+  - URL: https://www.rfc-editor.org/info/rfc7519
   - 説明: JWT形式の定義
+
+- **RFC 8725**: JSON Web Token Best Current Practices
+  - URL: https://www.rfc-editor.org/rfc/rfc8725
+  - 説明: JWTの安全な実装・運用に関するBCP
 
 - **RFC 7515**: JSON Web Signature (JWS)
   - URL: https://datatracker.ietf.org/doc/html/rfc7515
@@ -65,12 +77,12 @@ title: "付録D: 参考資料"
 
 ### FIDO2/WebAuthn
 
-- **Web Authentication: W3C Recommendation**
-  - URL: https://www.w3.org/TR/webauthn-2/
-  - 説明: WebAuthn APIの仕様
+- **Web Authentication Level 3**
+  - URL: https://www.w3.org/TR/webauthn-3/
+  - 説明: WebAuthn APIの現行候補仕様。実装時はブラウザ対応状況も確認する
 
-- **FIDO2: CTAP Specification**
-  - URL: https://fidoalliance.org/specs/fido-v2.1-ps-20210615/fido-client-to-authenticator-protocol-v2.1-ps-20210615.html
+- **FIDO2: CTAP 2.2 Proposed Standard**
+  - URL: https://fidoalliance.org/specs/fido-v2.2-ps-20250714/fido-client-to-authenticator-protocol-v2.2-ps-20250714.html
   - 説明: クライアントと認証器間のプロトコル
 
 ### SAML
@@ -99,19 +111,31 @@ title: "付録D: 参考資料"
   - URL: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
   - 内容: パスワード保存のベストプラクティス
 
-- **OWASP Top 10**
-  - URL: https://owasp.org/www-project-top-ten/
+- **OWASP Top 10:2025**
+  - URL: https://owasp.org/Top10/2025/0x00_2025-Introduction/
   - 内容: Webアプリケーションの主要なセキュリティリスク
+
+- **OWASP Cross-Site Request Forgery Prevention Cheat Sheet**
+  - URL: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+  - 内容: CSRF token、SameSite、Origin / Referer検証等の対策
+
+- **OWASP JSON Web Token Cheat Sheet for Java**
+  - URL: https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html
+  - 内容: JWTの保管、fingerprint、失効、クライアント側保管リスク
 
 ### NIST (National Institute of Standards and Technology)
 
-- **NIST SP 800-63B: Digital Identity Guidelines - Authentication and Lifecycle Management**
-  - URL: https://pages.nist.gov/800-63-3/sp800-63b.html
-  - 内容: デジタルアイデンティティの認証ガイドライン
+- **NIST SP 800-63-4: Digital Identity Guidelines**
+  - URL: https://pages.nist.gov/800-63-4/
+  - 内容: デジタルアイデンティティの総合ガイドライン。Rev.4は2025年7月にFinalとして公開
 
-- **NIST SP 800-63C: Digital Identity Guidelines - Federation and Assertions**
-  - URL: https://pages.nist.gov/800-63-3/sp800-63c.html
-  - 内容: フェデレーション認証のガイドライン
+- **NIST SP 800-63B-4: Authentication and Authenticator Management**
+  - URL: https://pages.nist.gov/800-63-4/sp800-63b.html
+  - 内容: 認証器、AAL、ライフサイクル管理のガイドライン
+
+- **NIST SP 800-63C-4: Federation and Assertions**
+  - URL: https://pages.nist.gov/800-63-4/sp800-63c.html
+  - 内容: フェデレーション、assertion、FAL、nonce、audience等のガイドライン
 
 ### 企業・団体のガイド
 
