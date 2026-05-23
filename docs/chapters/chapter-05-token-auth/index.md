@@ -18,7 +18,7 @@ JWTは形式仕様（RFC 7519）だけで安全性が決まるわけではない
 - `iss`、`sub`、`aud`、`exp`、`nbf`、`iat`、`jti` の検証要否をトークン種別ごとに定義し、ID Token と API アクセストークンの検証規則を分離する。
 - ブラウザに長期保存するトークンを最小化する。リフレッシュトークンを扱う場合は、HttpOnly Cookie、ローテーション、再利用検知、端末単位の失効を組み合わせる。
 - `localStorage` は XSS 時の窃取リスクが高い保存先として扱い、採用する場合は CSP、短寿命、スコープ最小化、漏えい時の失効手順を必ず併記する。
-- Cookie を使う場合は `Secure`、`HttpOnly`、`SameSite=Lax` または `Strict`、必要に応じて `__Host-` prefix と CSRF token を併用する。
+- Cookie を使う場合は `Secure`、`HttpOnly`、`SameSite=Lax` または `Strict` を基本とし、クロスサイト送信が業務要件として必要な場合のみ `SameSite=None` と `Secure` を併用する。必要に応じて `__Host-` prefix と CSRF token も組み合わせる。
 
 ## 5.1 JWTの構造と仕組み - なぜJWTが広く採用されているのか
 
