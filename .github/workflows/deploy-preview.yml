@@ -57,9 +57,11 @@ jobs:
       with:
         script: |
           const prNumber = context.payload.pull_request.number;
+          const headRef = context.payload.pull_request.head.ref;
+          const headSha = context.payload.pull_request.head.sha.substring(0, 7);
           const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-preview/pr-${prNumber}/`;
           
-          const comment = `## 📚 Preview Deployment\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Branch: \`${{ github.event.pull_request.head.ref }}\`\n- Commit: \`${{ github.event.pull_request.head.sha.substring(0, 7) }}\`\n- Updated: ${new Date().toUTCString()}\n\n</details>`;
+          const comment = `## 📚 Preview Deployment\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Branch: \`${headRef}\`\n- Commit: \`${headSha}\`\n- Updated: ${new Date().toUTCString()}\n\n</details>`;
           
           // Find existing comment
           const { data: comments } = await github.rest.issues.listComments({
