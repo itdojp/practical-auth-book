@@ -8,7 +8,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   pages: write
   id-token: write
@@ -27,9 +27,6 @@ jobs:
         node-version: '20'
         cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
-      
     - name: Build with preview baseurl
       run: |
         # Backup original config
@@ -57,9 +54,11 @@ jobs:
       with:
         script: |
           const prNumber = context.payload.pull_request.number;
+          const headRef = context.payload.pull_request.head.ref;
+          const headSha = context.payload.pull_request.head.sha.substring(0, 7);
           const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-preview/pr-${prNumber}/`;
           
-          const comment = `## 📚 Preview Deployment\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Branch: \`${{ github.event.pull_request.head.ref }}\`\n- Commit: \`${{ github.event.pull_request.head.sha.substring(0, 7) }}\`\n- Updated: ${new Date().toUTCString()}\n\n</details>`;
+          const comment = `## 📚 Preview Deployment\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Branch: \`${headRef}\`\n- Commit: \`${headSha}\`\n- Updated: ${new Date().toUTCString()}\n\n</details>`;
           
           // Find existing comment
           const { data: comments } = await github.rest.issues.listComments({

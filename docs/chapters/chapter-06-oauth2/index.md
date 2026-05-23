@@ -17,6 +17,16 @@ OAuth 2.0は、外部サービス連携やAPIアクセス権限の委任で広�
 
 以降のコード例は実装イメージを掴むためのサンプルです。適用時はクライアント種別/IdP/脅威モデル等の前提に合わせて要確認です。
 
+## 6.0 実務レビューゲート: OAuth 2.0 / 2.1
+
+2026-05-23時点では、OAuth 2.0 Security Best Current Practice は RFC 9700 として発行済みであり、OAuth 2.1 は IETF Internet-Draft（draft-ietf-oauth-v2-1）である。実装判断では「OAuth 2.1 準拠」と断定せず、RFC 9700 と利用中 IdP の仕様差分を確認する。
+
+- ブラウザを経由する認可フローでは Authorization Code + PKCE（`S256`）を標準とし、Implicit Grant と Resource Owner Password Credentials Grant は新規採用しない。
+- redirect URI は事前登録値と完全一致させ、open redirector、ワイルドカード、環境差分による緩い照合を避ける。
+- `state`、PKCE、OIDC の `nonce`、RFC 9207 の `iss` を、CSRF、code injection、mix-up attack の防御としてどの組み合わせで使うか明示する。
+- 高リスク API では audience restriction、短寿命トークン、refresh token rotation、sender-constrained token（DPoP RFC 9449 や mTLS）、PAR（RFC 9126）の要否を検討する。
+- access token と ID Token の用途を分離し、ID Token を API 認可の bearer token として使わない。
+
 ## 6.1 OAuth 2.0の設計思想 - なぜOAuthが生まれたのか
 
 ### 6.1.1 パスワードアンチパターンの問題

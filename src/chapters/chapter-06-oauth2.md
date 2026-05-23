@@ -4,6 +4,16 @@
 
 現代のWebにおいて、OAuth 2.0は認可の事実上の標準プロトコルです。GitHubでログイン、Googleドライブへのアクセス許可、TwitterへのツイートBot - これらすべてがOAuth 2.0によって実現されています。しかし、その柔軟性ゆえに誤った実装も多く、セキュリティインシデントの原因となっています。この章では、OAuth 2.0が解決する問題、正しい実装方法、そして進化し続けるセキュリティ対策を学びます。
 
+## 6.0 実務レビューゲート: OAuth 2.0 / 2.1
+
+2026-05-23時点では、OAuth 2.0 Security Best Current Practice は RFC 9700 として発行済みであり、OAuth 2.1 は IETF Internet-Draft（draft-ietf-oauth-v2-1）である。実装判断では「OAuth 2.1 準拠」と断定せず、RFC 9700 と利用中 IdP の仕様差分を確認する。
+
+- ブラウザを経由する認可フローでは Authorization Code + PKCE（`S256`）を標準とし、Implicit Grant と Resource Owner Password Credentials Grant は新規採用しない。
+- redirect URI は事前登録値と完全一致させ、open redirector、ワイルドカード、環境差分による緩い照合を避ける。
+- `state`、PKCE、OIDC の `nonce`、RFC 9207 の `iss` を、CSRF、code injection、mix-up attack の防御としてどの組み合わせで使うか明示する。
+- 高リスク API では audience restriction、短寿命トークン、refresh token rotation、sender-constrained token（DPoP RFC 9449 や mTLS）、PAR（RFC 9126）の要否を検討する。
+- access token と ID Token の用途を分離し、ID Token を API 認可の bearer token として使わない。
+
 ## 6.1 OAuth 2.0の設計思想 - なぜOAuthが生まれたのか
 
 ### 6.1.1 パスワードアンチパターンの問題

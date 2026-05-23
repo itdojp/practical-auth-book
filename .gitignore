@@ -163,3 +163,12 @@ content-validation-report.json
 
 # Pre-commit
 .pre-commit-cache/
+
+# Local Jekyll / template build side effects
+Gemfile.lock
+docs/Gemfile
+docs/Gemfile.lock
+docs/_site/
+docs/.jekyll-cache/
+_site_docs/
+docs/chapters/appendix-environment-setup.md
