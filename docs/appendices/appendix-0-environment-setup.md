@@ -1,3 +1,7 @@
+---
+layout: book
+title: "付録0 環境構築と runnable minimum"
+---
 # 付録0 環境構築と runnable minimum
 
 この付録は、各実装章の runnable minimum を安全に確認するための入口です。
