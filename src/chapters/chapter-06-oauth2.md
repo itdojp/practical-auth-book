@@ -14,6 +14,15 @@
 - 高リスク API では audience restriction、短寿命トークン、refresh token rotation、sender-constrained token（DPoP RFC 9449 や mTLS）、PAR（RFC 9126）の要否を検討する。
 - access token と ID Token の用途を分離し、ID Token を API 認可の bearer token として使わない。
 
+## 6.0 Runnable minimum: OAuth 2.0 フローの最小確認
+
+OAuth 2.0 は、認可コードだけでなく state、redirect URI、PKCE、token exchange を一連の流れで確認する。
+
+- **入力**: 検証用 IdP またはローカルモック、登録済み redirect URI、`state`、PKCE `code_verifier` / `code_challenge`。
+- **起動条件**: 本番 IdP の client secret を使わず、検証用 client とローカル callback URL を使う。
+- **期待結果**: 正常な Authorization Code + PKCE は成功し、`state` 不一致、redirect URI 不一致、PKCE 不足、認可コード再利用は拒否される。
+- **確認方法**: 認可開始 URL、callback 検証、token exchange、失敗ケースの HTTP status を記録する。
+
 ## 6.1 OAuth 2.0の設計思想 - なぜOAuthが生まれたのか
 
 ### 6.1.1 パスワードアンチパターンの問題

@@ -32,12 +32,13 @@ title: "実践 認証認可システム設計"
 
 - 認証・認可そのものが初めての読者は、第I部（第1〜3章）を順に読み進めることで、用語と基本構造を一通り押さえてから第II部以降に進むことを推奨する。
 - すでに基本用語は理解しており、「具体的なプロトコルの比較」を重視したい読者は、第4〜7章を軸に読み、必要に応じて第1〜3章に戻って背景概念を補完する読み方も有効である。
-- 実装やアーキテクチャ設計に関心が高い読者は、第8〜10章（設計・マイクロサービス・実装パターン）を先に読み、その後前半章や付録で詳細仕様を確認する形でもよい。
+- 実装やアーキテクチャ設計に関心が高い読者は、[付録0：環境構築と runnable minimum]({{ site.baseurl }}/appendices/appendix-0-environment-setup/) で検証前提を確認してから、第8〜10章（設計・マイクロサービス・実装パターン）を先に読み、その後前半章や付録で詳細仕様を確認する形でもよい。
 - 実運用フェーズの課題に直面している読者は、第11〜12章（脅威・性能と監視）を優先し、第1〜10章は必要な部分をピックアップする読み方を想定している。
 
 ## 演習・付録の使い方
 
 - 各章末の演習問題は、まず自力で解いたうえで、対応する [付録E-1〜E-13]({{ site.baseurl }}/appendices/appendix-e-01/) の解答を参照すると理解を定着させやすい。
+- 実装章を手元で確認する場合は、[付録0：環境構築と runnable minimum]({{ site.baseurl }}/appendices/appendix-0-environment-setup/) の証跡テンプレートを使い、正常系と拒否系をセットで記録する。
 - 実装や設定で詰まった場合は、[付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/) を先に確認する。
 - 用語や略語を確認したい場合は、[付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/) を辞書として併用する。
 - ライブラリ比較や追加調査を行う場合は、[付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/) と [付録D：参考資料]({{ site.baseurl }}/appendices/appendix-d-references/) を起点にすると判断しやすい。
@@ -89,6 +90,7 @@ title: "実践 認証認可システム設計"
 
 ### 付録
 
+- [付録0：環境構築と runnable minimum]({{ site.baseurl }}/appendices/appendix-0-environment-setup/)
 - [付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/)
 - [付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/)
 - [付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/)

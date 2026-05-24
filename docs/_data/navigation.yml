@@ -29,6 +29,8 @@ chapters:
 - title: 第13章：将来展望と新技術
   path: /chapters/chapter-13-future/
 appendices:
+- title: '付録0: 環境構築と runnable minimum'
+  path: /appendices/appendix-0-environment-setup/
 - title: '付録A: ライブラリとツール'
   path: /appendices/appendix-a-libraries/
 - title: '付録B: トラブルシューティング'
