@@ -1,5 +1,6 @@
 ---
 layout: book
+order: 15.5
 title: "付録0 環境構築と runnable minimum"
 ---
 # 付録0 環境構築と runnable minimum

@@ -46,7 +46,7 @@
 ### 段階的な実装アプローチ
 
 最小構成から始めて徐々に機能を追加していく実装アプローチを採用しています。各段階での学習ポイントを明示し、失敗例（アンチパターン）からも学べる構成です。
-実装章に入る前に、[付録0：環境構築と runnable minimum]({{ site.baseurl }}/appendices/appendix-0-environment-setup/) でローカル検証条件と証跡テンプレートを確認してください。
+実装章に入る前に、[付録0：環境構築と runnable minimum](../appendices/appendix-0-environment-setup.md) でローカル検証条件と証跡テンプレートを確認してください。
 
 ### 実務直結の包括的内容
 
