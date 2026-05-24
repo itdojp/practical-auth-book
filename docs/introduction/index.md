@@ -78,6 +78,7 @@ title: "はじめに"
 ## 演習・付録の使い方
 
 - 各章末の演習問題は、まず自力で解き、その後に対応する 付録E-1〜E-13 の解答を確認すると理解を定着させやすい構成です。
+- 実装章の検証に入る前に、[付録0：環境構築と runnable minimum]({{ site.baseurl }}/appendices/appendix-0-environment-setup/) を確認し、本番値を使わないローカル検証条件と証跡テンプレートを準備してください。
 - 実装や設定で詰まった場合は、[付録B：トラブルシューティング]({{ site.baseurl }}/appendices/appendix-b-troubleshooting/) を先に確認してください。
 - 用語や略語を確認したい場合は、[付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/) を辞書として併用すると読み進めやすくなります。
 - ライブラリ比較や追加調査を行う場合は、[付録A：参考ライブラリ・ツール]({{ site.baseurl }}/appendices/appendix-a-libraries/) と [付録D：参考文献]({{ site.baseurl }}/appendices/appendix-d-references/) を参照してください。

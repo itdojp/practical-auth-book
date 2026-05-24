@@ -4,6 +4,7 @@
 
 - 公開ページ（GitHub Pages）: [practical-auth-book](https://itdojp.github.io/practical-auth-book/)
 - 目次（リポジトリ内）: `docs/index.md`
+- 環境構築と runnable minimum: [`docs/appendices/appendix-0-environment-setup/`](docs/appendices/appendix-0-environment-setup/)
 - シリーズ: [it-engineer-knowledge-architecture](https://github.com/itdojp/it-engineer-knowledge-architecture)
 
 ## フィードバック（誤り指摘・改善提案）

@@ -14,6 +14,15 @@
 - ログアウトはローカルセッション、IdP セッション、リフレッシュトークン、バックチャネル通知の責務を分け、未対応部分を仕様上の制約として明記する。
 - 個人情報を含む claim / assertion は最小化し、監査ログでは token、assertion、authorization code、session ID をマスクする。
 
+## 7.0 Runnable minimum: OIDC / SAML メタデータ検証の最小確認
+
+フェデレーション連携では、メタデータを読み込むだけでなく、issuer、audience、署名鍵、callback の一致を確認する。
+
+- **入力**: 検証用 OIDC discovery document または SAML metadata、テスト用 client / SP 設定。
+- **起動条件**: 本番テナントの metadata URL や証明書を直接流用せず、検証環境の値を使う。
+- **期待結果**: issuer、audience、署名鍵、ACS / redirect URI が一致する場合のみ成功し、古い metadata、未知の鍵、audience 不一致は拒否される。
+- **確認方法**: metadata 更新日、検証に使った issuer、成功/失敗ケース、ロールバック方法を記録する。
+
 ## 7.1 フェデレーション認証の概念 - 組織間連携の必要性
 
 ### 7.1.1 なぜフェデレーション認証が必要なのか
