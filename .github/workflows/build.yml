@@ -44,6 +44,32 @@ jobs:
     - name: Check Jekyll Liquid conflicts
       run: |
         npm run check-conflicts
+
+    - name: Guard legacy src-only content edits
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # `docs/` is the canonical Pages source for this repository.
+        # The legacy `npm run build` path regenerates `docs/` from `src/`
+        # and can drop current Jekyll route/assets fixes, so PRs must not
+        # change source markdown without carrying the matching published docs.
+        git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+
+        src_changes="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- 'src/**/*.md' || true)"
+        docs_changes="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- 'docs/*.md' 'docs/**/*.md' || true)"
+
+        if [ -n "$src_changes" ] && [ -z "$docs_changes" ]; then
+          {
+            echo "::error::src/ markdown changed without matching docs/ markdown updates."
+            echo "Changed src files:"
+            echo "$src_changes"
+            echo
+            echo "Update the corresponding docs/ published files or explain why the src-only change is non-publishing."
+          } >&2
+          exit 1
+        fi
         
     - name: Setup Pages
       uses: actions/configure-pages@v5
