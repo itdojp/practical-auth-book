@@ -10,13 +10,14 @@
   "scripts": {
     "setup": "node easy-setup.js",
     "build": "node scripts/build-simple.js",
-    "build:full": "node scripts/build.js",
+    "build:full": "npm run build:safe",
     "preview": "npm run build && npx http-server docs -p 8080 --silent",
     "clean": "rm -rf docs output temp",
     "lint:light": "markdownlint 'src/**/*.md' --ignore node_modules",
     "test:light": "npm run lint:light && npm run build",
     "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run preview - Local preview'",
-    "check:metadata": "node scripts/check-metadata-consistency.js"
+    "check:metadata": "node scripts/check-metadata-consistency.js",
+    "build:safe": "node scripts/build-with-conflict-detection.js"
   },
   "dependencies": {
     "fs-extra": "^11.3.0",

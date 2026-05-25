@@ -148,6 +148,9 @@ function routeExists(route) {
 }
 
 function checkRouteSource(route, sourceFile, context) {
+  if (typeof route !== 'string') {
+    return;
+  }
   if (!routeExists(route)) {
     fail(sourceFile, `${context} の path に対応する docs ソースがありません: ${route}（候補: ${routeCandidates(route).join(', ')}）`);
   }
