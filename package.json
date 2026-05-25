@@ -1,8 +1,8 @@
 {
-  "name": "book-publishing-template-improved",
-  "version": "2.0.0",
-  "description": "Improved Book Publishing Template with Easy Setup",
-  "author": "Book Publishing Template Contributors",
+  "name": "practical-auth-book",
+  "version": "1.0.0",
+  "description": "認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書",
+  "author": "ITDO Inc.（株式会社アイティードゥ）",
   "license": "CC-BY-NC-SA-4.0",
   "engines": {
     "node": ">=20.0.0"
@@ -11,8 +11,8 @@
     "setup": "node easy-setup.js",
     "build": "node scripts/build-simple.js",
     "build:safe": "node scripts/build-with-conflict-detection.js",
-    "build:full": "node scripts/build.js",
-    "preview": "npm run build && npx http-server public -p 8080 --silent",
+    "build:full": "npm run build:safe",
+    "preview": "npm run build && npx http-server docs -p 8080 --silent",
     "clean-nav": "node scripts/navigation-cleaner.js",
     "deploy": "bash scripts/deploy.sh",
     "clean": "rm -rf public output temp",
@@ -26,12 +26,13 @@
     "build:validate": "npm run build && npm run check-links",
     "setup:hooks": "./scripts/setup-pre-commit.sh",
     "validate:config": "./scripts/validate-config.sh",
-    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run build:safe - Build with conflict detection\n  npm run build:validate - Build and check links\n  npm run check-conflicts - Check Jekyll conflicts\n  npm run fix-conflicts - Auto-fix Jekyll conflicts\n  npm run check-links - Validate internal links\n  npm run setup:hooks - Install pre-commit hooks\n  npm run validate:config - Validate configuration files\n  npm run preview - Local preview\n  npm run configure:workflows - Disable problematic workflows\n  npm run deploy - Deploy to GitHub Pages'"
+    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run build:safe - Build with conflict detection\n  npm run check:metadata - Validate metadata and navigation consistency\n  npm test - Run metadata and conflict checks\n  npm run build:validate - Build and check links\n  npm run check-conflicts - Check Jekyll conflicts\n  npm run fix-conflicts - Auto-fix Jekyll conflicts\n  npm run check-links - Validate internal links\n  npm run setup:hooks - Install pre-commit hooks\n  npm run validate:config - Validate configuration files\n  npm run preview - Local preview\n  npm run configure:workflows - Disable problematic workflows\n  npm run deploy - Deploy to GitHub Pages'",
+    "check:metadata": "node scripts/check-metadata-consistency.js",
+    "test": "npm run check:metadata && npm run check-conflicts"
   },
   "dependencies": {
     "fs-extra": "^11.3.0",
-    "gray-matter": "^4.0.3",
-    "glob": "^10.3.10"
+    "glob": "^10.5.0"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
@@ -56,5 +57,5 @@
   "bugs": {
     "url": "https://github.com/itdojp/practical-auth-book/issues"
   },
-  "homepage": "https://github.com/itdojp/practical-auth-book#readme"
+  "homepage": "https://itdojp.github.io/practical-auth-book/"
 }

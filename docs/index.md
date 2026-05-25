@@ -2,6 +2,10 @@
 layout: book
 order: 1
 title: "実践 認証認可システム設計"
+description: "認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書"
+author: "ITDO Inc.（株式会社アイティードゥ）"
+version: "1.0.0"
+permalink: /
 ---
 # 実践 認証認可システム設計
 

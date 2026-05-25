@@ -7,6 +7,22 @@
 - 環境構築と runnable minimum: [`docs/appendices/appendix-0-environment-setup/`](docs/appendices/appendix-0-environment-setup/)
 - シリーズ: [it-engineer-knowledge-architecture](https://github.com/itdojp/it-engineer-knowledge-architecture)
 
+## ローカル品質ゲート
+
+公開前に、書籍メタデータと公開ナビゲーションの整合性を確認します。
+
+```bash
+npm ci --omit=optional
+npm run check:metadata
+npm test
+```
+
+`npm run check:metadata` は `book-config.json`、`package.json`、
+`package-lock.json`、Jekyll 設定、トップページ front matter、
+`docs/_data/navigation.yml`、公開ルート、必要なレイアウト・アセットを
+照合します。章や付録の公開パスを追加・変更した場合は、
+`book-config.json` とナビゲーションを同じ PR で更新してください。
+
 ## フィードバック（誤り指摘・改善提案）
 
 誤字脱字、技術的な誤り、改善提案は Issues / PR で受け付けます。
