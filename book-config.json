@@ -10,21 +10,202 @@
     "branch": "main"
   },
   "structure": {
+    "introduction": [
+      {
+        "id": "introduction",
+        "title": "はじめに",
+        "path": "/introduction/",
+        "description": "本書の狙い、構成、学習の進め方"
+      }
+    ],
     "chapters": [
       {
-        "id": "chapter01",
-        "title": "第1章：認証認可の基礎概念",
-        "description": "基本的な概念と原理"
+        "id": "chapter-01-overview",
+        "title": "第1章：認証・認可とは何か",
+        "path": "/chapters/chapter-01-overview/",
+        "description": "認証・認可の全体像と基本概念"
       },
       {
-        "id": "chapter02",
-        "title": "第2章：JWT実装と設計",
-        "description": "JSON Web Tokenの実装"
+        "id": "chapter-02-authentication",
+        "title": "第2章：認証（Authentication）の基礎",
+        "path": "/chapters/chapter-02-authentication/",
+        "description": "本人確認の基本構造と認証要素"
       },
       {
-        "id": "chapter03",
-        "title": "第3章：OAuth 2.0とOpenID Connect",
-        "description": "OAuth 2.0フローの実装"
+        "id": "chapter-03-authorization",
+        "title": "第3章：認可（Authorization）の基礎",
+        "path": "/chapters/chapter-03-authorization/",
+        "description": "アクセス制御と権限モデルの基礎"
+      },
+      {
+        "id": "chapter-04-session",
+        "title": "第4章：セッション管理",
+        "path": "/chapters/chapter-04-session/",
+        "description": "Cookie とセッションライフサイクルの設計"
+      },
+      {
+        "id": "chapter-05-token-auth",
+        "title": "第5章：トークンベース認証",
+        "path": "/chapters/chapter-05-token-auth/",
+        "description": "JWT とトークン運用の実務設計"
+      },
+      {
+        "id": "chapter-06-oauth2",
+        "title": "第6章：OAuth 2.0",
+        "path": "/chapters/chapter-06-oauth2/",
+        "description": "OAuth 2.0 フローと安全な利用条件"
+      },
+      {
+        "id": "chapter-07-oidc-saml",
+        "title": "第7章：OpenID ConnectとSAML",
+        "path": "/chapters/chapter-07-oidc-saml/",
+        "description": "OIDC / SAML によるフェデレーション認証"
+      },
+      {
+        "id": "chapter-08-auth-system-design",
+        "title": "第8章：認証システムの設計",
+        "path": "/chapters/chapter-08-auth-system-design/",
+        "description": "認証基盤のアーキテクチャ設計"
+      },
+      {
+        "id": "chapter-09-microservices-auth",
+        "title": "第9章：マイクロサービスにおける認証・認可",
+        "path": "/chapters/chapter-09-microservices-auth/",
+        "description": "分散システムでの認証・認可パターン"
+      },
+      {
+        "id": "chapter-10-implementation-patterns",
+        "title": "第10章：実装パターンとベストプラクティス",
+        "path": "/chapters/chapter-10-implementation-patterns/",
+        "description": "実装時の標準パターンと安全な構成"
+      },
+      {
+        "id": "chapter-11-security-threats",
+        "title": "第11章：セキュリティ脅威と対策",
+        "path": "/chapters/chapter-11-security-threats/",
+        "description": "攻撃手法、脅威モデリング、防御設計"
+      },
+      {
+        "id": "chapter-12-performance",
+        "title": "第12章：パフォーマンスと監視",
+        "path": "/chapters/chapter-12-performance/",
+        "description": "性能、可用性、監視指標の設計"
+      },
+      {
+        "id": "chapter-13-future",
+        "title": "第13章：今後の展望",
+        "path": "/chapters/chapter-13-future/",
+        "description": "パスワードレス、分散ID、量子耐性などの展望"
+      }
+    ],
+    "appendices": [
+      {
+        "id": "appendix-0-environment-setup",
+        "title": "付録0：環境構築と runnable minimum",
+        "path": "/appendices/appendix-0-environment-setup/",
+        "description": "最小実行環境と正常系・拒否系の検証手順"
+      },
+      {
+        "id": "appendix-a-libraries",
+        "title": "付録A：参考ライブラリ・ツール",
+        "path": "/appendices/appendix-a-libraries/",
+        "description": "主要ライブラリとツールの比較"
+      },
+      {
+        "id": "appendix-b-troubleshooting",
+        "title": "付録B：トラブルシューティング",
+        "path": "/appendices/appendix-b-troubleshooting/",
+        "description": "実装・運用時の代表的な問題と対処"
+      },
+      {
+        "id": "appendix-c-glossary",
+        "title": "付録C：用語集",
+        "path": "/appendices/appendix-c-glossary/",
+        "description": "認証・認可に関する用語集"
+      },
+      {
+        "id": "appendix-d-references",
+        "title": "付録D：参考資料",
+        "path": "/appendices/appendix-d-references/",
+        "description": "公式仕様、標準文書、参考資料"
+      },
+      {
+        "id": "appendix-e-01",
+        "title": "付録E-1：第1章演習問題解答",
+        "path": "/appendices/appendix-e-01/",
+        "description": "第1章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-02",
+        "title": "付録E-2：第2章演習問題解答",
+        "path": "/appendices/appendix-e-02/",
+        "description": "第2章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-03",
+        "title": "付録E-3：第3章演習問題解答",
+        "path": "/appendices/appendix-e-03/",
+        "description": "第3章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-04",
+        "title": "付録E-4：第4章演習問題解答",
+        "path": "/appendices/appendix-e-04/",
+        "description": "第4章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-05",
+        "title": "付録E-5：第5章演習問題解答",
+        "path": "/appendices/appendix-e-05/",
+        "description": "第5章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-06",
+        "title": "付録E-6：第6章演習問題解答",
+        "path": "/appendices/appendix-e-06/",
+        "description": "第6章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-07",
+        "title": "付録E-7：第7章演習問題解答",
+        "path": "/appendices/appendix-e-07/",
+        "description": "第7章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-08",
+        "title": "付録E-8：第8章演習問題解答",
+        "path": "/appendices/appendix-e-08/",
+        "description": "第8章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-09",
+        "title": "付録E-9：第9章演習問題解答",
+        "path": "/appendices/appendix-e-09/",
+        "description": "第9章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-10",
+        "title": "付録E-10：第10章演習問題解答",
+        "path": "/appendices/appendix-e-10/",
+        "description": "第10章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-11",
+        "title": "付録E-11：第11章演習問題解答",
+        "path": "/appendices/appendix-e-11/",
+        "description": "第11章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-12",
+        "title": "付録E-12：第12章演習問題解答",
+        "path": "/appendices/appendix-e-12/",
+        "description": "第12章の演習問題解答"
+      },
+      {
+        "id": "appendix-e-13",
+        "title": "付録E-13：第13章演習問題解答",
+        "path": "/appendices/appendix-e-13/",
+        "description": "第13章の演習問題解答"
       }
     ]
   },
@@ -51,5 +232,6 @@
   "shared": {
     "version": "3.2.2",
     "lastSync": "2026-02-04T23:00:52.928Z"
-  }
+  },
+  "homepage": "https://itdojp.github.io/practical-auth-book/"
 }
