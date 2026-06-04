@@ -15,8 +15,9 @@
     "clean": "rm -rf docs output temp",
     "lint:light": "markdownlint 'src/**/*.md' --ignore node_modules",
     "test:light": "npm run lint:light && npm run build",
-    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run preview - Local preview'",
+    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run check:security - Run npm audit without optional dependencies\n  npm run preview - Local preview'",
     "check:metadata": "node scripts/check-metadata-consistency.js",
+    "check:security": "npm audit --omit=optional",
     "build:safe": "node scripts/build-with-conflict-detection.js"
   },
   "dependencies": {
@@ -25,7 +26,7 @@
   },
   "devDependencies": {
     "http-server": "^14.1.1",
-    "markdownlint-cli": "^0.33.0"
+    "markdownlint-cli": "^0.48.0"
   },
   "optionalDependencies": {
     "sharp": "^0.34.2",

@@ -26,6 +26,13 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      run: npm ci --omit=optional
+
+    - name: Security audit
+      run: npm run check:security
         
     - name: Build with preview baseurl
       run: |

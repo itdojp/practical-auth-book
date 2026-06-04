@@ -19,6 +19,22 @@ jobs:
       - name: Checkout book
         uses: actions/checkout@v6
 
+      - name: Setup Node.js for book checks
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install book dependencies
+        run: npm ci --omit=optional
+
+      - name: Security audit
+        run: npm run check:security
+
+      - name: Local npm quality gate
+        run: npm test
+
       - name: Checkout book-formatter (pinned)
         uses: actions/checkout@v6
         with:
@@ -32,9 +48,6 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: book-formatter/package-lock.json
-
-      - name: Metadata and navigation consistency
-        run: npm run check:metadata
 
       - name: Install dependencies (book-formatter)
         working-directory: book-formatter
