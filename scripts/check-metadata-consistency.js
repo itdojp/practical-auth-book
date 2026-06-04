@@ -226,6 +226,7 @@ for (const file of ['package.json', 'package-simple.json']) {
   expectEqual(file, 'repository.url', pkg.repository && pkg.repository.url, EXPECTED.packageRepoUrl);
   expectEqual(file, 'bugs.url', pkg.bugs && pkg.bugs.url, EXPECTED.issuesUrl);
   expectEqual(file, 'homepage', pkg.homepage, EXPECTED.homepage);
+  expectEqual(file, 'scripts.check:security', pkg.scripts && pkg.scripts['check:security'], 'npm audit --omit=optional');
   if (pkg.dependencies && Object.prototype.hasOwnProperty.call(pkg.dependencies, 'gray-matter')) {
     fail(file, '未使用かつ脆弱な transitive dependency を含む gray-matter は dependencies から除外してください');
   }
@@ -325,6 +326,16 @@ for (const asset of requiredAssets) {
 const packageJsonText = readText('package.json');
 if (!packageJsonText.includes('"check:metadata"')) {
   fail('package.json', 'check:metadata スクリプトを設定してください');
+}
+if (!packageJsonText.includes('"check:security"')) {
+  fail('package.json', 'check:security スクリプトを設定してください');
+}
+
+const readmeText = readText('README.md');
+for (const command of ['npm ci --omit=optional', 'npm run check:security', 'npm test']) {
+  if (!readmeText.includes(command)) {
+    fail('README.md', `ローカル品質ゲートに ${command} を記載してください`);
+  }
 }
 
 if (errors.length) {

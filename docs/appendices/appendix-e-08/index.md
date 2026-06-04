@@ -450,6 +450,7 @@ class UnifiedAuthService:
 
 **多言語対応エラーメッセージ体系**
 
+{% raw %}
 ```python
 from enum import Enum
 from typing import Dict, Optional
@@ -586,6 +587,7 @@ class SecureErrorHandler:
                 retry_after=5
             )
 ```
+{% endraw %}
 
 ## 問題5：パフォーマンス設計
 

@@ -13,10 +13,12 @@
 
 ```bash
 npm ci --omit=optional
+npm run check:security
 npm run check:metadata
 npm test
 ```
 
+`npm run check:security` は optional dependency を除外した `npm audit` を実行し、CI と同じ依存関係範囲で既知脆弱性がないことを確認します。
 `npm run check:metadata` は `book-config.json`、`package.json`、
 `package-lock.json`、Jekyll 設定、トップページ front matter、
 `docs/_data/navigation.yml`、公開ルート、必要なレイアウト・アセットを

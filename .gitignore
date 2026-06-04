@@ -166,9 +166,15 @@ content-validation-report.json
 
 # Local Jekyll / template build side effects
 Gemfile.lock
+.bundle/
+vendor/bundle/
+_site/
+.jekyll-cache/
+.jekyll-metadata
 docs/Gemfile
 docs/Gemfile.lock
 docs/_site/
 docs/.jekyll-cache/
+docs/.jekyll-metadata
 _site_docs/
 docs/chapters/appendix-environment-setup.md
