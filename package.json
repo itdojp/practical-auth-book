@@ -58,5 +58,10 @@
   "bugs": {
     "url": "https://github.com/itdojp/practical-auth-book/issues"
   },
-  "homepage": "https://itdojp.github.io/practical-auth-book/"
+  "homepage": "https://itdojp.github.io/practical-auth-book/",
+  "overrides": {
+    "js-yaml": "4.3.0",
+    "markdown-it": "14.2.0",
+    "linkify-it": "5.0.1"
+  }
 }
