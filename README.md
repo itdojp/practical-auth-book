@@ -18,6 +18,8 @@ npm run check:metadata
 npm test
 ```
 
+注: `markdownlint-cli` は CI の Node 20 互換を維持するため 0.48 系のまま使い、audit findings は `markdownlint-cli` 配下に限定した `overrides` で解消しています。
+
 `npm run check:security` は optional dependency を除外した `npm audit` を実行し、CI と同じ依存関係範囲で既知脆弱性がないことを確認します。
 `npm run check:metadata` は `book-config.json`、`package.json`、
 `package-lock.json`、Jekyll 設定、トップページ front matter、
