@@ -81,7 +81,16 @@ class LinkChecker {
     // navigation/configuration is the source of truth for reader routes.
     const configPath = path.join(docsDir, '..', 'book-config.json');
     let config = {};
-    try { config = JSON.parse(await fs.readFile(configPath, 'utf8')); } catch (_) { /* built fixture */ }
+    try {
+      config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+    } catch (error) {
+      // A standalone docs fixture may omit book-config.json, but an existing
+      // malformed or unreadable config must fail closed instead of silently
+      // reducing the set of reader-facing routes to validate.
+      if (error.code !== 'ENOENT') {
+        throw new Error(`Unable to read or parse ${configPath}: ${error.message}`);
+      }
+    }
     try {
       const yaml = await fs.readFile(path.join(docsDir, '_config.yml'), 'utf8');
       const match = yaml.match(/^baseurl:\s*["']?([^"'\s]+)["']?/m);
@@ -227,8 +236,9 @@ class LinkChecker {
   }
 
   resolveLink(link, fromFile, docsDir) {
+    const original = link;
     link = this.normalizeLiquidUrl(link);
-    if (link === null) return { skip: true, original: link };
+    if (link === null) return { skip: true, original };
     // Handle fragment-only links
     if (link.startsWith('#')) {
       return {
@@ -267,7 +277,10 @@ class LinkChecker {
   normalizeLiquidUrl(url) {
     const original = url.trim();
     let normalized = original
-      .replace(LIQUID_SITE_URL, 'https://itdojp.github.io')
+      // site.url denotes this site regardless of the Pages host used by a
+      // fork or local configuration. Normalize it to the site root rather
+      // than hard-coding the canonical production host.
+      .replace(LIQUID_SITE_URL, '')
       .replace(LIQUID_BASEURL, this.baseurl)
       .replace(LIQUID_RELATIVE_URL, '$2')
       .replace(LIQUID_LINK_TAG, '$1');
@@ -276,9 +289,6 @@ class LinkChecker {
     if (/\{[%{].*[%}]\}/.test(normalized)) {
       this.skippedDynamicLinks.add(original);
       return null;
-    }
-    if (/^https?:\/\//.test(normalized) && this.baseurl && normalized.startsWith(`https://itdojp.github.io${this.baseurl}`)) {
-      return normalized.slice(`https://itdojp.github.io`.length);
     }
     if (this.baseurl && normalized.startsWith(`${this.baseurl}/`)) {
       return normalized.slice(this.baseurl.length);
