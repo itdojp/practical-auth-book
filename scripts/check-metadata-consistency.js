@@ -249,6 +249,12 @@ if (!lockRoot) {
   expectEqual('package-lock.json', 'packages[""].name', lockRoot.name, 'practical-auth-book');
   expectEqual('package-lock.json', 'packages[""].version', lockRoot.version, bookConfig.version);
   expectEqual('package-lock.json', 'packages[""].license', lockRoot.license, bookConfig.license);
+  expectEqual(
+    'package-lock.json',
+    'packages[""].optionalDependencies.puppeteer',
+    lockRoot.optionalDependencies && lockRoot.optionalDependencies.puppeteer,
+    canonicalPackage.optionalDependencies && canonicalPackage.optionalDependencies.puppeteer
+  );
   if (lockRoot.dependencies && Object.prototype.hasOwnProperty.call(lockRoot.dependencies, 'gray-matter')) {
     fail('package-lock.json', 'packages[""].dependencies に gray-matter を残さないでください');
   }
