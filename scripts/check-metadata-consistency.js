@@ -303,6 +303,47 @@ for (const section of ['introduction', 'chapters', 'appendices']) {
 checkUnique('docs/_data/navigation.yml', navRoutes, 'navigation path');
 compareRouteSets('docs/_data/navigation.yml', 'book-config.json structure', structureRoutes, 'docs/_data/navigation.yml', navRoutes);
 
+// UX modules must be backed by the published route manifest. Do not use the
+// legacy flat duplicates as evidence: structure and navigation are the
+// reader-facing source of truth.
+const uxModules = bookConfig.ux && bookConfig.ux.modules;
+const expectedUx = {
+  readingGuide: true,
+  checklistPack: true,
+  troubleshootingFlow: true,
+  figureIndex: false,
+  glossary: true,
+};
+if (!uxModules || typeof uxModules !== 'object') {
+  fail('book-config.json', 'ux.modules を設定してください');
+} else {
+  for (const [module, expected] of Object.entries(expectedUx)) {
+    if (uxModules[module] !== expected) {
+      fail('book-config.json', `ux.modules.${module} は ${expected} にしてください（現在: ${uxModules[module]}）`);
+    }
+  }
+}
+
+const uxRouteEvidence = {
+  readingGuide: '/introduction/',
+  troubleshootingFlow: '/appendices/appendix-b-troubleshooting/',
+  glossary: '/appendices/appendix-c-glossary/',
+};
+for (const [module, route] of Object.entries(uxRouteEvidence)) {
+  if (!structureRoutes.includes(route)) {
+    fail('book-config.json', `ux.modules.${module} の公開 route evidence が structure にありません: ${route}`);
+  }
+  if (!navRoutes.includes(route)) {
+    fail('docs/_data/navigation.yml', `ux.modules.${module} の公開 route evidence が navigation にありません: ${route}`);
+  }
+  checkRouteSource(route, 'book-config.json', `ux.modules.${module}`);
+}
+const figureIndexRoutes = [...structureRoutes, ...navRoutes]
+  .filter(route => /figure[-_/]?(index|list)|図一覧/i.test(route));
+if (uxModules && uxModules.figureIndex === false && figureIndexRoutes.length) {
+  fail('book-config.json', `figure index が無効なのに公開 route が登録されています: ${figureIndexRoutes.join(', ')}`);
+}
+
 const currentDocsRoutes = [];
 for (const section of ['introduction', 'chapters', 'appendices']) {
   const dir = path.join(ROOT, 'docs', section);

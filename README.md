@@ -16,6 +16,7 @@ npm ci --omit=optional
 npm run check:security
 npm run check:metadata
 npm test
+npm run build:validate
 ```
 
 注: `markdownlint-cli` は CI の Node 20 互換を維持するため 0.48 系のまま使い、audit findings は `markdownlint-cli` 配下に限定した `overrides` で解消しています。
@@ -26,6 +27,7 @@ npm test
 `docs/_data/navigation.yml`、公開ルート、必要なレイアウト・アセットを
 照合します。章や付録の公開パスを追加・変更した場合は、
 `book-config.json` とナビゲーションを同じ PR で更新してください。
+`build:validate` は正本の `docs/` を再生成せず、公開route、画像、anchorを含む内部リンクを検証します。
 
 ## フィードバック（誤り指摘・改善提案）
 
