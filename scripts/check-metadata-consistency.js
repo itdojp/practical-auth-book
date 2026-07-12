@@ -216,6 +216,7 @@ expectEqual('book-config.json', 'homepage', bookConfig.homepage, EXPECTED.homepa
 expectEqual('book-config.json', 'repository.url', bookConfig.repository && bookConfig.repository.url, EXPECTED.repoGitUrl);
 expectEqual('book-config.json', 'repository.branch', bookConfig.repository && bookConfig.repository.branch, 'main');
 
+const canonicalPackage = readJson('package.json') || {};
 for (const file of ['package.json', 'package-simple.json']) {
   const pkg = readJson(file) || {};
   expectEqual(file, 'name', pkg.name, 'practical-auth-book');
@@ -227,6 +228,12 @@ for (const file of ['package.json', 'package-simple.json']) {
   expectEqual(file, 'bugs.url', pkg.bugs && pkg.bugs.url, EXPECTED.issuesUrl);
   expectEqual(file, 'homepage', pkg.homepage, EXPECTED.homepage);
   expectEqual(file, 'scripts.check:security', pkg.scripts && pkg.scripts['check:security'], 'npm audit --omit=optional');
+  expectEqual(
+    file,
+    'optionalDependencies.puppeteer',
+    pkg.optionalDependencies && pkg.optionalDependencies.puppeteer,
+    canonicalPackage.optionalDependencies && canonicalPackage.optionalDependencies.puppeteer
+  );
   if (pkg.dependencies && Object.prototype.hasOwnProperty.call(pkg.dependencies, 'gray-matter')) {
     fail(file, '未使用かつ脆弱な transitive dependency を含む gray-matter は dependencies から除外してください');
   }

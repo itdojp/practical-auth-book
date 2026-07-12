@@ -30,7 +30,7 @@
   },
   "optionalDependencies": {
     "sharp": "^0.34.2",
-    "puppeteer": "^21.0.0"
+    "puppeteer": "^24.29.1"
   },
   "keywords": [
     "book",
