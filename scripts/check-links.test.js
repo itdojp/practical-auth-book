@@ -25,8 +25,10 @@ function resetFixture(indexContent) {
   }));
   write('docs/_config.yml', 'baseurl: "/practical-auth-book"\n');
   write('docs/_data/navigation.yml', '- title: Guide\n  path: /guide/\n');
+  write('docs/_layouts/book.html', '<link rel="stylesheet" href="{{ \'/assets/main.css\' | relative_url }}">\n');
   write('docs/index.md', indexContent);
   write('docs/guide/index.md', '# Guide\n\n## Target {#target}\n');
+  write('docs/assets/main.css', 'body {}\n');
   write('docs/assets/diagram.svg', '<svg xmlns="http://www.w3.org/2000/svg"></svg>\n');
   write('docs/legacy.md', '# Legacy\n');
 }
@@ -61,6 +63,14 @@ const valid = `# Home
     await run(valid.replace('#target', '#missing-anchor'), false, 'cross-file missing anchor must fail');
     await run(`${valid}\n[legacy](legacy.md)\n`, false, 'unpublished legacy document must fail');
     await run(`${valid}\n[root](/#missing-root)\n`, false, 'missing root anchor must fail');
+
+    resetFixture(valid);
+    write('docs/_layouts/book.html', '<link rel="stylesheet" href="{{ \'/assets/missing.css\' | relative_url }}">\n');
+    assert.equal(
+      await new LinkChecker().checkLinks(docs),
+      false,
+      'a missing asset referenced by a rendered layout must fail'
+    );
 
     const checker = new LinkChecker();
     checker.baseurl = '/practical-auth-book';

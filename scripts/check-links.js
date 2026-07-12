@@ -115,6 +115,15 @@ class LinkChecker {
         this.registerPublicTarget(route, candidate);
       }
     }
+    // Layouts and includes are not reader routes, but their href/src values
+    // are rendered into every public page. Scan them as link sources without
+    // registering the template files themselves as public targets.
+    for (const template of await glob('{_layouts,_includes}/**/*.{html,md}', {
+      cwd: docsDir,
+      nodir: true
+    })) {
+      this.publicFiles.add(template);
+    }
     // Static assets may contain HTML entry points, but never Jekyll internals.
     for (const file of await glob('**/*.html', { cwd: docsDir, nodir: true })) {
       if (!file.startsWith('_') && !file.includes('/_')) {
@@ -194,11 +203,17 @@ class LinkChecker {
 
     // Code examples are not reader links. Remove fenced, indented, inline and
     // HTML code regions before extracting reader-facing links.
-    const withoutCode = content
+    let withoutCode = content
       .replace(/(^|\n)([ \t]*)(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2\3[ \t]*(?=\n|$)/g, '$1')
-      .replace(/<(pre|code)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
-      .replace(/(^|\n)(?: {4}|\t).*?(?=\n|$)/g, '$1')
-      .replace(/`+[^`\n]*`+/g, '');
+      .replace(/<(pre|code)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+    // Indentation and backticks represent code only in Markdown. Applying
+    // those removals to HTML templates would erase normally indented tags and
+    // JavaScript template literals before their rendered asset links are read.
+    if (filePath.endsWith('.md')) {
+      withoutCode = withoutCode
+        .replace(/(^|\n)(?: {4}|\t).*?(?=\n|$)/g, '$1')
+        .replace(/`+[^`\n]*`+/g, '');
+    }
     
     // Match markdown links: [text](url)
     const mdLinks = withoutCode.match(/(?<!!)\[([^\]]+)\]\(([^)]+)\)/g) || [];
@@ -208,17 +223,16 @@ class LinkChecker {
     }
     
     // Match HTML links: href="url"
-    const htmlLinks = withoutCode.match(/href=["']([^"']+)["']/g) || [];
-    for (const match of htmlLinks) {
-      const url = match.match(/href=["']([^"']+)["']/)[1];
-      links.push(url);
-    }
+    for (const match of withoutCode.matchAll(/href=(["'])(.*?)\1/gi)) links.push(match[2]);
 
     // Images are public assets and must remain covered by the link gate.
     const markdownImages = withoutCode.match(/!\[[^\]]*\]\(([^)]+)\)/g) || [];
     for (const match of markdownImages) links.push(match.match(/\]\(([^)]+)\)/)[1]);
-    const htmlImages = withoutCode.match(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi) || [];
-    for (const match of htmlImages) links.push(match.match(/\bsrc=["']([^"']+)["']/i)[1]);
+    const htmlImages = withoutCode.match(/<img\b[^>]*>/gi) || [];
+    for (const image of htmlImages) {
+      const src = image.match(/\bsrc=(["'])(.*?)\1/i);
+      if (src) links.push(src[2]);
+    }
     
     return links;
   }
