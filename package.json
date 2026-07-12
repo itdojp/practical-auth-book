@@ -23,13 +23,14 @@
     "test:light": "npm run lint:light && npm run build",
     "test:conflicts": "npm run check-conflicts",
     "check-links": "node scripts/check-links.js",
-    "build:validate": "npm run build && npm run check-links",
+    "build:validate": "npm run check:metadata && npm run check-links",
     "setup:hooks": "./scripts/setup-pre-commit.sh",
     "validate:config": "./scripts/validate-config.sh",
-    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run build:safe - Build with conflict detection\n  npm run check:metadata - Validate metadata and navigation consistency\n  npm run check:security - Run npm audit without optional dependencies\n  npm test - Run metadata and conflict checks\n  npm run build:validate - Build and check links\n  npm run check-conflicts - Check Jekyll conflicts\n  npm run fix-conflicts - Auto-fix Jekyll conflicts\n  npm run check-links - Validate internal links\n  npm run setup:hooks - Install pre-commit hooks\n  npm run validate:config - Validate configuration files\n  npm run preview - Local preview\n  npm run configure:workflows - Disable problematic workflows\n  npm run deploy - Deploy to GitHub Pages'",
+    "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run build:safe - Build with conflict detection\n  npm run check:metadata - Validate metadata and navigation consistency\n  npm run check:security - Run npm audit without optional dependencies\n  npm test - Run metadata, conflicts, and link checker fixtures\n  npm run build:validate - Validate canonical published metadata and links without regenerating docs\n  npm run check-conflicts - Check Jekyll conflicts\n  npm run fix-conflicts - Auto-fix Jekyll conflicts\n  npm run check-links - Validate published internal links, images, and anchors\n  npm run setup:hooks - Install pre-commit hooks\n  npm run validate:config - Validate configuration files\n  npm run preview - Local preview\n  npm run configure:workflows - Disable problematic workflows\n  npm run deploy - Deploy to GitHub Pages'",
     "check:metadata": "node scripts/check-metadata-consistency.js",
     "check:security": "npm audit --omit=optional",
-    "test": "npm run check:metadata && npm run check-conflicts"
+    "test:links": "node scripts/check-links.test.js",
+    "test": "npm run check:metadata && npm run check-conflicts && npm run test:links"
   },
   "dependencies": {
     "fs-extra": "^11.3.0",

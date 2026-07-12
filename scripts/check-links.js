@@ -10,6 +10,11 @@ const fs = require('fs').promises;
 const path = require('path');
 const { glob } = require('glob');
 
+const LIQUID_BASEURL = /\{\{\s*site\.baseurl\s*\}\}/g;
+const LIQUID_SITE_URL = /\{\{\s*site\.url\s*\}\}/g;
+const LIQUID_RELATIVE_URL = /\{\{\s*(['"])([^'"]+)\1\s*\|\s*relative_url\s*\}\}/g;
+const LIQUID_LINK_TAG = /\{%\s*link\s+([^%]+?)\s*%\}/g;
+
 // Color output for better UX
 const colors = {
   green: (text) => `\x1b[32m${text}\x1b[0m`,
@@ -24,6 +29,10 @@ class LinkChecker {
     this.checkedLinks = new Set();
     this.existingFiles = new Map();
     this.anchorsByFile = new Map();
+    this.publicFiles = new Set();
+    this.publicTargets = new Set();
+    this.skippedDynamicLinks = new Set();
+    this.baseurl = '';
   }
 
   log(message, type = 'info') {
@@ -39,9 +48,10 @@ class LinkChecker {
   async buildFileIndex(docsDir) {
     this.log('Building file index...');
     
-    const files = await glob('**/*.{html,md}', {
+    const files = await glob('**/*', {
       cwd: docsDir,
-      absolute: false
+      absolute: false,
+      nodir: true
     });
     
     for (const file of files) {
@@ -63,6 +73,77 @@ class LinkChecker {
     }
     
     this.log(`Indexed ${files.length} files`);
+  }
+
+  async buildPublicFileSet(docsDir) {
+    // _layouts/_includes are implementation details, and the flat .md files
+    // beside generated route directories are legacy duplicates.  The
+    // navigation/configuration is the source of truth for reader routes.
+    const configPath = path.join(docsDir, '..', 'book-config.json');
+    let config = {};
+    try { config = JSON.parse(await fs.readFile(configPath, 'utf8')); } catch (_) { /* built fixture */ }
+    try {
+      const yaml = await fs.readFile(path.join(docsDir, '_config.yml'), 'utf8');
+      const match = yaml.match(/^baseurl:\s*["']?([^"'\s]+)["']?/m);
+      this.baseurl = match ? match[1].replace(/\/$/, '') : '';
+    } catch (_) { this.baseurl = ''; }
+
+    const routes = [];
+    for (const section of ['introduction', 'chapters', 'appendices']) {
+      for (const item of (config.structure?.[section] || [])) routes.push(item.path);
+    }
+    const navigation = await fs.readFile(path.join(docsDir, '_data', 'navigation.yml'), 'utf8').catch(() => '');
+    for (const match of navigation.matchAll(/^\s*path:\s*["']?([^"'\s]+)["']?/gm)) routes.push(match[1]);
+    const uniqueRoutes = [...new Set(['/'].concat(routes))];
+    for (const route of uniqueRoutes) {
+      const relative = route.replace(/^\//, '').replace(/\/$/, '');
+      const candidates = route === '/'
+        ? ['index.md', 'index.html']
+        : [`${relative}/index.md`, `${relative}/index.html`, `${relative}.md`, `${relative}.html`];
+      const candidate = candidates.find(file => this.existingFiles.has(file));
+      if (candidate) {
+        this.publicFiles.add(candidate);
+        this.registerPublicTarget(route, candidate);
+      }
+    }
+    // Static assets may contain HTML entry points, but never Jekyll internals.
+    for (const file of await glob('**/*.html', { cwd: docsDir, nodir: true })) {
+      if (!file.startsWith('_') && !file.includes('/_')) {
+        this.publicFiles.add(file);
+        this.publicTargets.add(file);
+      }
+    }
+    // Jekyll copies non-document assets below docs unless the path belongs to
+    // an internal underscore directory.
+    for (const file of this.existingFiles.keys()) {
+      if (/\.(?:md|html?)$/i.test(file)) continue;
+      if (file.split('/').some(part => part.startsWith('_') || part.startsWith('.'))) continue;
+      this.publicTargets.add(file);
+    }
+  }
+
+  registerPublicTarget(route, sourceFile) {
+    const relativeRoute = route.replace(/^\//, '');
+    for (const value of [route, relativeRoute, sourceFile]) {
+      this.publicTargets.add(value.replace(/^\//, ''));
+    }
+    if (sourceFile.endsWith('.md')) this.publicTargets.add(sourceFile.replace(/\.md$/, '.html'));
+    if (route === '/') {
+      for (const value of ['', '/', 'index.md', 'index.html']) this.publicTargets.add(value);
+    } else {
+      const base = relativeRoute.replace(/\/$/, '');
+      for (const value of [base, `${base}/`, `${base}/index.md`, `${base}/index.html`, `${base}.md`, `${base}.html`]) {
+        this.publicTargets.add(value);
+      }
+    }
+  }
+
+  async buildAnchorIndex(docsDir) {
+    for (const file of this.publicFiles) {
+      if (!/\.(?:md|html?)$/i.test(file)) continue;
+      const content = await fs.readFile(path.join(docsDir, file), 'utf8');
+      await this.extractAnchors(file, content);
+    }
   }
 
   async extractAnchors(filePath, content) {
@@ -101,32 +182,40 @@ class LinkChecker {
 
   extractLinks(content, filePath) {
     const links = [];
+
+    // Code examples are not reader links. Remove fenced, indented, inline and
+    // HTML code regions before extracting reader-facing links.
+    const withoutCode = content
+      .replace(/(^|\n)([ \t]*)(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2\3[ \t]*(?=\n|$)/g, '$1')
+      .replace(/<(pre|code)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+      .replace(/(^|\n)(?: {4}|\t).*?(?=\n|$)/g, '$1')
+      .replace(/`+[^`\n]*`+/g, '');
     
     // Match markdown links: [text](url)
-    const mdLinks = content.match(/\[([^\]]+)\]\(([^)]+)\)/g) || [];
+    const mdLinks = withoutCode.match(/(?<!!)\[([^\]]+)\]\(([^)]+)\)/g) || [];
     for (const match of mdLinks) {
       const url = match.match(/\]\(([^)]+)\)/)[1];
       links.push(url);
     }
     
     // Match HTML links: href="url"
-    const htmlLinks = content.match(/href=["']([^"']+)["']/g) || [];
+    const htmlLinks = withoutCode.match(/href=["']([^"']+)["']/g) || [];
     for (const match of htmlLinks) {
       const url = match.match(/href=["']([^"']+)["']/)[1];
       links.push(url);
     }
-    
-    // Match image sources
-    const imgSrcs = content.match(/(?:src|\!\[[^\]]*\]\()([^"')]+)/g) || [];
-    for (const match of imgSrcs) {
-      const url = match.replace(/^(src=|!\[[^\]]*\]\()/, '').replace(/["']$/, '');
-      links.push(url);
-    }
+
+    // Images are public assets and must remain covered by the link gate.
+    const markdownImages = withoutCode.match(/!\[[^\]]*\]\(([^)]+)\)/g) || [];
+    for (const match of markdownImages) links.push(match.match(/\]\(([^)]+)\)/)[1]);
+    const htmlImages = withoutCode.match(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi) || [];
+    for (const match of htmlImages) links.push(match.match(/\bsrc=["']([^"']+)["']/i)[1]);
     
     return links;
   }
 
   isInternalLink(url) {
+    url = url.trim();
     // Skip external URLs
     if (url.match(/^https?:\/\//)) return false;
     if (url.match(/^mailto:/)) return false;
@@ -138,6 +227,8 @@ class LinkChecker {
   }
 
   resolveLink(link, fromFile, docsDir) {
+    link = this.normalizeLiquidUrl(link);
+    if (link === null) return { skip: true, original: link };
     // Handle fragment-only links
     if (link.startsWith('#')) {
       return {
@@ -148,7 +239,8 @@ class LinkChecker {
     }
     
     // Split link and fragment
-    const [pathname, fragment] = link.split('#');
+    const [pathnameWithQuery, fragment] = link.split('#');
+    const pathname = pathnameWithQuery.split('?', 1)[0];
     
     let resolvedPath;
     
@@ -163,6 +255,7 @@ class LinkChecker {
     
     // Normalize path
     resolvedPath = resolvedPath.replace(/\/+/g, '/');
+    if (resolvedPath === '') resolvedPath = 'index.html';
     
     return {
       file: resolvedPath,
@@ -171,39 +264,77 @@ class LinkChecker {
     };
   }
 
+  normalizeLiquidUrl(url) {
+    const original = url.trim();
+    let normalized = original
+      .replace(LIQUID_SITE_URL, 'https://itdojp.github.io')
+      .replace(LIQUID_BASEURL, this.baseurl)
+      .replace(LIQUID_RELATIVE_URL, '$2')
+      .replace(LIQUID_LINK_TAG, '$1');
+    // A URL containing an unresolved variable cannot be checked safely. It is
+    // intentionally skipped, rather than disabling checking for its file.
+    if (/\{[%{].*[%}]\}/.test(normalized)) {
+      this.skippedDynamicLinks.add(original);
+      return null;
+    }
+    if (/^https?:\/\//.test(normalized) && this.baseurl && normalized.startsWith(`https://itdojp.github.io${this.baseurl}`)) {
+      return normalized.slice(`https://itdojp.github.io`.length);
+    }
+    if (this.baseurl && normalized.startsWith(`${this.baseurl}/`)) {
+      return normalized.slice(this.baseurl.length);
+    }
+    if (this.baseurl && normalized === this.baseurl) return '/';
+    return normalized;
+  }
+
+  candidateFiles(file) {
+    if (file === '' || file === '/' || file === 'index.html' || file === 'index.md') {
+      return ['index.html', 'index.md', '', '/'];
+    }
+    const normalized = file.replace(/^\//, '');
+    const base = normalized.replace(/\/$/, '');
+    const candidates = [normalized];
+    if (!/\.(?:md|html?)$/i.test(normalized)) {
+      candidates.push(`${base}/`, `${base}/index.html`, `${base}/index.md`, `${base}.html`, `${base}.md`);
+    }
+    return [...new Set(candidates)];
+  }
+
   checkLink(resolved, fromFile) {
     const { file, fragment, original } = resolved;
     
     // Check if file exists
-    let fileExists = false;
-    
-    if (this.existingFiles.has(file)) {
-      fileExists = true;
-    } else if (!file.endsWith('.html') && !file.endsWith('.md')) {
-      // Try with index.html
-      if (this.existingFiles.has(file + '/index.html') ||
-          this.existingFiles.has(file + 'index.html')) {
-        fileExists = true;
-      }
-    }
+    const candidates = this.candidateFiles(file);
+    const matchingTarget = candidates.find(candidate =>
+      this.existingFiles.has(candidate) && this.publicTargets.has(candidate)
+    );
+    const fileExists = Boolean(matchingTarget);
     
     if (!fileExists) {
       return {
         valid: false,
-        reason: 'File not found',
         file: fromFile,
         link: original,
-        target: file
+        target: file,
+        reason: candidates.some(candidate => this.existingFiles.has(candidate))
+          ? 'Target is not published'
+          : 'File not found'
       };
     }
     
     // Check fragment if present
     if (fragment) {
-      const targetFile = file.endsWith('/') ? file + 'index.html' : file;
-      const anchors = this.anchorsByFile.get(targetFile) || 
-                     this.anchorsByFile.get(targetFile.replace('.html', '.md'));
-      
-      if (anchors && !anchors.has(fragment)) {
+      const targetFile = matchingTarget || file;
+      const anchorCandidates = [...new Set([
+        targetFile,
+        ...candidates,
+        targetFile.replace('.html', '.md'),
+        targetFile.replace(/\/index\.html$/, '/index.md'),
+        targetFile.replace(/\.html$/, '/index.md')
+      ])];
+      const anchors = anchorCandidates.map(candidate => this.anchorsByFile.get(candidate)).find(Boolean);
+
+      if (!anchors || !anchors.has(fragment)) {
         return {
           valid: false,
           reason: 'Anchor not found',
@@ -219,11 +350,9 @@ class LinkChecker {
   }
 
   async checkFile(filePath, docsDir) {
+    if (this.publicFiles.size && !this.publicFiles.has(filePath)) return;
     const fullPath = path.join(docsDir, filePath);
     const content = await fs.readFile(fullPath, 'utf-8');
-    
-    // Extract anchors from this file
-    await this.extractAnchors(filePath, content);
     
     // Extract and check links
     const links = this.extractLinks(content, filePath);
@@ -239,6 +368,7 @@ class LinkChecker {
       
       // Resolve and check link
       const resolved = this.resolveLink(link, filePath, docsDir);
+      if (resolved.skip) continue;
       const result = this.checkLink(resolved, filePath);
       
       if (!result.valid) {
@@ -260,6 +390,8 @@ class LinkChecker {
     
     // Build file index
     await this.buildFileIndex(docsDir);
+    await this.buildPublicFileSet(docsDir);
+    await this.buildAnchorIndex(docsDir);
     
     // Check all HTML and Markdown files
     const files = await glob('**/*.{html,md}', {
@@ -271,6 +403,9 @@ class LinkChecker {
     
     for (const file of files) {
       await this.checkFile(file, docsDir);
+    }
+    if (this.skippedDynamicLinks.size) {
+      this.log(`Skipped ${this.skippedDynamicLinks.size} unresolved dynamic Liquid link(s): ${[...this.skippedDynamicLinks].join(', ')}`, 'warning');
     }
     
     // Report results
