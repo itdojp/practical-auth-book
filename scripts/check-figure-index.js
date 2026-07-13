@@ -126,9 +126,11 @@ function validate(root = process.cwd()) {
   }
   const sidebar = read(root, 'docs/_includes/sidebar-nav.html', errors);
   if (!sidebar.includes('navigation.appendices')) errors.push('docs/_includes/sidebar-nav.html: appendices navigation を描画しません');
-  const pageNavigation = read(root, 'docs/_includes/page-navigation.html', errors);
-  if (!pageNavigation.includes('concat: navigation.appendices') || !pageNavigation.includes('rel="prev"') || !pageNavigation.includes('rel="next"')) {
-    errors.push('docs/_includes/page-navigation.html: appendices の previous/next navigation を描画しません');
+  for (const navigationInclude of ['templates/includes/page-navigation.html', 'docs/_includes/page-navigation.html']) {
+    const pageNavigation = read(root, navigationInclude, errors);
+    if (!pageNavigation.includes('concat: navigation.appendices') || !pageNavigation.includes('rel="prev"') || !pageNavigation.includes('rel="next"')) {
+      errors.push(`${navigationInclude}: appendices の previous/next navigation を描画しません`);
+    }
   }
 
   if (!exists(root, FIGURE_INDEX_SOURCE)) errors.push(`${FIGURE_INDEX_SOURCE}: source page がありません`);

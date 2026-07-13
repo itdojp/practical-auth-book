@@ -13,6 +13,7 @@ const files = [
   'docs/index.md',
   'docs/_includes/sidebar-nav.html',
   'docs/_includes/page-navigation.html',
+  'templates/includes/page-navigation.html',
   'src/appendices/figure-index/index.md',
   'docs/appendices/figure-index/index.md',
   ...new Set(FIGURES.flatMap((figure) => [figure.source, figure.docs, `docs/${figure.asset}`])),
