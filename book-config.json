@@ -206,6 +206,12 @@
         "title": "付録E-13：第13章演習問題解答",
         "path": "/appendices/appendix-e-13/",
         "description": "第13章の演習問題解答"
+      },
+      {
+        "id": "appendix-figure-index",
+        "title": "付録：図表索引",
+        "path": "/appendices/figure-index/",
+        "description": "本文から参照する図の掲載箇所と読みどころ"
       }
     ]
   },
@@ -224,7 +230,7 @@
       "checklistPack": true,
       "troubleshootingFlow": true,
       "conceptMap": false,
-      "figureIndex": false,
+      "figureIndex": true,
       "legalNotice": false,
       "glossary": true
     }

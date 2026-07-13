@@ -91,6 +91,14 @@ title: "はじめに"
 
 本書の内容について、ご意見・ご感想がございましたら、GitHub リポジトリの Issue または著者のメールアドレスまでお寄せください。読者の皆様のフィードバックは、本書の改善に大いに役立ちます。
 
+<figure id="figure-book-structure-mindmap">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/introduction/book-structure-mindmap.svg" alt="書籍構造マインドマップ">
+</figure>
+
+<figure id="figure-learning-roadmap">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/introduction/learning-roadmap.svg" alt="学習ロードマップ">
+</figure>
+
 それでは、認証・認可システムの奥深い世界へ、一緒に踏み出しましょう。
 
 2024年7月  

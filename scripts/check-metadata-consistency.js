@@ -311,7 +311,7 @@ const expectedUx = {
   readingGuide: true,
   checklistPack: true,
   troubleshootingFlow: true,
-  figureIndex: false,
+  figureIndex: true,
   glossary: true,
 };
 if (!uxModules || typeof uxModules !== 'object') {
@@ -328,6 +328,7 @@ const uxRouteEvidence = {
   readingGuide: '/introduction/',
   troubleshootingFlow: '/appendices/appendix-b-troubleshooting/',
   glossary: '/appendices/appendix-c-glossary/',
+  figureIndex: '/appendices/figure-index/',
 };
 for (const [module, route] of Object.entries(uxRouteEvidence)) {
   if (!structureRoutes.includes(route)) {
