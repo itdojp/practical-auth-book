@@ -100,6 +100,7 @@ permalink: /
 - [付録C：用語集]({{ site.baseurl }}/appendices/appendix-c-glossary/)
 - [付録D：参考資料]({{ site.baseurl }}/appendices/appendix-d-references/)
 - [付録E（E-1〜E-13）：各章演習問題の解答]({{ site.baseurl }}/appendices/appendix-e-01/)（左側の目次から各章の解答へ移動できます）
+- [付録：図表索引]({{ site.baseurl }}/appendices/figure-index/)
 
 ---
 

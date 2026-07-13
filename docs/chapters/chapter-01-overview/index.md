@@ -45,6 +45,10 @@ title: "第1章 認証認可の全体像"
 
 ### 1.1.2 認証認可が解決する4つの根本的な問題
 
+<figure id="figure-auth-fundamental-problems">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/chapter01/auth-fundamental-problems.svg" alt="認証認可が解決する根本的な問題">
+</figure>
+
 #### 1. アイデンティティの問題：「あなたは誰？」
 
 デジタル世界では、相手の顔が見えません。認証は、デジタル世界における「身分証明書」の役割を果たします。
@@ -121,6 +125,10 @@ title: "第1章 認証認可の全体像"
 ### 1.2.1 認証（Authentication）と認可（Authorization）の違い
 
 多くの開発者が混同するこの2つの概念を、明確に区別しましょう。
+
+<figure id="figure-auth-authz-sequence">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/chapter01/auth-authz-sequence.svg" alt="認証と認可のシーケンス図">
+</figure>
 
 #### 認証（Authentication）- "AuthN"
 
@@ -226,6 +234,10 @@ String username = principal.getName();
 
 認証技術の歴史を理解することで、なぜ現在の技術が生まれたのか、次に何が来るのかが見えてきます。
 
+<figure id="figure-authentication-evolution-timeline">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/chapter01/authentication-evolution-timeline.svg" alt="認証技術の歴史的進化">
+</figure>
+
 #### 第1世代：パスワードのみの時代（1960年代～）
 
 **背景**：メインフレーム時代、限られた人だけがコンピュータを使用
@@ -287,6 +299,10 @@ navigator.credentials.create({
 ```
 
 ### 1.3.2 認可モデルの進化
+
+<figure id="figure-authorization-model-evolution">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/chapter01/authorization-model-evolution.svg" alt="認可モデルの進化">
+</figure>
 
 #### ACL（Access Control List）
 
@@ -373,6 +389,10 @@ def determine_auth_method(risk_score):
 ```
 
 ### 1.3.4 技術選択のフレームワーク
+
+<figure id="figure-technology-selection-framework">
+  <img src="{{ site.baseurl }}/assets/images/diagrams/chapter01/technology-selection-framework.svg" alt="技術選択フレームワーク">
+</figure>
 
 適切な技術を選択するための判断基準：
 
