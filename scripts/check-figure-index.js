@@ -52,7 +52,8 @@ function read(root, relative, errors) {
 
 function exists(root, relative) {
   try {
-    return fs.statSync(path.join(root, relative)).isFile() && fs.statSync(path.join(root, relative)).size > 0;
+    const stat = fs.statSync(path.join(root, relative));
+    return stat.isFile() && stat.size > 0;
   } catch {
     return false;
   }
@@ -72,8 +73,9 @@ function stripFrontMatter(content) {
 }
 
 function parseNavigation(content) {
-  return [...content.matchAll(/^- title:\s*['"]?(.+?)['"]?\r?\n\s*path:\s*(\S+)\s*$/gm)]
-    .map((match) => ({ title: match[1], path: match[2] }));
+  const unquote = (value) => value.trim().replace(/^(['"])(.*)\1$/, '$2');
+  return [...content.matchAll(/^\s*-\s*title:\s*(.+?)\s*\r?\n\s+path:\s*(.+?)\s*$/gm)]
+    .map((match) => ({ title: unquote(match[1]), path: unquote(match[2]) }));
 }
 
 function validate(root = process.cwd()) {
@@ -105,7 +107,9 @@ function validate(root = process.cwd()) {
   if (navEntries.length !== 1 || navEntries[0].path !== FIGURE_INDEX_ROUTE || navEntries[0].title !== FIGURE_INDEX_TITLE) {
     errors.push('docs/_data/navigation.yml: 図表索引の navigation 定義が正しくありません');
   }
-  const navE13 = navigation.findIndex((item) => item.path === '/appendices/appendix-e-13/');
+  const navE13 = navigation.findIndex((item) => (
+    item.path === '/appendices/appendix-e-13/' || item.path === '/appendices/appendix-e-13.html'
+  ));
   const navFigureIndex = navigation.findIndex((item) => item.path === FIGURE_INDEX_ROUTE);
   if (navE13 < 0 || navFigureIndex !== navE13 + 1) {
     errors.push('docs/_data/navigation.yml: 図表索引は付録E-13の直後に配置してください');
