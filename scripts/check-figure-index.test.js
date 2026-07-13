@@ -30,6 +30,14 @@ try {
   files.forEach(copy);
   assert.deepEqual(validate(root), [], 'complete figure-index fixture must pass');
 
+  const docsIndexPath = path.join(root, 'docs/appendices/figure-index/index.md');
+  const docsIndex = fs.readFileSync(docsIndexPath, 'utf8');
+  fs.writeFileSync(docsIndexPath, docsIndex.replace(/\n---\n(?=#)/, '\n---\n\n'));
+  assert.deepEqual(validate(root), [], 'builder front-matter separator must not create false src/docs drift');
+  fs.appendFileSync(docsIndexPath, '\n本文差分\n');
+  assert.ok(validate(root).some((error) => error.includes('図表索引本文が同期していません')), 'actual index body drift must fail closed');
+  copy('docs/appendices/figure-index/index.md');
+
   const configPath = path.join(root, 'book-config.json');
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   config.ux.modules.figureIndex = false;

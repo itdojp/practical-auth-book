@@ -72,6 +72,12 @@ function stripFrontMatter(content) {
   return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
 }
 
+function normalizedMarkdownBody(content) {
+  return stripFrontMatter(content)
+    .replace(/^(?:\r?\n)+/, '')
+    .replace(/\r\n/g, '\n');
+}
+
 function parseNavigation(content) {
   const unquote = (value) => value.trim().replace(/^(['"])(.*)\1$/, '$2');
   return [...content.matchAll(/^\s*-\s*title:\s*(.+?)\s*\r?\n\s+path:\s*(.+?)\s*$/gm)]
@@ -137,7 +143,7 @@ function validate(root = process.cwd()) {
   if (!exists(root, FIGURE_INDEX_DOCS)) errors.push(`${FIGURE_INDEX_DOCS}: published route page がありません`);
   const sourceIndex = read(root, FIGURE_INDEX_SOURCE, errors);
   const docsIndex = read(root, FIGURE_INDEX_DOCS, errors);
-  if (stripFrontMatter(docsIndex) !== sourceIndex) errors.push('src/docs: 図表索引本文が同期していません');
+  if (normalizedMarkdownBody(docsIndex) !== normalizedMarkdownBody(sourceIndex)) errors.push('src/docs: 図表索引本文が同期していません');
   if (docsIndex.includes('.svg')) errors.push(`${FIGURE_INDEX_DOCS}: 図表索引は本文図への deep link だけを掲載し、diagram asset を直接列挙してはいけません`);
 
   const expectedByFile = new Map();
