@@ -5,7 +5,7 @@ version: "1.0.0"
 license: "CC-BY-NC-SA-4.0"
 lang: "ja"
 url: "https://itdojp.github.io"
-baseurl: "/pr-preview/pr-158"
+baseurl: "/practical-auth-book/pr-preview/pr-158"
 repository: "https://github.com/itdojp/practical-auth-book"
 homepage: "https://itdojp.github.io/practical-auth-book/"
 
