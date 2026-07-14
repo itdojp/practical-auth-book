@@ -27,6 +27,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
       
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -71,8 +73,11 @@ jobs:
       with:
         script: |
           const prNumber = context.payload.pull_request.number;
-          const headRef = context.payload.pull_request.head.ref;
-          const headSha = context.payload.pull_request.head.sha.substring(0, 7);
+          const sanitizeInlineCode = (value) => String(value ?? '')
+            .replace(/[\u0000-\u001f\u007f]/g, '-')
+            .replace(/`/g, "'");
+          const headRef = sanitizeInlineCode(context.payload.pull_request.head.ref);
+          const headSha = sanitizeInlineCode(context.payload.pull_request.head.sha.substring(0, 7));
           const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-preview/pr-${prNumber}/`;
           
           const comment = `## 📚 Preview Deployment\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Branch: \`${headRef}\`\n- Commit: \`${headSha}\`\n- Updated: ${new Date().toUTCString()}\n\n</details>`;
