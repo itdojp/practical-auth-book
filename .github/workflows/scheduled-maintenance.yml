@@ -32,18 +32,18 @@ jobs:
           echo "## Dependency Check"
           echo ""
           echo "### Outdated Packages:"
-          echo "\`\`\`"
+          echo '```'
           npm outdated || true
-          echo "\`\`\`"
+          echo '```'
         } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Security audit
       run: |
         {
           echo "### Security Audit:"
-          echo "\`\`\`"
-          npm audit --production || true
-          echo "\`\`\`"
+          echo '```'
+          npm audit --omit=dev || true
+          echo '```'
         } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Check broken external links
@@ -59,9 +59,9 @@ jobs:
         # Check external links (limited to avoid rate limits)
         {
           echo "### External Link Check:"
-          echo "\`\`\`"
+          echo '```'
           linkinator docs --recurse --skip "localhost|127.0.0.1" --timeout 30000 || true
-          echo "\`\`\`"
+          echo '```'
         } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Template update check
