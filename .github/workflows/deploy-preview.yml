@@ -37,6 +37,8 @@ jobs:
       run: npm run check:security
         
     - name: Build with preview baseurl
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         # Backup original config
         cp _config.yml _config.yml.bak || true
@@ -47,7 +49,9 @@ jobs:
         
         # Update baseurl for preview
         if [ -f docs/_config.yml ]; then
-          sed -i 's|baseurl:.*|baseurl: "/pr-preview/pr-${{ github.event.pull_request.number }}"|' docs/_config.yml
+          repo_name="${GITHUB_REPOSITORY#*/}"
+          preview_baseurl="/${repo_name}/pr-preview/pr-${PR_NUMBER}"
+          sed -i "s|^baseurl:.*|baseurl: \"${preview_baseurl}\"|" docs/_config.yml
         fi
         
     - name: Deploy to preview environment
