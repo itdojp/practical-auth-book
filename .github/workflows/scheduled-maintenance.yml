@@ -24,19 +24,23 @@ jobs:
         
     - name: Check for outdated dependencies
       run: |
-        echo "## Dependency Check" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Outdated Packages:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        npm outdated || true
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "## Dependency Check"
+          echo ""
+          echo "### Outdated Packages:"
+          echo "\`\`\`"
+          npm outdated || true
+          echo "\`\`\`"
+        } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Security audit
       run: |
-        echo "### Security Audit:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        npm audit --production || true
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "### Security Audit:"
+          echo "\`\`\`"
+          npm audit --production || true
+          echo "\`\`\`"
+        } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Check broken external links
       continue-on-error: true
@@ -49,21 +53,25 @@ jobs:
         npm run build
         
         # Check external links (limited to avoid rate limits)
-        echo "### External Link Check:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        linkinator docs --recurse --skip "localhost|127.0.0.1" --timeout 30000 || true
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "### External Link Check:"
+          echo "\`\`\`"
+          linkinator docs --recurse --skip "localhost|127.0.0.1" --timeout 30000 || true
+          echo "\`\`\`"
+        } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Template update check
       run: |
-        echo "### Template Version:" >> $GITHUB_STEP_SUMMARY
-        echo "Current version: $(node -p "require('./package.json').version")" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Check for updates at: https://github.com/itdojp/book-publishing-template2/releases" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "### Template Version:"
+          echo "Current version: $(node -p "require('./package.json').version")"
+          echo ""
+          echo "Check for updates at: https://github.com/itdojp/book-publishing-template2/releases"
+        } >> "$GITHUB_STEP_SUMMARY"
         
     - name: Create issue if problems found
       if: failure()
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         script: |
           const title = `Scheduled Maintenance Check - ${new Date().toISOString().split('T')[0]}`;
