@@ -40,19 +40,15 @@ jobs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        # Backup original config
-        cp _config.yml _config.yml.bak || true
-        cp docs/_config.yml docs/_config.yml.bak || true
-        
-        # Build with PR-specific baseurl
+        # The build copies the root config into docs, so update the source first.
+        repo_name="${GITHUB_REPOSITORY#*/}"
+        preview_baseurl="/${repo_name}/pr-preview/pr-${PR_NUMBER}"
+        sed -i "s|^baseurl:.*|baseurl: \"${preview_baseurl}\"|" _config.yml
+
         npm run build
-        
-        # Update baseurl for preview
-        if [ -f docs/_config.yml ]; then
-          repo_name="${GITHUB_REPOSITORY#*/}"
-          preview_baseurl="/${repo_name}/pr-preview/pr-${PR_NUMBER}"
-          sed -i "s|^baseurl:.*|baseurl: \"${preview_baseurl}\"|" docs/_config.yml
-        fi
+
+        # Fail rather than deploy a preview with production link paths.
+        grep -Fx "baseurl: \"${preview_baseurl}\"" docs/_config.yml
         
     - name: Deploy to preview environment
       uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
