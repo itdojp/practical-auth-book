@@ -16,9 +16,9 @@ permissions:
   pull-requests: write
 
 concurrency:
-  # Every preview writes to the shared gh-pages branch; serialize those writes.
+  # Every preview writes to the shared gh-pages branch; serialize and retain them.
   group: preview-${{ github.workflow }}-gh-pages
-  cancel-in-progress: false
+  queue: max
 
 jobs:
   deploy-preview:
