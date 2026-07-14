@@ -2,7 +2,11 @@ name: Deploy Preview
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+  # Unlike pull_request, this event also runs when a conflicted PR is closed.
+  # Cleanup uses only the trusted default-branch workflow and never PR code.
+  pull_request_target:
+    types: [closed]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
@@ -10,16 +14,21 @@ env:
 permissions:
   contents: write
   pull-requests: write
-  pages: write
-  id-token: write
+
+concurrency:
+  # Every preview writes to the shared gh-pages branch; serialize and retain them.
+  group: preview-${{ github.workflow }}-gh-pages
+  queue: max
 
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
       
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -35,43 +44,50 @@ jobs:
       run: npm run check:security
         
     - name: Build with preview baseurl
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        # Backup original config
-        cp _config.yml _config.yml.bak || true
-        cp docs/_config.yml docs/_config.yml.bak || true
-        
-        # Build with PR-specific baseurl
+        # The build copies the root config into docs, so update the source first.
+        repo_name="${GITHUB_REPOSITORY#*/}"
+        preview_baseurl="/${repo_name}/pr-preview/pr-${PR_NUMBER}"
+        sed -i "s|^baseurl:.*|baseurl: \"${preview_baseurl}\"|" _config.yml
+
         npm run build
-        
-        # Update baseurl for preview
-        if [ -f docs/_config.yml ]; then
-          sed -i 's|baseurl:.*|baseurl: "/pr-preview/pr-${{ github.event.pull_request.number }}"|' docs/_config.yml
-        fi
+
+        # Fail rather than deploy a preview with production link paths.
+        grep -Fx "baseurl: \"${preview_baseurl}\"" docs/_config.yml
         
     - name: Deploy to preview environment
-      uses: rossjrw/pr-preview-action@v1
+      uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
       with:
-        source-dir: ./docs/
-        preview-branch: gh-pages
-        umbrella-dir: pr-preview
-        action: deploy
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        folder: ./docs/
+        target-folder: pr-preview/pr-${{ github.event.pull_request.number }}
+        clean: true
+        force: false
+        commit-message: Deploy preview for PR ${{ github.event.pull_request.number }}
         
     - name: Comment preview URL
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         script: |
           const prNumber = context.payload.pull_request.number;
-          const headRef = context.payload.pull_request.head.ref;
-          const headSha = context.payload.pull_request.head.sha.substring(0, 7);
+          const sanitizeInlineCode = (value) => String(value ?? '')
+            .replace(/[\u0000-\u001f\u007f]/g, '-')
+            .replace(/`/g, "'");
+          const headRef = sanitizeInlineCode(context.payload.pull_request.head.ref);
+          const headSha = sanitizeInlineCode(context.payload.pull_request.head.sha.substring(0, 7));
           const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-preview/pr-${prNumber}/`;
           
           const comment = `## 📚 Preview Deployment\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Branch: \`${headRef}\`\n- Commit: \`${headSha}\`\n- Updated: ${new Date().toUTCString()}\n\n</details>`;
           
           // Find existing comment
-          const { data: comments } = await github.rest.issues.listComments({
+          const comments = await github.paginate(github.rest.issues.listComments, {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            issue_number: prNumber
+            issue_number: prNumber,
+            per_page: 100
           });
           
           const botComment = comments.find(comment => 
@@ -90,6 +106,61 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
+              body: comment
+            });
+          }
+
+  cleanup-preview:
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.repository.default_branch }}
+        persist-credentials: false
+
+    - name: Create empty directory for preview cleanup
+      run: |
+        rm -rf "${RUNNER_TEMP}/empty-preview"
+        mkdir -p "${RUNNER_TEMP}/empty-preview"
+
+    - name: Remove preview deployment
+      uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        folder: ${{ runner.temp }}/empty-preview
+        target-folder: pr-preview/pr-${{ github.event.pull_request.number }}
+        clean: true
+        force: false
+        commit-message: Remove preview for PR ${{ github.event.pull_request.number }}
+
+    - name: Mark preview comment as removed
+      uses: actions/github-script@v9
+      with:
+        script: |
+          const prNumber = context.payload.pull_request.number;
+          const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/pr-preview/pr-${prNumber}/`;
+
+          const comments = await github.paginate(github.rest.issues.listComments, {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            per_page: 100
+          });
+
+          const botComment = comments.find(comment =>
+            comment.user.type === 'Bot' && comment.body.includes('Preview Deployment')
+          );
+
+          if (botComment) {
+            const comment = `## 📚 Preview Deployment\n\n🗑️ **Preview Removed**\n\nThe preview environment was removed because this pull request was closed.\n\n🔗 **Preview URL**: ${previewUrl}\n\n---\n\n<details>\n<summary>Preview Details</summary>\n\n- Removed: ${new Date().toUTCString()}\n\n</details>`;
+
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
               body: comment
             });
           }
