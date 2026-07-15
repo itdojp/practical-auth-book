@@ -12,6 +12,7 @@
 公開前に、書籍メタデータと公開ナビゲーションの整合性を確認します。
 
 ```bash
+bundle install
 npm ci --omit=optional
 npm run check:security
 npm run check:metadata
@@ -28,6 +29,10 @@ npm run build:validate
 照合します。章や付録の公開パスを追加・変更した場合は、
 `book-config.json` とナビゲーションを同じ PR で更新してください。
 `build:validate` は正本の `docs/` を再生成せず、公開route、画像、anchorを含む内部リンクを検証します。
+
+`npm run build` は `docs/` を正本として Jekyll で `_site/` に生成します。ビルド中に
+追跡対象の `docs/` は変更されません。旧 `src/` から `docs/` を再生成する移行用処理が必要な場合だけ
+`npm run build:legacy`（または競合検出付きの `npm run build:safe`）を使用してください。
 
 ## フィードバック（誤り指摘・改善提案）
 

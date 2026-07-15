@@ -18,6 +18,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v6
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
       
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -53,12 +59,12 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: build-output
-        path: docs/
+        path: _site/
         retention-days: 7
         
     - name: Test preview server
       run: |
-        npx http-server docs -p 8080 &
+        npx http-server _site -p 8080 &
         sleep 5
         curl -f http://localhost:8080 || exit 1
         echo "Preview server is working"
