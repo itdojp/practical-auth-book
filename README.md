@@ -12,6 +12,7 @@
 公開前に、書籍メタデータと公開ナビゲーションの整合性を確認します。
 
 ```bash
+bundle install
 npm ci --omit=optional
 npm run check:security
 npm run check:metadata
