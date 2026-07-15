@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録E-6: 第6章演習問題解答 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-162/assets/css/main.css">
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-162/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/practical-auth-book/pr-preview/pr-162/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/practical-auth-book/pr-preview/pr-162/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録E-6: 第6章演習問題解答">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-06/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録E-6: 第6章演習問題解答">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/practical-auth-book/pr-preview/pr-162/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/practical-auth-book/pr-preview/pr-162/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-06/" class="toc-link active" aria-current="page">
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録e-6-第6章演習問題解答">付録E-6: 第6章演習問題解答</h1>
+
+<h2 id="問題1oauth-20クライアントの実装">問題1：OAuth 2.0クライアントの実装</h2>
+
+<h3 id="解答">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">secrets</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">aiohttp</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlencode</span><span class="p">,</span> <span class="n">urlparse</span><span class="p">,</span> <span class="n">parse_qs</span>
+<span class="kn">import</span> <span class="nn">jwt</span>
+<span class="kn">from</span> <span class="nn">cryptography.fernet</span> <span class="kn">import</span> <span class="n">Fernet</span>
+
+<span class="k">class</span> <span class="nc">SecureOAuth2Client</span><span class="p">:</span>
+    <span class="s">"""
+    セキュアなOAuth 2.0クライアント実装
+    - Authorization Code Grant with PKCE
+    - 自動トークンリフレッシュ
+    - セキュアなトークン保存
+    """</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">client_secret</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+                 <span class="n">auth_endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">token_endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+                 <span class="n">is_public_client</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">client_id</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span> <span class="o">=</span> <span class="n">client_secret</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">auth_endpoint</span> <span class="o">=</span> <span class="n">auth_endpoint</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">token_endpoint</span> <span class="o">=</span> <span class="n">token_endpoint</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">is_public_client</span> <span class="o">=</span> <span class="n">is_public_client</span>
+        
+        <span class="c1"># トークン暗号化用のキー
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">encryption_key</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">.</span><span class="n">generate_key</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">fernet</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">encryption_key</span><span class="p">)</span>
+        
+        <span class="c1"># メモリ内トークン管理
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_access_token</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_token_expiry</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_token_encrypted</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="c1"># リフレッシュ用のロック
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_lock</span> <span class="o">=</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">Lock</span><span class="p">()</span>
+        
+        <span class="c1"># セッション管理
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_sessions</span> <span class="o">=</span> <span class="p">{}</span>
+        
+    <span class="k">def</span> <span class="nf">generate_pkce_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="s">"""PKCE用のcode_verifierとcode_challengeを生成"""</span>
+        
+        <span class="c1"># Code Verifier: 43-128文字のランダム文字列
+</span>        <span class="n">code_verifier</span> <span class="o">=</span> <span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span>
+            <span class="n">secrets</span><span class="p">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        <span class="p">).</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">).</span><span class="n">rstrip</span><span class="p">(</span><span class="s">'='</span><span class="p">)</span>
+        
+        <span class="c1"># Code Challenge: S256 method
+</span>        <span class="n">challenge_bytes</span> <span class="o">=</span> <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span><span class="p">(</span>
+            <span class="n">code_verifier</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+        <span class="p">).</span><span class="n">digest</span><span class="p">()</span>
+        <span class="n">code_challenge</span> <span class="o">=</span> <span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span>
+            <span class="n">challenge_bytes</span>
+        <span class="p">).</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">).</span><span class="n">rstrip</span><span class="p">(</span><span class="s">'='</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">code_verifier</span><span class="p">,</span> <span class="n">code_challenge</span>
+    
+    <span class="k">def</span> <span class="nf">create_authorization_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redirect_uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                               <span class="n">scope</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="s">"""認可URLの生成（PKCE対応）"""</span>
+        
+        <span class="c1"># State生成（CSRF対策）
+</span>        <span class="n">state</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        
+        <span class="c1"># PKCE生成
+</span>        <span class="n">code_verifier</span><span class="p">,</span> <span class="n">code_challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_pkce_pair</span><span class="p">()</span>
+        
+        <span class="c1"># セッションに保存
+</span>        <span class="n">session_id</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'state'</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
+            <span class="s">'code_verifier'</span><span class="p">:</span> <span class="n">code_verifier</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="n">redirect_uri</span><span class="p">,</span>
+            <span class="s">'created_at'</span><span class="p">:</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># パラメータ構築
+</span>        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'response_type'</span><span class="p">:</span> <span class="s">'code'</span><span class="p">,</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="n">redirect_uri</span><span class="p">,</span>
+            <span class="s">'scope'</span><span class="p">:</span> <span class="s">' '</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">scope</span><span class="p">),</span>
+            <span class="s">'state'</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
+            <span class="s">'code_challenge'</span><span class="p">:</span> <span class="n">code_challenge</span><span class="p">,</span>
+            <span class="s">'code_challenge_method'</span><span class="p">:</span> <span class="s">'S256'</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># 追加パラメータ
+</span>        <span class="n">params</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="n">auth_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">auth_endpoint</span><span class="si">}</span><span class="s">?</span><span class="si">{</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="si">}</span><span class="s">"</span>
+        
+        <span class="k">return</span> <span class="n">auth_url</span><span class="p">,</span> <span class="n">session_id</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">exchange_code_for_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">authorization_response</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                    <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="s">"""認可コードをトークンに交換"""</span>
+        
+        <span class="c1"># URLパース
+</span>        <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">authorization_response</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">parse_qs</span><span class="p">(</span><span class="n">parsed</span><span class="p">.</span><span class="n">query</span><span class="p">)</span>
+        
+        <span class="c1"># エラーチェック
+</span>        <span class="k">if</span> <span class="s">'error'</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">'error'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">error_description</span> <span class="o">=</span> <span class="n">params</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'error_description'</span><span class="p">,</span> <span class="p">[</span><span class="s">''</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="n">OAuthError</span><span class="p">(</span><span class="sa">f</span><span class="s">"Authorization failed: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s"> - </span><span class="si">{</span><span class="n">error_description</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        
+        <span class="c1"># 必須パラメータチェック
+</span>        <span class="k">if</span> <span class="s">'code'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span> <span class="ow">or</span> <span class="s">'state'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">OAuthError</span><span class="p">(</span><span class="s">"Missing required parameters"</span><span class="p">)</span>
+        
+        <span class="n">code</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">'code'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">'state'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># セッション取得と検証
+</span>        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_sessions</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"Session not found"</span><span class="p">)</span>
+        
+        <span class="c1"># セッション有効期限チェック（10分）
+</span>        <span class="k">if</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">session</span><span class="p">[</span><span class="s">'created_at'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">600</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">session_id</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"Session expired"</span><span class="p">)</span>
+        
+        <span class="c1"># State検証
+</span>        <span class="k">if</span> <span class="n">state</span> <span class="o">!=</span> <span class="n">session</span><span class="p">[</span><span class="s">'state'</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"State mismatch - possible CSRF attack"</span><span class="p">)</span>
+        
+        <span class="c1"># トークンリクエスト
+</span>        <span class="n">token_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'grant_type'</span><span class="p">:</span> <span class="s">'authorization_code'</span><span class="p">,</span>
+            <span class="s">'code'</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="n">session</span><span class="p">[</span><span class="s">'redirect_uri'</span><span class="p">],</span>
+            <span class="s">'code_verifier'</span><span class="p">:</span> <span class="n">session</span><span class="p">[</span><span class="s">'code_verifier'</span><span class="p">]</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># コンフィデンシャルクライアントの場合
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">is_public_client</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span><span class="p">:</span>
+            <span class="n">token_data</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span>
+            <span class="n">token_data</span><span class="p">[</span><span class="s">'client_secret'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">token_data</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span>
+        
+        <span class="c1"># セッション削除（一度だけ使用）
+</span>        <span class="k">del</span> <span class="bp">self</span><span class="p">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">session_id</span><span class="p">]</span>
+        
+        <span class="c1"># トークンエンドポイントへのリクエスト
+</span>        <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">token_endpoint</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">token_data</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">'Accept'</span><span class="p">:</span> <span class="s">'application/json'</span><span class="p">}</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="n">error_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="n">OAuthError</span><span class="p">(</span><span class="sa">f</span><span class="s">"Token exchange failed: </span><span class="si">{</span><span class="n">error_data</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+                
+                <span class="n">tokens</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+        
+        <span class="c1"># トークンの保存
+</span>        <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_store_tokens</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">tokens</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_store_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="s">"""トークンの安全な保存"""</span>
+        
+        <span class="c1"># アクセストークンはメモリに保持
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_access_token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">]</span>
+        
+        <span class="c1"># 有効期限の計算
+</span>        <span class="n">expires_in</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'expires_in'</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_token_expiry</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">expires_in</span>
+        
+        <span class="c1"># リフレッシュトークンは暗号化して保存
+</span>        <span class="k">if</span> <span class="s">'refresh_token'</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="n">refresh_bytes</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="s">'refresh_token'</span><span class="p">].</span><span class="n">encode</span><span class="p">()</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_token_encrypted</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fernet</span><span class="p">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">refresh_bytes</span><span class="p">)</span>
+        
+        <span class="c1"># 自動リフレッシュのスケジューリング
+</span>        <span class="k">if</span> <span class="n">expires_in</span> <span class="o">&gt;</span> <span class="mi">300</span><span class="p">:</span>  <span class="c1"># 5分以上の有効期限
+</span>            <span class="n">refresh_time</span> <span class="o">=</span> <span class="n">expires_in</span> <span class="o">-</span> <span class="mi">300</span>  <span class="c1"># 5分前にリフレッシュ
+</span>            <span class="n">asyncio</span><span class="p">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">_schedule_refresh</span><span class="p">(</span><span class="n">refresh_time</span><span class="p">))</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_schedule_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="s">"""自動リフレッシュのスケジューリング"""</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">refresh_access_token</span><span class="p">()</span>
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Auto-refresh failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""有効なアクセストークンの取得"""</span>
+        
+        <span class="c1"># トークンの有効性チェック
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_should_refresh</span><span class="p">():</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">refresh_access_token</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_access_token</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AuthenticationRequired</span><span class="p">(</span><span class="s">"No valid access token"</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">_access_token</span>
+    
+    <span class="k">def</span> <span class="nf">_should_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""リフレッシュが必要かチェック"""</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_access_token</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_token_expiry</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        
+        <span class="c1"># 1分のバッファを持ってチェック
+</span>        <span class="k">return</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">_token_expiry</span> <span class="o">-</span> <span class="mi">60</span><span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">refresh_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""アクセストークンのリフレッシュ"""</span>
+        
+        <span class="c1"># 重複リフレッシュ防止
+</span>        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_lock</span><span class="p">:</span>
+            <span class="c1"># 再度チェック（別のコルーチンがリフレッシュ済みかも）
+</span>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_should_refresh</span><span class="p">():</span>
+                <span class="k">return</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_token_encrypted</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AuthenticationRequired</span><span class="p">(</span><span class="s">"No refresh token available"</span><span class="p">)</span>
+            
+            <span class="c1"># リフレッシュトークンの復号
+</span>            <span class="n">refresh_token</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fernet</span><span class="p">.</span><span class="n">decrypt</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_token_encrypted</span>
+            <span class="p">).</span><span class="n">decode</span><span class="p">()</span>
+            
+            <span class="c1"># リフレッシュリクエスト
+</span>            <span class="n">refresh_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">'grant_type'</span><span class="p">:</span> <span class="s">'refresh_token'</span><span class="p">,</span>
+                <span class="s">'refresh_token'</span><span class="p">:</span> <span class="n">refresh_token</span>
+            <span class="p">}</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">is_public_client</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span><span class="p">:</span>
+                <span class="n">refresh_data</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span>
+                <span class="n">refresh_data</span><span class="p">[</span><span class="s">'client_secret'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">refresh_data</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span>
+            
+            <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+                <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">token_endpoint</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">refresh_data</span><span class="p">,</span>
+                    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">'Accept'</span><span class="p">:</span> <span class="s">'application/json'</span><span class="p">}</span>
+                <span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+                        <span class="c1"># リフレッシュトークンが無効
+</span>                        <span class="bp">self</span><span class="p">.</span><span class="n">_clear_tokens</span><span class="p">()</span>
+                        <span class="k">raise</span> <span class="n">AuthenticationRequired</span><span class="p">(</span><span class="s">"Refresh token invalid"</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                        <span class="n">error_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+                        <span class="k">raise</span> <span class="n">OAuthError</span><span class="p">(</span><span class="sa">f</span><span class="s">"Token refresh failed: </span><span class="si">{</span><span class="n">error_data</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+                    
+                    <span class="n">tokens</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+            
+            <span class="c1"># 新しいトークンの保存
+</span>            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_store_tokens</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">make_authenticated_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">'GET'</span><span class="p">,</span>
+                                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientResponse</span><span class="p">:</span>
+        <span class="s">"""認証付きHTTPリクエスト"""</span>
+        
+        <span class="c1"># トークン取得
+</span>        <span class="n">access_token</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_access_token</span><span class="p">()</span>
+        
+        <span class="c1"># ヘッダー設定
+</span>        <span class="n">headers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'headers'</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">headers</span><span class="p">[</span><span class="s">'Authorization'</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s">'Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s">'</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">'headers'</span><span class="p">]</span> <span class="o">=</span> <span class="n">headers</span>
+        
+        <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="c1"># 401の場合は一度だけリトライ
+</span>                <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">refresh_access_token</span><span class="p">()</span>
+                    <span class="n">access_token</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_access_token</span><span class="p">()</span>
+                    <span class="n">headers</span><span class="p">[</span><span class="s">'Authorization'</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s">'Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s">'</span>
+                    
+                    <span class="c1"># リトライ
+</span>                    <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">retry_response</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">retry_response</span>
+                
+                <span class="k">return</span> <span class="n">response</span>
+    
+    <span class="k">def</span> <span class="nf">_clear_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""トークンのクリア"""</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_access_token</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_token_expiry</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_refresh_token_encrypted</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">logout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""ログアウト処理"""</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_clear_tokens</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_sessions</span><span class="p">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># カスタム例外
+</span><span class="k">class</span> <span class="nc">OAuthError</span><span class="p">(</span><span class="nb">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">SecurityError</span><span class="p">(</span><span class="nb">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">AuthenticationRequired</span><span class="p">(</span><span class="nb">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="c1"># 使用例
+</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># クライアント初期化
+</span>    <span class="n">client</span> <span class="o">=</span> <span class="n">SecureOAuth2Client</span><span class="p">(</span>
+        <span class="n">client_id</span><span class="o">=</span><span class="s">'your-client-id'</span><span class="p">,</span>
+        <span class="n">client_secret</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>  <span class="c1"># パブリッククライアント
+</span>        <span class="n">auth_endpoint</span><span class="o">=</span><span class="s">'https://auth.example.com/authorize'</span><span class="p">,</span>
+        <span class="n">token_endpoint</span><span class="o">=</span><span class="s">'https://auth.example.com/token'</span><span class="p">,</span>
+        <span class="n">is_public_client</span><span class="o">=</span><span class="bp">True</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># 認可URLの生成
+</span>    <span class="n">auth_url</span><span class="p">,</span> <span class="n">session_id</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="n">create_authorization_url</span><span class="p">(</span>
+        <span class="n">redirect_uri</span><span class="o">=</span><span class="s">'https://app.example.com/callback'</span><span class="p">,</span>
+        <span class="n">scope</span><span class="o">=</span><span class="p">[</span><span class="s">'read'</span><span class="p">,</span> <span class="s">'write'</span><span class="p">]</span>
+    <span class="p">)</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Visit: </span><span class="si">{</span><span class="n">auth_url</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="c1"># コールバック処理（実際はWebフレームワークで処理）
+</span>    <span class="n">callback_url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">"Enter callback URL: "</span><span class="p">)</span>
+    
+    <span class="c1"># トークン取得
+</span>    <span class="n">tokens</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">exchange_code_for_token</span><span class="p">(</span><span class="n">callback_url</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Access token obtained: </span><span class="si">{</span><span class="n">tokens</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">][</span><span class="si">:</span><span class="mi">20</span><span class="p">]</span><span class="si">}</span><span class="s">..."</span><span class="p">)</span>
+    
+    <span class="c1"># API呼び出し
+</span>    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">make_authenticated_request</span><span class="p">(</span>
+        <span class="s">'https://api.example.com/user/profile'</span>
+    <span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"User data: </span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div></div>
+
+<h3 id="実装のポイント">実装のポイント</h3>
+
+<ol>
+  <li><strong>PKCE実装</strong>：S256メソッドでcode_challengeを生成</li>
+  <li><strong>自動リフレッシュ</strong>：有効期限の5分前に自動更新</li>
+  <li><strong>セキュアなトークン保存</strong>：
+    <ul>
+      <li>アクセストークン：メモリのみ</li>
+      <li>リフレッシュトークン：暗号化して保存</li>
+    </ul>
+  </li>
+  <li><strong>エラーハンドリング</strong>：
+    <ul>
+      <li>適切な例外クラス</li>
+      <li>401エラーでの自動リトライ</li>
+      <li>セッションタイムアウト</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="問題2脆弱性の発見と修正">問題2：脆弱性の発見と修正</h2>
+
+<h3 id="提供されたコード脆弱性あり">提供されたコード（脆弱性あり）</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 脆弱なOAuth実装
+</span><span class="k">class</span> <span class="nc">VulnerableOAuthClient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="s">"my-client-id"</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span> <span class="o">=</span> <span class="s">"my-secret-123"</span>  <span class="c1"># ハードコード
+</span>        
+    <span class="k">def</span> <span class="nf">create_auth_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redirect_uri</span><span class="p">):</span>
+        <span class="c1"># state なし
+</span>        <span class="k">return</span> <span class="sa">f</span><span class="s">"https://auth.example.com/authorize?client_id=</span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="si">}</span><span class="s">&amp;redirect_uri=</span><span class="si">{</span><span class="n">redirect_uri</span><span class="si">}</span><span class="s">&amp;response_type=code"</span>
+    
+    <span class="k">def</span> <span class="nf">handle_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code'</span><span class="p">)</span>
+        
+        <span class="c1"># HTTPでトークンリクエスト
+</span>        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s">'http://auth.example.com/token'</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+            <span class="s">'grant_type'</span><span class="p">:</span> <span class="s">'authorization_code'</span><span class="p">,</span>
+            <span class="s">'code'</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'client_secret'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span>
+        <span class="p">})</span>
+        
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+        
+        <span class="c1"># LocalStorageに保存
+</span>        <span class="k">return</span> <span class="sa">f</span><span class="s">"""
+        &lt;script&gt;
+        localStorage.setItem('access_token', '</span><span class="si">{</span><span class="n">tokens</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">]</span><span class="si">}</span><span class="s">');
+        localStorage.setItem('refresh_token', '</span><span class="si">{</span><span class="n">tokens</span><span class="p">[</span><span class="s">'refresh_token'</span><span class="p">]</span><span class="si">}</span><span class="s">');
+        &lt;/script&gt;
+        """</span>
+    
+    <span class="k">def</span> <span class="nf">call_api</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="c1"># URLにトークン
+</span>        <span class="k">return</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s">"https://api.example.com/data?access_token=</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="脆弱性と修正案">脆弱性と修正案</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">SecureOAuthClient</span><span class="p">:</span>
+    <span class="s">"""脆弱性を修正したOAuth実装"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 修正1: 環境変数から読み込み
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">environ</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'OAUTH_CLIENT_ID'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">environ</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'OAUTH_CLIENT_SECRET'</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"OAUTH_CLIENT_ID not configured"</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">create_auth_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redirect_uri</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="c1"># 修正2: CSRF対策のstate追加
+</span>        <span class="n">state</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">'oauth_state'</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">'oauth_timestamp'</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="c1"># 修正3: PKCE追加
+</span>        <span class="n">verifier</span><span class="p">,</span> <span class="n">challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_pkce_pair</span><span class="p">()</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">'pkce_verifier'</span><span class="p">]</span> <span class="o">=</span> <span class="n">verifier</span>
+        
+        <span class="c1"># 修正4: redirect_uriの検証
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_validate_redirect_uri</span><span class="p">(</span><span class="n">redirect_uri</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"Invalid redirect URI"</span><span class="p">)</span>
+        
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="n">redirect_uri</span><span class="p">,</span>
+            <span class="s">'response_type'</span><span class="p">:</span> <span class="s">'code'</span><span class="p">,</span>
+            <span class="s">'state'</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
+            <span class="s">'code_challenge'</span><span class="p">:</span> <span class="n">challenge</span><span class="p">,</span>
+            <span class="s">'code_challenge_method'</span><span class="p">:</span> <span class="s">'S256'</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="sa">f</span><span class="s">"https://auth.example.com/authorize?</span><span class="si">{</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="si">}</span><span class="s">"</span>
+    
+    <span class="k">def</span> <span class="nf">handle_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code'</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'state'</span><span class="p">)</span>
+        
+        <span class="c1"># 修正5: state検証
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span> <span class="ow">or</span> <span class="n">state</span> <span class="o">!=</span> <span class="n">session</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'oauth_state'</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"Invalid state - possible CSRF attack"</span><span class="p">)</span>
+        
+        <span class="c1"># 修正6: stateの有効期限チェック
+</span>        <span class="k">if</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">session</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'oauth_timestamp'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">600</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"State expired"</span><span class="p">)</span>
+        
+        <span class="c1"># セッションから削除
+</span>        <span class="n">session</span><span class="p">.</span><span class="n">pop</span><span class="p">(</span><span class="s">'oauth_state'</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">verifier</span> <span class="o">=</span> <span class="n">session</span><span class="p">.</span><span class="n">pop</span><span class="p">(</span><span class="s">'pkce_verifier'</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        
+        <span class="c1"># 修正7: HTTPSを使用
+</span>        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s">'https://auth.example.com/token'</span><span class="p">,</span> 
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                <span class="s">'grant_type'</span><span class="p">:</span> <span class="s">'authorization_code'</span><span class="p">,</span>
+                <span class="s">'code'</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+                <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+                <span class="s">'client_secret'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span><span class="p">,</span>
+                <span class="s">'code_verifier'</span><span class="p">:</span> <span class="n">verifier</span>
+            <span class="p">},</span>
+            <span class="c1"># 修正8: タイムアウト設定
+</span>            <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="c1"># 修正9: 詳細なエラー情報を隠す
+</span>            <span class="n">app</span><span class="p">.</span><span class="n">logger</span><span class="p">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s">"Token exchange failed: </span><span class="si">{</span><span class="n">response</span><span class="p">.</span><span class="n">text</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">OAuthError</span><span class="p">(</span><span class="s">"Token exchange failed"</span><span class="p">)</span>
+        
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+        
+        <span class="c1"># 修正10: セキュアなトークン保存
+</span>        <span class="c1"># リフレッシュトークンはHttpOnly Cookieに
+</span>        <span class="n">resp</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">redirect</span><span class="p">(</span><span class="s">'/dashboard'</span><span class="p">))</span>
+        <span class="n">resp</span><span class="p">.</span><span class="n">set_cookie</span><span class="p">(</span>
+            <span class="s">'refresh_token'</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">tokens</span><span class="p">[</span><span class="s">'refresh_token'</span><span class="p">],</span>
+            <span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">secure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">samesite</span><span class="o">=</span><span class="s">'Lax'</span><span class="p">,</span>
+            <span class="n">max_age</span><span class="o">=</span><span class="mi">2592000</span>  <span class="c1"># 30日
+</span>        <span class="p">)</span>
+        
+        <span class="c1"># アクセストークンはセッションに（サーバー側）
+</span>        <span class="n">session</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">]</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">'token_expiry'</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">tokens</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'expires_in'</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">resp</span>
+    
+    <span class="k">def</span> <span class="nf">call_api</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="c1"># 修正11: Authorizationヘッダーを使用
+</span>        <span class="n">token</span> <span class="o">=</span> <span class="n">session</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'access_token'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AuthenticationRequired</span><span class="p">()</span>
+        
+        <span class="c1"># 修正12: 有効期限チェック
+</span>        <span class="k">if</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">session</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'token_expiry'</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="c1"># リフレッシュが必要
+</span>            <span class="bp">self</span><span class="p">.</span><span class="n">refresh_token</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">]</span>
+        
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s">"https://api.example.com/data"</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                <span class="s">'Authorization'</span><span class="p">:</span> <span class="sa">f</span><span class="s">'Bearer </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s">'</span><span class="p">,</span>
+                <span class="s">'X-Request-ID'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="p">.</span><span class="n">uuid4</span><span class="p">())</span>  <span class="c1"># トレーサビリティ
+</span>            <span class="p">},</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span>
+    
+    <span class="k">def</span> <span class="nf">_validate_redirect_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">):</span>
+        <span class="s">"""redirect_uriの検証"""</span>
+        <span class="n">allowed_uris</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">'https://app.example.com/callback'</span><span class="p">,</span>
+            <span class="s">'https://localhost:3000/callback'</span>  <span class="c1"># 開発環境
+</span>        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">allowed_uris</span>
+</code></pre></div></div>
+
+<h3 id="発見された脆弱性一覧">発見された脆弱性一覧</h3>
+
+<ol>
+  <li><strong>ハードコードされた認証情報</strong>
+    <ul>
+      <li>影響：ソースコード漏洩時に認証情報も漏洩</li>
+      <li>修正：環境変数使用</li>
+    </ul>
+  </li>
+  <li><strong>CSRF対策の欠如</strong>
+    <ul>
+      <li>影響：認可コードインジェクション攻撃</li>
+      <li>修正：stateパラメータの実装</li>
+    </ul>
+  </li>
+  <li><strong>PKCEの未実装</strong>
+    <ul>
+      <li>影響：認可コード横取り攻撃</li>
+      <li>修正：PKCEの実装</li>
+    </ul>
+  </li>
+  <li><strong>HTTPの使用</strong>
+    <ul>
+      <li>影響：中間者攻撃によるトークン窃取</li>
+      <li>修正：HTTPSの強制</li>
+    </ul>
+  </li>
+  <li><strong>トークンのLocalStorage保存</strong>
+    <ul>
+      <li>影響：XSS攻撃によるトークン窃取</li>
+      <li>修正：HttpOnly Cookieとサーバーセッション</li>
+    </ul>
+  </li>
+  <li><strong>URLでのトークン送信</strong>
+    <ul>
+      <li>影響：ログやリファラーでの漏洩</li>
+      <li>修正：Authorizationヘッダー使用</li>
+    </ul>
+  </li>
+  <li><strong>redirect_uriの検証不足</strong>
+    <ul>
+      <li>影響：オープンリダイレクト</li>
+      <li>修正：ホワイトリスト検証</li>
+    </ul>
+  </li>
+  <li><strong>エラー情報の詳細開示</strong>
+    <ul>
+      <li>影響：攻撃者への情報提供</li>
+      <li>修正：最小限のエラー情報</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="問題3グラントタイプの選択">問題3：グラントタイプの選択</h2>
+
+<h3 id="解答-1">解答</h3>
+
+<h4 id="1-モバイルアプリからのapi利用">1. モバイルアプリからのAPI利用</h4>
+
+<p><strong>選択：Authorization Code Grant + PKCE</strong></p>
+
+<p><strong>理由：</strong></p>
+<ul>
+  <li>モバイルアプリはパブリッククライアント（client_secretを安全に保存できない）</li>
+  <li>PKCEにより認可コード横取り攻撃を防止</li>
+  <li>ユーザーコンテキストが必要</li>
+  <li>リフレッシュトークンによる長期アクセス可能</li>
+</ul>
+
+<p><strong>実装例：</strong></p>
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// iOS実装例</span>
+<span class="kd">class</span> <span class="kt">OAuthManager</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">authenticate</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// PKCE生成</span>
+        <span class="k">let</span> <span class="nv">verifier</span> <span class="o">=</span> <span class="nf">generateCodeVerifier</span><span class="p">()</span>
+        <span class="k">let</span> <span class="nv">challenge</span> <span class="o">=</span> <span class="nf">generateCodeChallenge</span><span class="p">(</span><span class="n">verifier</span><span class="p">)</span>
+        
+        <span class="c1">// 認可URLを構築してSafariViewControllerで開く</span>
+        <span class="k">let</span> <span class="nv">authURL</span> <span class="o">=</span> <span class="nf">buildAuthURL</span><span class="p">(</span>
+            <span class="nv">codeChallenge</span><span class="p">:</span> <span class="n">challenge</span><span class="p">,</span>
+            <span class="nv">redirectURI</span><span class="p">:</span> <span class="s">"myapp://callback"</span>
+        <span class="p">)</span>
+        
+        <span class="c1">// カスタムURLスキームでコールバック処理</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="2-定期バッチ処理">2. 定期バッチ処理</h4>
+
+<p><strong>選択：Client Credentials Grant</strong></p>
+
+<p><strong>理由：</strong></p>
+<ul>
+  <li>ユーザーコンテキスト不要（システム間通信）</li>
+  <li>サーバー環境でclient_secretを安全に管理可能</li>
+  <li>非対話的な処理に適している</li>
+  <li>シンプルなフロー</li>
+</ul>
+
+<p><strong>実装例：</strong></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BatchProcessor</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_system_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""システム用トークンの取得"""</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">http_client</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="s">'https://auth.example.com/token'</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                <span class="s">'grant_type'</span><span class="p">:</span> <span class="s">'client_credentials'</span><span class="p">,</span>
+                <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+                <span class="s">'client_secret'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_secret</span><span class="p">,</span>
+                <span class="s">'scope'</span><span class="p">:</span> <span class="s">'batch:process'</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()[</span><span class="s">'access_token'</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h4 id="3-シングルページアプリケーションspa">3. シングルページアプリケーション（SPA）</h4>
+
+<p><strong>選択：Authorization Code Grant + PKCE（Implicit Grantは非推奨）</strong></p>
+
+<p><strong>理由：</strong></p>
+<ul>
+  <li>Implicit Grantはトークンがブラウザ履歴に残るリスク</li>
+  <li>Authorization Code + PKCEでセキュリティ向上</li>
+  <li>BFF（Backend for Frontend）パターンも検討</li>
+  <li>トークンはメモリ内管理</li>
+</ul>
+
+<p><strong>実装例：</strong></p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">SPAAuthManager</span> <span class="p">{</span>
+    <span class="k">async</span> <span class="nx">authenticate</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// PKCE対応</span>
+        <span class="kd">const</span> <span class="nx">codeVerifier</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">generateCodeVerifier</span><span class="p">();</span>
+        <span class="kd">const</span> <span class="nx">codeChallenge</span> <span class="o">=</span> <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">generateCodeChallenge</span><span class="p">(</span><span class="nx">codeVerifier</span><span class="p">);</span>
+        
+        <span class="c1">// セッションストレージに一時保存</span>
+        <span class="nx">sessionStorage</span><span class="p">.</span><span class="nx">setItem</span><span class="p">(</span><span class="dl">'</span><span class="s1">pkce_verifier</span><span class="dl">'</span><span class="p">,</span> <span class="nx">codeVerifier</span><span class="p">);</span>
+        
+        <span class="c1">// 認可エンドポイントへリダイレクト</span>
+        <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">buildAuthURL</span><span class="p">({</span>
+            <span class="na">response_type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">code</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">code_challenge</span><span class="p">:</span> <span class="nx">codeChallenge</span><span class="p">,</span>
+            <span class="na">code_challenge_method</span><span class="p">:</span> <span class="dl">'</span><span class="s1">S256</span><span class="dl">'</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="nx">handleCallback</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">code</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">URLSearchParams</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">).</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">code</span><span class="dl">'</span><span class="p">);</span>
+        <span class="kd">const</span> <span class="nx">verifier</span> <span class="o">=</span> <span class="nx">sessionStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="dl">'</span><span class="s1">pkce_verifier</span><span class="dl">'</span><span class="p">);</span>
+        
+        <span class="c1">// トークン取得</span>
+        <span class="kd">const</span> <span class="nx">tokens</span> <span class="o">=</span> <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">exchangeCode</span><span class="p">(</span><span class="nx">code</span><span class="p">,</span> <span class="nx">verifier</span><span class="p">);</span>
+        
+        <span class="c1">// メモリに保存（LocalStorageは使わない）</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">tokenManager</span><span class="p">.</span><span class="nx">setTokens</span><span class="p">(</span><span class="nx">tokens</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="4-iotデバイスの認証">4. IoTデバイスの認証</h4>
+
+<p><strong>選択：Device Authorization Grant (RFC 8628)</strong></p>
+
+<p><strong>理由：</strong></p>
+<ul>
+  <li>キーボード入力が困難または不可能</li>
+  <li>画面が小さいまたは存在しない</li>
+  <li>QRコードや短いコードで認証可能</li>
+  <li>ユーザーは別デバイス（スマホ等）で認証</li>
+</ul>
+
+<p><strong>実装例：</strong></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IoTDeviceAuth</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start_device_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""デバイスフローの開始"""</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">http_client</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="s">'https://auth.example.com/device/code'</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">device_id</span><span class="p">,</span>
+                <span class="s">'scope'</span><span class="p">:</span> <span class="s">'device:control'</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        
+        <span class="n">device_code</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+        
+        <span class="c1"># ユーザーに表示
+</span>        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Please visit: </span><span class="si">{</span><span class="n">device_code</span><span class="p">[</span><span class="s">'verification_uri'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Enter code: </span><span class="si">{</span><span class="n">device_code</span><span class="p">[</span><span class="s">'user_code'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        
+        <span class="c1"># ポーリング開始
+</span>        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">poll_for_token</span><span class="p">(</span><span class="n">device_code</span><span class="p">[</span><span class="s">'device_code'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<h3 id="選択基準のまとめ">選択基準のまとめ</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>シナリオ</th>
+      <th>グラントタイプ</th>
+      <th>主な理由</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>モバイルアプリ</td>
+      <td>Authorization Code + PKCE</td>
+      <td>パブリッククライアント、ユーザーコンテキスト必要</td>
+    </tr>
+    <tr>
+      <td>バッチ処理</td>
+      <td>Client Credentials</td>
+      <td>システム間通信、ユーザー不在</td>
+    </tr>
+    <tr>
+      <td>SPA</td>
+      <td>Authorization Code + PKCE</td>
+      <td>Implicitは非推奨、セキュリティ重視</td>
+    </tr>
+    <tr>
+      <td>IoTデバイス</td>
+      <td>Device Authorization</td>
+      <td>入力制限、別デバイスでの認証</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="問題4pkceの実装">問題4：PKCEの実装</h2>
+
+<h3 id="解答-2">解答</h3>
+
+<h4 id="サーバー側実装">サーバー側実装</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">jsonify</span><span class="p">,</span> <span class="n">session</span>
+<span class="kn">import</span> <span class="nn">secrets</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">redis</span>
+<span class="kn">import</span> <span class="nn">jwt</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">redis_client</span> <span class="o">=</span> <span class="n">redis</span><span class="p">.</span><span class="n">Redis</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">PKCEAuthorizationServer</span><span class="p">:</span>
+    <span class="s">"""PKCE対応の認可サーバー実装"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">redis</span> <span class="o">=</span> <span class="n">redis_client</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span> <span class="o">=</span> <span class="s">"your-signing-key"</span>  <span class="c1"># 実際は安全に管理
+</span>        
+    <span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">'/authorize'</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">'GET'</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">authorize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""認可エンドポイント"""</span>
+        
+        <span class="c1"># 必須パラメータの検証
+</span>        <span class="n">required_params</span> <span class="o">=</span> <span class="p">[</span><span class="s">'client_id'</span><span class="p">,</span> <span class="s">'redirect_uri'</span><span class="p">,</span> <span class="s">'response_type'</span><span class="p">,</span> 
+                          <span class="s">'code_challenge'</span><span class="p">,</span> <span class="s">'code_challenge_method'</span><span class="p">]</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">required_params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_request'</span><span class="p">,</span> 
+                              <span class="s">'error_description'</span><span class="p">:</span> <span class="sa">f</span><span class="s">'Missing </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s">'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="n">client_id</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'client_id'</span><span class="p">)</span>
+        <span class="n">redirect_uri</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'redirect_uri'</span><span class="p">)</span>
+        <span class="n">code_challenge</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code_challenge'</span><span class="p">)</span>
+        <span class="n">code_challenge_method</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code_challenge_method'</span><span class="p">)</span>
+        
+        <span class="c1"># クライアント検証
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_validate_client</span><span class="p">(</span><span class="n">client_id</span><span class="p">,</span> <span class="n">redirect_uri</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_client'</span><span class="p">}),</span> <span class="mi">401</span>
+        
+        <span class="c1"># PKCE検証
+</span>        <span class="k">if</span> <span class="n">code_challenge_method</span> <span class="o">!=</span> <span class="s">'S256'</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_request'</span><span class="p">,</span>
+                          <span class="s">'error_description'</span><span class="p">:</span> <span class="s">'Only S256 supported'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="c1"># code_challengeの形式検証（Base64URL）
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_is_valid_base64url</span><span class="p">(</span><span class="n">code_challenge</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_request'</span><span class="p">,</span>
+                          <span class="s">'error_description'</span><span class="p">:</span> <span class="s">'Invalid code_challenge'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="c1"># ユーザー認証（実際の実装では認証画面を表示）
+</span>        <span class="n">user_id</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_authenticate_user</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'access_denied'</span><span class="p">}),</span> <span class="mi">403</span>
+        
+        <span class="c1"># 認可コード生成
+</span>        <span class="n">auth_code</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        
+        <span class="c1"># 認可コード情報を保存（10分間有効）
+</span>        <span class="n">auth_code_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'user_id'</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="n">redirect_uri</span><span class="p">,</span>
+            <span class="s">'code_challenge'</span><span class="p">:</span> <span class="n">code_challenge</span><span class="p">,</span>
+            <span class="s">'code_challenge_method'</span><span class="p">:</span> <span class="n">code_challenge_method</span><span class="p">,</span>
+            <span class="s">'scope'</span><span class="p">:</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'scope'</span><span class="p">,</span> <span class="s">''</span><span class="p">),</span>
+            <span class="s">'created_at'</span><span class="p">:</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="p">}</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">redis</span><span class="p">.</span><span class="n">setex</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s">'auth_code:</span><span class="si">{</span><span class="n">auth_code</span><span class="si">}</span><span class="s">'</span><span class="p">,</span>
+            <span class="mi">600</span><span class="p">,</span>  <span class="c1"># 10分
+</span>            <span class="n">json</span><span class="p">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">auth_code_data</span><span class="p">)</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># リダイレクト
+</span>        <span class="n">state</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'state'</span><span class="p">,</span> <span class="s">''</span><span class="p">)</span>
+        <span class="n">redirect_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'code'</span><span class="p">:</span> <span class="n">auth_code</span><span class="p">,</span>
+            <span class="s">'state'</span><span class="p">:</span> <span class="n">state</span>
+        <span class="p">}</span>
+        
+        <span class="n">redirect_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">redirect_uri</span><span class="si">}</span><span class="s">?</span><span class="si">{</span><span class="n">urlencode</span><span class="p">(</span><span class="n">redirect_params</span><span class="p">)</span><span class="si">}</span><span class="s">"</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">redirect_url</span><span class="p">)</span>
+    
+    <span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">'/token'</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">'POST'</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""トークンエンドポイント"""</span>
+        
+        <span class="n">grant_type</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">form</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'grant_type'</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">grant_type</span> <span class="o">!=</span> <span class="s">'authorization_code'</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'unsupported_grant_type'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="c1"># 必須パラメータ
+</span>        <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">form</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code'</span><span class="p">)</span>
+        <span class="n">code_verifier</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">form</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code_verifier'</span><span class="p">)</span>
+        <span class="n">client_id</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">form</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'client_id'</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">code</span><span class="p">,</span> <span class="n">code_verifier</span><span class="p">,</span> <span class="n">client_id</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_request'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="c1"># 認可コード情報の取得
+</span>        <span class="n">auth_code_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s">'auth_code:</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s">'</span>
+        <span class="n">auth_code_data</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">redis</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">auth_code_key</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">auth_code_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_grant'</span><span class="p">,</span>
+                          <span class="s">'error_description'</span><span class="p">:</span> <span class="s">'Invalid or expired code'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="n">auth_code_info</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="n">auth_code_data</span><span class="p">)</span>
+        
+        <span class="c1"># 認可コードの削除（一度だけ使用可能）
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">redis</span><span class="p">.</span><span class="n">delete</span><span class="p">(</span><span class="n">auth_code_key</span><span class="p">)</span>
+        
+        <span class="c1"># クライアントID検証
+</span>        <span class="k">if</span> <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">]</span> <span class="o">!=</span> <span class="n">client_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_client'</span><span class="p">}),</span> <span class="mi">401</span>
+        
+        <span class="c1"># redirect_uri検証（提供された場合）
+</span>        <span class="n">redirect_uri</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">form</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'redirect_uri'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">redirect_uri</span> <span class="ow">and</span> <span class="n">redirect_uri</span> <span class="o">!=</span> <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'redirect_uri'</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_grant'</span><span class="p">,</span>
+                          <span class="s">'error_description'</span><span class="p">:</span> <span class="s">'redirect_uri mismatch'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="c1"># PKCE検証
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_verify_pkce</span><span class="p">(</span><span class="n">code_verifier</span><span class="p">,</span> <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'code_challenge'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s">'error'</span><span class="p">:</span> <span class="s">'invalid_grant'</span><span class="p">,</span>
+                          <span class="s">'error_description'</span><span class="p">:</span> <span class="s">'PKCE verification failed'</span><span class="p">}),</span> <span class="mi">400</span>
+        
+        <span class="c1"># トークン生成
+</span>        <span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_generate_access_token</span><span class="p">(</span>
+            <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'user_id'</span><span class="p">],</span>
+            <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">],</span>
+            <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'scope'</span><span class="p">]</span>
+        <span class="p">)</span>
+        
+        <span class="n">refresh_token</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_generate_refresh_token</span><span class="p">(</span>
+            <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'user_id'</span><span class="p">],</span>
+            <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'client_id'</span><span class="p">]</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># レスポンス
+</span>        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s">'access_token'</span><span class="p">:</span> <span class="n">access_token</span><span class="p">,</span>
+            <span class="s">'token_type'</span><span class="p">:</span> <span class="s">'Bearer'</span><span class="p">,</span>
+            <span class="s">'expires_in'</span><span class="p">:</span> <span class="mi">3600</span><span class="p">,</span>
+            <span class="s">'refresh_token'</span><span class="p">:</span> <span class="n">refresh_token</span><span class="p">,</span>
+            <span class="s">'scope'</span><span class="p">:</span> <span class="n">auth_code_info</span><span class="p">[</span><span class="s">'scope'</span><span class="p">]</span>
+        <span class="p">})</span>
+    
+    <span class="k">def</span> <span class="nf">_verify_pkce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">challenge</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""PKCE検証"""</span>
+        
+        <span class="c1"># S256: BASE64URL(SHA256(verifier)) == challenge
+</span>        <span class="n">verifier_bytes</span> <span class="o">=</span> <span class="n">verifier</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+        <span class="n">calculated_challenge</span> <span class="o">=</span> <span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span>
+            <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">verifier_bytes</span><span class="p">).</span><span class="n">digest</span><span class="p">()</span>
+        <span class="p">).</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">).</span><span class="n">rstrip</span><span class="p">(</span><span class="s">'='</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">calculated_challenge</span> <span class="o">==</span> <span class="n">challenge</span>
+    
+    <span class="k">def</span> <span class="nf">_is_valid_base64url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""Base64URL形式の検証"""</span>
+        
+        <span class="c1"># Base64URL文字のみ
+</span>        <span class="kn">import</span> <span class="nn">re</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="p">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s">'^[A-Za-z0-9_-]+$'</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">_generate_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">client_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                              <span class="n">scope</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""アクセストークン生成"""</span>
+        
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'sub'</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'scope'</span><span class="p">:</span> <span class="n">scope</span><span class="p">,</span>
+            <span class="s">'iat'</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()),</span>
+            <span class="s">'exp'</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="mi">3600</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">jwt</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s">'HS256'</span><span class="p">)</span>
+
+<span class="c1"># サーバー初期化
+</span><span class="n">auth_server</span> <span class="o">=</span> <span class="n">PKCEAuthorizationServer</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h4 id="クライアント側実装">クライアント側実装</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PKCEClient</span><span class="p">:</span>
+    <span class="s">"""PKCE対応のOAuth 2.0クライアント"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">auth_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                 <span class="n">token_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">redirect_uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="n">client_id</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">auth_endpoint</span> <span class="o">=</span> <span class="n">auth_endpoint</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">token_endpoint</span> <span class="o">=</span> <span class="n">token_endpoint</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">redirect_uri</span> <span class="o">=</span> <span class="n">redirect_uri</span>
+        
+    <span class="k">def</span> <span class="nf">generate_code_verifier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""Code Verifierの生成（43-128文字）"""</span>
+        
+        <span class="c1"># 32バイト = 256ビット、Base64URLエンコードで約43文字
+</span>        <span class="n">random_bytes</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        <span class="n">code_verifier</span> <span class="o">=</span> <span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="n">random_bytes</span><span class="p">).</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">code_verifier</span><span class="p">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">'='</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">generate_code_challenge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""Code Challengeの生成（S256）"""</span>
+        
+        <span class="c1"># SHA256ハッシュ
+</span>        <span class="n">challenge_bytes</span> <span class="o">=</span> <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">verifier</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)).</span><span class="n">digest</span><span class="p">()</span>
+        
+        <span class="c1"># Base64URLエンコード
+</span>        <span class="n">code_challenge</span> <span class="o">=</span> <span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="n">challenge_bytes</span><span class="p">).</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">code_challenge</span><span class="p">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">'='</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">create_authorization_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+                               <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="s">"""認可URLの生成"""</span>
+        
+        <span class="c1"># PKCE生成
+</span>        <span class="n">code_verifier</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_verifier</span><span class="p">()</span>
+        <span class="n">code_challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_challenge</span><span class="p">(</span><span class="n">code_verifier</span><span class="p">)</span>
+        
+        <span class="c1"># State生成（CSRF対策）
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        
+        <span class="c1"># パラメータ構築
+</span>        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'response_type'</span><span class="p">:</span> <span class="s">'code'</span><span class="p">,</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">redirect_uri</span><span class="p">,</span>
+            <span class="s">'scope'</span><span class="p">:</span> <span class="s">' '</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">scope</span><span class="p">),</span>
+            <span class="s">'state'</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
+            <span class="s">'code_challenge'</span><span class="p">:</span> <span class="n">code_challenge</span><span class="p">,</span>
+            <span class="s">'code_challenge_method'</span><span class="p">:</span> <span class="s">'S256'</span>
+        <span class="p">}</span>
+        
+        <span class="n">auth_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">auth_endpoint</span><span class="si">}</span><span class="s">?</span><span class="si">{</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="si">}</span><span class="s">"</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'url'</span><span class="p">:</span> <span class="n">auth_url</span><span class="p">,</span>
+            <span class="s">'state'</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
+            <span class="s">'code_verifier'</span><span class="p">:</span> <span class="n">code_verifier</span>
+        <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">exchange_code_for_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                    <span class="n">stored_state</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                                    <span class="n">code_verifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="s">"""認可コードをトークンに交換"""</span>
+        
+        <span class="c1"># State検証
+</span>        <span class="k">if</span> <span class="n">state</span> <span class="o">!=</span> <span class="n">stored_state</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"State mismatch - possible CSRF attack"</span><span class="p">)</span>
+        
+        <span class="c1"># トークンリクエスト
+</span>        <span class="n">token_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'grant_type'</span><span class="p">:</span> <span class="s">'authorization_code'</span><span class="p">,</span>
+            <span class="s">'code'</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+            <span class="s">'redirect_uri'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">redirect_uri</span><span class="p">,</span>
+            <span class="s">'client_id'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">client_id</span><span class="p">,</span>
+            <span class="s">'code_verifier'</span><span class="p">:</span> <span class="n">code_verifier</span>
+        <span class="p">}</span>
+        
+        <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">token_endpoint</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">token_data</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">'Accept'</span><span class="p">:</span> <span class="s">'application/json'</span><span class="p">}</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="n">error_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="n">OAuthError</span><span class="p">(</span><span class="sa">f</span><span class="s">"Token exchange failed: </span><span class="si">{</span><span class="n">error_data</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+                
+                <span class="k">return</span> <span class="k">await</span> <span class="n">response</span><span class="p">.</span><span class="n">json</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">verify_pkce_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""PKCE実装の検証テスト"""</span>
+        
+        <span class="c1"># 正常なケース
+</span>        <span class="n">verifier</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_verifier</span><span class="p">()</span>
+        <span class="n">challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_challenge</span><span class="p">(</span><span class="n">verifier</span><span class="p">)</span>
+        
+        <span class="c1"># 検証
+</span>        <span class="n">recalculated</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_challenge</span><span class="p">(</span><span class="n">verifier</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">challenge</span> <span class="o">==</span> <span class="n">recalculated</span><span class="p">,</span> <span class="s">"PKCE calculation mismatch"</span>
+        
+        <span class="c1"># 異なるverifierでは一致しない
+</span>        <span class="n">different_verifier</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_verifier</span><span class="p">()</span>
+        <span class="n">different_challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_code_challenge</span><span class="p">(</span><span class="n">different_verifier</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">challenge</span> <span class="o">!=</span> <span class="n">different_challenge</span><span class="p">,</span> <span class="s">"Different verifiers produced same challenge"</span>
+        
+        <span class="k">print</span><span class="p">(</span><span class="s">"PKCE implementation verified successfully"</span><span class="p">)</span>
+
+<span class="c1"># 使用例
+</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">PKCEClient</span><span class="p">(</span>
+        <span class="n">client_id</span><span class="o">=</span><span class="s">'my-spa-app'</span><span class="p">,</span>
+        <span class="n">auth_endpoint</span><span class="o">=</span><span class="s">'https://auth.example.com/authorize'</span><span class="p">,</span>
+        <span class="n">token_endpoint</span><span class="o">=</span><span class="s">'https://auth.example.com/token'</span><span class="p">,</span>
+        <span class="n">redirect_uri</span><span class="o">=</span><span class="s">'https://app.example.com/callback'</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># 認可フロー開始
+</span>    <span class="n">auth_data</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="n">create_authorization_url</span><span class="p">([</span><span class="s">'read'</span><span class="p">,</span> <span class="s">'write'</span><span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Visit: </span><span class="si">{</span><span class="n">auth_data</span><span class="p">[</span><span class="s">'url'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="c1"># ブラウザで認可後、コールバックを処理
+</span>    <span class="c1"># callback?code=AUTH_CODE&amp;state=STATE
+</span>    
+    <span class="c1"># トークン交換
+</span>    <span class="n">tokens</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">exchange_code_for_token</span><span class="p">(</span>
+        <span class="n">code</span><span class="o">=</span><span class="s">'AUTH_CODE'</span><span class="p">,</span>
+        <span class="n">state</span><span class="o">=</span><span class="s">'STATE'</span><span class="p">,</span>
+        <span class="n">stored_state</span><span class="o">=</span><span class="n">auth_data</span><span class="p">[</span><span class="s">'state'</span><span class="p">],</span>
+        <span class="n">code_verifier</span><span class="o">=</span><span class="n">auth_data</span><span class="p">[</span><span class="s">'code_verifier'</span><span class="p">]</span>
+    <span class="p">)</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Access token: </span><span class="si">{</span><span class="n">tokens</span><span class="p">[</span><span class="s">'access_token'</span><span class="p">]</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="実装のポイント-1">実装のポイント</h3>
+
+<ol>
+  <li><strong>Code Verifierの生成</strong>：暗号学的に安全な乱数を使用</li>
+  <li><strong>Code Challengeの計算</strong>：S256メソッド（SHA256）を使用</li>
+  <li><strong>一度だけ使用可能</strong>：認可コードは使用後即座に削除</li>
+  <li><strong>タイミング攻撃対策</strong>：PKCE検証で定数時間比較</li>
+</ol>
+
+<h2 id="問題5セキュリティ監査">問題5：セキュリティ監査</h2>
+
+<h3 id="既存のoauth-20実装の監査結果">既存のOAuth 2.0実装の監査結果</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">OAuthSecurityAudit</span><span class="p">:</span>
+    <span class="s">"""OAuth 2.0実装のセキュリティ監査"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">risk_scores</span> <span class="o">=</span> <span class="p">{}</span>
+        
+    <span class="k">def</span> <span class="nf">audit_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">codebase</span><span class="p">):</span>
+        <span class="s">"""包括的なセキュリティ監査"""</span>
+        
+        <span class="c1"># 1. 設定の監査
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_audit_configuration</span><span class="p">()</span>
+        
+        <span class="c1"># 2. 実装の監査  
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_audit_implementation</span><span class="p">()</span>
+        
+        <span class="c1"># 3. 運用の監査
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">_audit_operations</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_report</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_audit_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""設定面の監査"""</span>
+        
+        <span class="n">findings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'CONF-001'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'Implicit Grant有効化'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'Implicit Grantが有効になっている'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'''
+                ALLOWED_GRANT_TYPES = [
+                    'authorization_code',
+                    'implicit',  # セキュリティリスク
+                    'client_credentials'
+                ]
+                '''</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'トークンがブラウザ履歴に残る、リファラー漏洩'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'Implicit Grantを無効化し、Authorization Code + PKCEを使用'</span>
+            <span class="p">},</span>
+            
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'CONF-002'</span><span class="p">,</span> 
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'アクセストークンの有効期限が長い'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'24時間の有効期限は長すぎる'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'ACCESS_TOKEN_LIFETIME = 86400  # 24時間'</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'トークン漏洩時の影響期間が長い'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'15分〜1時間に短縮'</span>
+            <span class="p">},</span>
+            
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'CONF-003'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'HTTPS強制なし'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'HTTP通信が許可されている'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'app.config["REQUIRE_HTTPS"] = False'</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'中間者攻撃によるトークン窃取'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'すべてのエンドポイントでHTTPS必須化'</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_audit_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""実装面の監査"""</span>
+        
+        <span class="n">findings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'IMPL-001'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'redirect_uriの検証不足'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'部分一致での検証は危険'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'''
+                def validate_redirect_uri(uri, registered_uri):
+                    return uri.startswith(registered_uri)  # 危険！
+                '''</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'オープンリダイレクト攻撃'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'''
+                def validate_redirect_uri(uri, registered_uris):
+                    return uri in registered_uris  # 完全一致
+                '''</span>
+            <span class="p">},</span>
+            
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'IMPL-002'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'PKCE未実装'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'パブリッククライアントでPKCEなし'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'SPAクライアントでPKCEパラメータなし'</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'認可コード横取り攻撃'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'すべてのパブリッククライアントでPKCE必須化'</span>
+            <span class="p">},</span>
+            
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'IMPL-003'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'エラー情報の過剰開示'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'スタックトレースが返される'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'''
+                except Exception as e:
+                    return {"error": str(e), "trace": traceback.format_exc()}
+                '''</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'内部構造の情報漏洩'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'本番環境では最小限のエラー情報のみ返す'</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_audit_operations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""運用面の監査"""</span>
+        
+        <span class="n">findings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'OPS-001'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'トークン無効化機能なし'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'ログアウト時のトークン無効化未実装'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'logout()関数でトークン無効化処理なし'</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'ログアウト後もトークンが有効'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'トークンブラックリストまたは短い有効期限の実装'</span>
+            <span class="p">},</span>
+            
+            <span class="p">{</span>
+                <span class="s">'id'</span><span class="p">:</span> <span class="s">'OPS-002'</span><span class="p">,</span>
+                <span class="s">'title'</span><span class="p">:</span> <span class="s">'監査ログ不足'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'LOW'</span><span class="p">,</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'認証イベントのログが不十分'</span><span class="p">,</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'失敗した認証試行がログされていない'</span><span class="p">,</span>
+                <span class="s">'risk'</span><span class="p">:</span> <span class="s">'攻撃の検知が困難'</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'包括的な監査ログの実装'</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">calculate_risk_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""リスクスコアの計算"""</span>
+        
+        <span class="n">severity_scores</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'CRITICAL'</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s">'HIGH'</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+            <span class="s">'MEDIUM'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s">'LOW'</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">}</span>
+        
+        <span class="n">total_score</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">vuln</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">severity_scores</span><span class="p">[</span><span class="n">vuln</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]]</span>
+            <span class="n">total_score</span> <span class="o">+=</span> <span class="n">score</span>
+            
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'total_score'</span><span class="p">:</span> <span class="n">total_score</span><span class="p">,</span>
+            <span class="s">'risk_level'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">_get_risk_level</span><span class="p">(</span><span class="n">total_score</span><span class="p">),</span>
+            <span class="s">'severity_breakdown'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'CRITICAL'</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'CRITICAL'</span><span class="p">]),</span>
+                <span class="s">'HIGH'</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'HIGH'</span><span class="p">]),</span>
+                <span class="s">'MEDIUM'</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'MEDIUM'</span><span class="p">]),</span>
+                <span class="s">'LOW'</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'LOW'</span><span class="p">])</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">_get_risk_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">30</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">'CRITICAL'</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">'HIGH'</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">'MEDIUM'</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">'LOW'</span>
+    
+    <span class="k">def</span> <span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""監査レポートの生成"""</span>
+        
+        <span class="n">risk_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">calculate_risk_scores</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'executive_summary'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'overall_risk'</span><span class="p">:</span> <span class="n">risk_scores</span><span class="p">[</span><span class="s">'risk_level'</span><span class="p">],</span>
+                <span class="s">'total_findings'</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span><span class="p">),</span>
+                <span class="s">'critical_findings'</span><span class="p">:</span> <span class="n">risk_scores</span><span class="p">[</span><span class="s">'severity_breakdown'</span><span class="p">][</span><span class="s">'CRITICAL'</span><span class="p">],</span>
+                <span class="s">'immediate_action_required'</span><span class="p">:</span> <span class="n">risk_scores</span><span class="p">[</span><span class="s">'risk_level'</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">'CRITICAL'</span><span class="p">,</span> <span class="s">'HIGH'</span><span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'findings'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span><span class="p">,</span>
+            
+            <span class="s">'remediation_priority'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Immediate (1 week)'</span><span class="p">,</span>
+                    <span class="s">'items'</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="s">'id'</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'CRITICAL'</span><span class="p">],</span>
+                    <span class="s">'focus'</span><span class="p">:</span> <span class="s">'セキュリティクリティカルな問題の修正'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Short-term (1 month)'</span><span class="p">,</span>
+                    <span class="s">'items'</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="s">'id'</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'HIGH'</span><span class="p">],</span>
+                    <span class="s">'focus'</span><span class="p">:</span> <span class="s">'主要な脆弱性の対処'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Medium-term (3 months)'</span><span class="p">,</span>
+                    <span class="s">'items'</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="s">'id'</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">vulnerabilities</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s">'severity'</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">'MEDIUM'</span><span class="p">,</span> <span class="s">'LOW'</span><span class="p">]],</span>
+                    <span class="s">'focus'</span><span class="p">:</span> <span class="s">'運用改善とベストプラクティスの適用'</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            
+            <span class="s">'recommendations'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'immediate'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'HTTPS強制の有効化'</span><span class="p">,</span>
+                    <span class="s">'Implicit Grantの無効化'</span><span class="p">,</span>
+                    <span class="s">'PKCEの実装'</span>
+                <span class="p">],</span>
+                <span class="s">'short_term'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'アクセストークン有効期限の短縮'</span><span class="p">,</span>
+                    <span class="s">'redirect_uri検証の強化'</span><span class="p">,</span>
+                    <span class="s">'エラーハンドリングの改善'</span>
+                <span class="p">],</span>
+                <span class="s">'long_term'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'トークン無効化システムの実装'</span><span class="p">,</span>
+                    <span class="s">'包括的な監査ログ'</span><span class="p">,</span>
+                    <span class="s">'セキュリティテストの自動化'</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="監査結果サマリー">監査結果サマリー</h3>
+
+<h4 id="発見された脆弱性">発見された脆弱性</h4>
+
+<ol>
+  <li><strong>CRITICAL（2件）</strong>
+    <ul>
+      <li>HTTPS非強制</li>
+      <li>（その他の重大な問題）</li>
+    </ul>
+  </li>
+  <li><strong>HIGH（3件）</strong>
+    <ul>
+      <li>Implicit Grant有効</li>
+      <li>redirect_uri検証不足</li>
+      <li>PKCE未実装</li>
+    </ul>
+  </li>
+  <li><strong>MEDIUM（2件）</strong>
+    <ul>
+      <li>トークン有効期限が長い</li>
+      <li>エラー情報の過剰開示</li>
+    </ul>
+  </li>
+  <li><strong>LOW（1件）</strong>
+    <ul>
+      <li>監査ログ不足</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="リスク評価">リスク評価</h4>
+
+<ul>
+  <li><strong>総合リスクレベル：HIGH</strong></li>
+  <li><strong>即時対応必要：YES</strong></li>
+  <li><strong>推定修正期間：3ヶ月</strong></li>
+</ul>
+
+<h4 id="実装改善案">実装改善案</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 改善実装例
+</span><span class="k">class</span> <span class="nc">ImprovedOAuth2Implementation</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># セキュアな設定
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'require_https'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">'allowed_grant_types'</span><span class="p">:</span> <span class="p">[</span><span class="s">'authorization_code'</span><span class="p">],</span>
+            <span class="s">'require_pkce'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">'access_token_lifetime'</span><span class="p">:</span> <span class="mi">900</span><span class="p">,</span>  <span class="c1"># 15分
+</span>            <span class="s">'refresh_token_lifetime'</span><span class="p">:</span> <span class="mi">2592000</span><span class="p">,</span>  <span class="c1"># 30日
+</span>            <span class="s">'enable_token_revocation'</span><span class="p">:</span> <span class="bp">True</span>
+        <span class="p">}</span>
+        
+    <span class="k">def</span> <span class="nf">validate_client_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="s">"""改善されたリクエスト検証"""</span>
+        
+        <span class="c1"># HTTPS強制
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="p">.</span><span class="n">is_secure</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_is_localhost</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s">"HTTPS required"</span><span class="p">)</span>
+        
+        <span class="c1"># PKCEチェック
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">config</span><span class="p">[</span><span class="s">'require_pkce'</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'code_challenge'</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"PKCE required"</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">True</span>
+</code></pre></div></div>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-05/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録E-5: 第5章演習問題解答</span>
+      </a>
+    
+
+    <a href="/practical-auth-book/pr-preview/pr-162/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-07/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録E-7: 第7章演習問題解答</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-e-06/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/practical-auth-book/pr-preview/pr-162/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-162/assets/js/theme.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-162/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

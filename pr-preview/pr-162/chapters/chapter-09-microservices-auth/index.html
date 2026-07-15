@@ -1,0 +1,2182 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>第9章：マイクロサービス認証 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-162/assets/css/main.css">
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-162/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/practical-auth-book/pr-preview/pr-162/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/practical-auth-book/pr-preview/pr-162/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="第9章：マイクロサービス認証">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/practical-auth-book/pr-preview/pr-162/chapters/chapter-09-microservices-auth/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="第9章：マイクロサービス認証">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/practical-auth-book/pr-preview/pr-162/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/practical-auth-book/pr-preview/pr-162/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-09-microservices-auth/" class="toc-link active" aria-current="page">
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-162/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="第9章マイクロサービス認証">第9章：マイクロサービス認証</h1>
+
+<h2 id="なぜこの章が重要か">なぜこの章が重要か</h2>
+
+<p>マイクロサービス環境では、認証・認可の実装が分散し、信頼境界や一貫した認可判断、性能要件などの課題が増えます。この章では、分散環境特有の論点と、それらを解決する代表的なパターンを整理します。</p>
+
+<h2 id="90-runnable-minimum-サービス間認証の最小確認">9.0 Runnable minimum: サービス間認証の最小確認</h2>
+
+<p>マイクロサービス構成では、ユーザー認証とサービス間認証を混同しないことを最小確認にする。</p>
+
+<ul>
+  <li><strong>入力</strong>: ユーザー向け API 1 件、内部 API 1 件、サービス間呼び出し 1 本を含む検証シナリオ。</li>
+  <li><strong>起動条件</strong>: API Gateway、BFF、内部サービスのどこで認証・認可・監査を担うかを分ける。</li>
+  <li><strong>期待結果</strong>: 外部リクエストはユーザー認証、内部呼び出しはサービス認証として扱い、必要に応じて token exchange または service identity を使う。</li>
+  <li><strong>確認方法</strong>: 401 / 403 の切り分け、correlation ID、監査ログ、過剰なユーザートークン転送がないことを確認する。</li>
+</ul>
+
+<h2 id="91-分散システムでの課題">9.1 分散システムでの課題</h2>
+
+<h3 id="911-マイクロサービスにおける認証認可の複雑性">9.1.1 マイクロサービスにおける認証認可の複雑性</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MicroservicesAuthChallenges</span><span class="p">:</span>
+    <span class="s">"""マイクロサービスでの認証認可の課題"""</span>
+    
+    <span class="k">def</span> <span class="nf">illustrate_complexity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""複雑性の図解"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'monolithic_vs_microservices'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'monolithic'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'auth_points'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s">'session_storage'</span><span class="p">:</span> <span class="s">'Single database'</span><span class="p">,</span>
+                    <span class="s">'authorization'</span><span class="p">:</span> <span class="s">'In-process function calls'</span><span class="p">,</span>
+                    <span class="s">'consistency'</span><span class="p">:</span> <span class="s">'Guaranteed by transactions'</span><span class="p">,</span>
+                    <span class="s">'performance'</span><span class="p">:</span> <span class="s">'Memory access'</span><span class="p">,</span>
+                    <span class="s">'security_boundary'</span><span class="p">:</span> <span class="s">'Application perimeter'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'microservices'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'auth_points'</span><span class="p">:</span> <span class="s">'N services × M endpoints'</span><span class="p">,</span>
+                    <span class="s">'session_storage'</span><span class="p">:</span> <span class="s">'Distributed cache/tokens'</span><span class="p">,</span>
+                    <span class="s">'authorization'</span><span class="p">:</span> <span class="s">'Network calls'</span><span class="p">,</span>
+                    <span class="s">'consistency'</span><span class="p">:</span> <span class="s">'Eventually consistent'</span><span class="p">,</span>
+                    <span class="s">'performance'</span><span class="p">:</span> <span class="s">'Network latency'</span><span class="p">,</span>
+                    <span class="s">'security_boundary'</span><span class="p">:</span> <span class="s">'Every service'</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            
+            <span class="s">'key_challenges'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'service_proliferation'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'problem'</span><span class="p">:</span> <span class="s">'サービス数の増加に伴う管理複雑性'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'''
+                    10 services × 5 endpoints × 3 methods = 150 auth points
+                    各ポイントで：
+                    - 認証の検証
+                    - 認可の判断
+                    - 監査ログ
+                    '''</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'メンテナンスコストの指数的増加'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'distributed_state'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'problem'</span><span class="p">:</span> <span class="s">'セッション状態の分散管理'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'''
+                    User → API Gateway → Service A → Service B → Service C
+                           ↓              ↓           ↓           ↓
+                        Session?     Session?    Session?    Session?
+                    '''</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'パフォーマンス劣化、複雑性増大'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'service_to_service'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'problem'</span><span class="p">:</span> <span class="s">'サービス間の信頼関係確立'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'''
+                    Order Service が Inventory Service を呼ぶ際：
+                    - Order Service の正当性をどう証明？
+                    - ユーザーコンテキストをどう伝播？
+                    - 権限の委譲をどう制御？
+                    '''</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'セキュリティリスク、実装の複雑化'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">security_implications</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""セキュリティへの影響"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'attack_surface_expansion'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'攻撃対象面の拡大'</span><span class="p">,</span>
+                <span class="s">'factors'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'すべてのサービスが潜在的な侵入点'</span><span class="p">,</span>
+                    <span class="s">'サービス間通信の盗聴リスク'</span><span class="p">,</span>
+                    <span class="s">'トークンの漏洩ポイント増加'</span>
+                <span class="p">],</span>
+                <span class="s">'mitigation'</span><span class="p">:</span> <span class="s">'Zero Trust原則の適用'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'cascading_vulnerabilities'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'脆弱性の連鎖'</span><span class="p">,</span>
+                <span class="s">'scenario'</span><span class="p">:</span> <span class="s">'''
+                1. Service A の認証バイパス脆弱性
+                2. Service A として Service B にアクセス
+                3. Service B の権限で Service C にアクセス
+                4. 権限昇格の連鎖
+                '''</span><span class="p">,</span>
+                <span class="s">'mitigation'</span><span class="p">:</span> <span class="s">'最小権限原則、サービスメッシュ'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'token_management_complexity'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'トークン管理の複雑化'</span><span class="p">,</span>
+                <span class="s">'issues'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'トークンのライフサイクル管理'</span><span class="p">,</span>
+                    <span class="s">'無効化の即時反映'</span><span class="p">,</span>
+                    <span class="s">'トークンサイズとネットワーク負荷'</span>
+                <span class="p">],</span>
+                <span class="s">'mitigation'</span><span class="p">:</span> <span class="s">'適切なトークン戦略の選択'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="912-パフォーマンスとスケーラビリティの課題">9.1.2 パフォーマンスとスケーラビリティの課題</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PerformanceScalabilityChallenges</span><span class="p">:</span>
+    <span class="s">"""パフォーマンスとスケーラビリティの課題"""</span>
+    
+    <span class="k">def</span> <span class="nf">latency_accumulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""レイテンシの蓄積問題"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'latency_breakdown'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'traditional_monolith'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'auth_check'</span><span class="p">:</span> <span class="s">'&lt; 1ms (in-memory)'</span><span class="p">,</span>
+                    <span class="s">'total_request'</span><span class="p">:</span> <span class="s">'50ms'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'naive_microservices'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'per_service_auth'</span><span class="p">:</span> <span class="s">'10〜20ms'</span><span class="p">,</span>
+                    <span class="s">'service_chain_5_deep'</span><span class="p">:</span> <span class="s">'50〜100ms just for auth'</span><span class="p">,</span>
+                    <span class="s">'total_request'</span><span class="p">:</span> <span class="s">'200〜300ms'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'optimized_microservices'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'edge_auth'</span><span class="p">:</span> <span class="s">'10ms'</span><span class="p">,</span>
+                    <span class="s">'service_trust'</span><span class="p">:</span> <span class="s">'&lt; 1ms (JWT validation)'</span><span class="p">,</span>
+                    <span class="s">'total_request'</span><span class="p">:</span> <span class="s">'60〜80ms'</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            
+            <span class="s">'optimization_strategies'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'caching'</span><span class="p">:</span> <span class="s">'''
+                class TokenCache:
+                    def __init__(self, ttl=300):
+                        self.cache = TTLCache(maxsize=10000, ttl=ttl)
+                        self.stats = CacheStats()
+                    
+                    def validate_token(self, token: str) -&gt; Optional[Claims]:
+                        # キャッシュチェック
+                        if token in self.cache:
+                            self.stats.hits += 1
+                            return self.cache[token]
+                        
+                        # 検証とキャッシュ
+                        self.stats.misses += 1
+                        claims = self._validate_jwt(token)
+                        if claims:
+                            self.cache[token] = claims
+                        return claims
+                '''</span><span class="p">,</span>
+                
+                <span class="s">'connection_pooling'</span><span class="p">:</span> <span class="s">'''
+                # 認証サービスへの接続プール
+                auth_client = AuthServiceClient(
+                    pool_size=20,
+                    max_overflow=10,
+                    timeout=1.0,
+                    retry_policy=ExponentialBackoff(max_retries=3)
+                )
+                '''</span><span class="p">,</span>
+                
+                <span class="s">'circuit_breaking'</span><span class="p">:</span> <span class="s">'''
+                @circuit_breaker(
+                    failure_threshold=5,
+                    recovery_timeout=60,
+                    expected_exception=AuthServiceException
+                )
+                def check_authorization(self, token, resource, action):
+                    # 認可サービスが落ちても、デフォルト動作で継続
+                    return self.auth_service.authorize(token, resource, action)
+                '''</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">scalability_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""スケーラビリティパターン"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'horizontal_scaling'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'auth_service_scaling'</span><span class="p">:</span> <span class="s">'''
+                apiVersion: autoscaling/v2
+                kind: HorizontalPodAutoscaler
+                metadata:
+                  name: auth-service-hpa
+                spec:
+                  scaleTargetRef:
+                    apiVersion: apps/v1
+                    kind: Deployment
+                    name: auth-service
+                  minReplicas: 3
+                  maxReplicas: 20
+                  metrics:
+                  - type: Resource
+                    resource:
+                      name: cpu
+                      target:
+                        type: Utilization
+                        averageUtilization: 70
+                  - type: Resource
+                    resource:
+                      name: memory
+                      target:
+                        type: Utilization
+                        averageUtilization: 80
+                '''</span><span class="p">,</span>
+                
+                <span class="s">'cache_distribution'</span><span class="p">:</span> <span class="s">'''
+                # Redis Clusterによる分散キャッシュ
+                class DistributedSessionStore:
+                    def __init__(self):
+                        self.redis = RedisCluster(
+                            startup_nodes=[
+                                {"host": "redis-1", "port": 6379},
+                                {"host": "redis-2", "port": 6379},
+                                {"host": "redis-3", "port": 6379}
+                            ],
+                            decode_responses=True,
+                            skip_full_coverage_check=True
+                        )
+                    
+                    def get_session(self, session_id: str) -&gt; Optional[Session]:
+                        data = self.redis.get(f"session:{session_id}")
+                        return Session.from_json(data) if data else None
+                '''</span>
+            <span class="p">},</span>
+            
+            <span class="s">'load_distribution'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'sticky_sessions_avoided'</span><span class="p">:</span> <span class="s">'''
+                # JWTによるステートレス認証でスティッキーセッション不要
+                @app.before_request
+                def validate_request():
+                    token = extract_token_from_header()
+                    if not token:
+                        return jsonify({"error": "No token"}), 401
+                    
+                    # 任意のインスタンスで検証可能
+                    claims = validate_jwt(token)
+                    if not claims:
+                        return jsonify({"error": "Invalid token"}), 401
+                    
+                    g.user = claims
+                '''</span><span class="p">,</span>
+                
+                <span class="s">'regional_deployment'</span><span class="p">:</span> <span class="s">'''
+                # マルチリージョン展開
+                regions = {
+                    'us-east': 'auth-us-east.example.com',
+                    'eu-west': 'auth-eu-west.example.com',
+                    'ap-northeast': 'auth-ap-northeast.example.com'
+                }
+                
+                # GeoDNSによる最適なリージョンへのルーティング
+                '''</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="913-一貫性と状態管理の課題">9.1.3 一貫性と状態管理の課題</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ConsistencyStateManagement</span><span class="p">:</span>
+    <span class="s">"""一貫性と状態管理の課題"""</span>
+    
+    <span class="k">def</span> <span class="nf">consistency_challenges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""一貫性の課題"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'types_of_inconsistency'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'permission_propagation'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'scenario'</span><span class="p">:</span> <span class="s">'ユーザーの権限変更が全サービスに反映されるまでのラグ'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'''
+                    T0: Admin が User の権限を revoke
+                    T1: Auth Service は更新を認識
+                    T2: Service A はまだ古い権限でリクエストを許可
+                    T3: Service B も古い権限で動作
+                    T4: 最終的に全サービスが新しい権限を認識
+                    
+                    問題：T1-T4 の間、不正なアクセスが可能
+                    '''</span><span class="p">,</span>
+                    <span class="s">'solutions'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'イベント駆動の権限更新'</span><span class="p">,</span>
+                        <span class="s">'短いキャッシュTTL'</span><span class="p">,</span>
+                        <span class="s">'権限チェックの集約'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                
+                <span class="s">'session_invalidation'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'scenario'</span><span class="p">:</span> <span class="s">'ログアウトやセッション無効化の即時反映'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'''
+                    distributed_logout = {
+                        'challenge': 'すべてのサービスでセッションを無効化',
+                        'approaches': {
+                            'blacklist': 'トークンブラックリストの共有',
+                            'short_lived': '短命トークン + リフレッシュ',
+                            'revocation_events': 'イベントバスでの通知'
+                        }
+                    }
+                    '''</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            
+            <span class="s">'state_synchronization'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'event_driven_approach'</span><span class="p">:</span> <span class="s">'''
+                class AuthEventPublisher:
+                    def __init__(self, event_bus):
+                        self.event_bus = event_bus
+                    
+                    async def publish_auth_event(self, event_type: str, data: dict):
+                        event = {
+                            'type': event_type,
+                            'timestamp': datetime.utcnow().isoformat(),
+                            'data': data,
+                            'version': '1.0'
+                        }
+                        
+                        await self.event_bus.publish('auth-events', event)
+                    
+                    async def user_logged_out(self, user_id: str, session_id: str):
+                        await self.publish_auth_event('USER_LOGGED_OUT', {
+                            'user_id': user_id,
+                            'session_id': session_id
+                        })
+                    
+                    async def permissions_changed(self, user_id: str, changes: dict):
+                        await self.publish_auth_event('PERMISSIONS_CHANGED', {
+                            'user_id': user_id,
+                            'changes': changes
+                        })
+                '''</span><span class="p">,</span>
+                
+                <span class="s">'cache_invalidation'</span><span class="p">:</span> <span class="s">'''
+                class DistributedCacheInvalidation:
+                    def __init__(self, redis_client, pubsub_channel='cache-invalidation'):
+                        self.redis = redis_client
+                        self.channel = pubsub_channel
+                        self.local_cache = TTLCache(maxsize=1000, ttl=60)
+                        
+                        # 無効化イベントのサブスクライブ
+                        self.start_invalidation_listener()
+                    
+                    def invalidate(self, key: str):
+                        # ローカルキャッシュから削除
+                        self.local_cache.pop(key, None)
+                        
+                        # 他のインスタンスに通知
+                        self.redis.publish(self.channel, json.dumps({
+                            'action': 'invalidate',
+                            'key': key,
+                            'timestamp': time.time()
+                        }))
+                '''</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="92-api-gatewayパターン">9.2 API Gatewayパターン</h2>
+
+<h3 id="921-api-gatewayによる認証の集約">9.2.1 API Gatewayによる認証の集約</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">APIGatewayAuthentication</span><span class="p">:</span>
+    <span class="s">"""API Gatewayでの認証実装"""</span>
+    
+    <span class="k">def</span> <span class="nf">gateway_architecture</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""ゲートウェイアーキテクチャ"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'pattern_overview'</span><span class="p">:</span> <span class="s">'''
+            [Client] → [API Gateway] → [Service A]
+                             ↓      → [Service B]
+                      [Auth Service] → [Service C]
+            
+            利点:
+            1. 認証の単一ポイント
+            2. サービスは認証から解放
+            3. 統一されたセキュリティポリシー
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'implementation_example'</span><span class="p">:</span> <span class="s">'''
+            class APIGateway:
+                def __init__(self):
+                    self.auth_service = AuthService()
+                    self.router = ServiceRouter()
+                    self.rate_limiter = RateLimiter()
+                
+                async def handle_request(self, request: Request) -&gt; Response:
+                    # 1. レート制限
+                    if not await self.rate_limiter.check(request.client_ip):
+                        return Response(status=429, body="Too Many Requests")
+                    
+                    # 2. 認証
+                    auth_result = await self.authenticate(request)
+                    if not auth_result.success:
+                        return Response(status=401, body="Unauthorized")
+                    
+                    # 3. リクエストエンリッチメント
+                    enriched_request = self.enrich_request(request, auth_result.user)
+                    
+                    # 4. ルーティング
+                    service = self.router.get_service(request.path)
+                    
+                    # 5. サービス呼び出し
+                    response = await service.call(enriched_request)
+                    
+                    # 6. レスポンス処理
+                    return self.process_response(response)
+                
+                def enrich_request(self, request: Request, user: User) -&gt; Request:
+                    # 内部ヘッダーの追加
+                    request.headers['X-User-ID'] = user.id
+                    request.headers['X-User-Roles'] = ','.join(user.roles)
+                    request.headers['X-Request-ID'] = generate_request_id()
+                    
+                    # JWTの付与（サービス間通信用）
+                    internal_token = self.generate_internal_token(user)
+                    request.headers['X-Internal-Token'] = internal_token
+                    
+                    return request
+            '''</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">token_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""トークン変換パターン"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'external_to_internal'</span><span class="p">:</span> <span class="s">'''
+            class TokenTranslator:
+                """外部トークンから内部トークンへの変換"""
+                
+                def __init__(self, signing_key: str):
+                    self.signing_key = signing_key
+                    self.token_cache = TTLCache(maxsize=1000, ttl=300)
+                
+                def translate_token(self, external_token: str) -&gt; str:
+                    # キャッシュチェック
+                    if external_token in self.token_cache:
+                        return self.token_cache[external_token]
+                    
+                    # 外部トークンの検証
+                    user_info = self.validate_external_token(external_token)
+                    
+                    # 内部用の簡潔なトークン生成
+                    internal_claims = {
+                        'sub': user_info['user_id'],
+                        'roles': user_info['roles'],
+                        'iat': datetime.utcnow(),
+                        'exp': datetime.utcnow() + timedelta(minutes=5),
+                        'jti': str(uuid.uuid4())
+                    }
+                    
+                    internal_token = jwt.encode(
+                        internal_claims,
+                        self.signing_key,
+                        algorithm='HS256'
+                    )
+                    
+                    # キャッシュ
+                    self.token_cache[external_token] = internal_token
+                    
+                    return internal_token
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'token_types'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'reference_token'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'description'</span><span class="p">:</span> <span class="s">'外部クライアント向け'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'opaque_token_abc123'</span><span class="p">,</span>
+                    <span class="s">'validation'</span><span class="p">:</span> <span class="s">'Auth serviceへの問い合わせ必要'</span><span class="p">,</span>
+                    <span class="s">'size'</span><span class="p">:</span> <span class="s">'小さい'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'self_contained_token'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'description'</span><span class="p">:</span> <span class="s">'内部サービス向け'</span><span class="p">,</span>
+                    <span class="s">'example'</span><span class="p">:</span> <span class="s">'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...'</span><span class="p">,</span>
+                    <span class="s">'validation'</span><span class="p">:</span> <span class="s">'署名検証のみ'</span><span class="p">,</span>
+                    <span class="s">'size'</span><span class="p">:</span> <span class="s">'大きい（クレーム含む）'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">gateway_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""ゲートウェイパターンの実装"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'bff_pattern'</span><span class="p">:</span> <span class="s">'''
+            # Backend for Frontend パターン
+            class MobileBFF(APIGateway):
+                """モバイルアプリ専用のゲートウェイ"""
+                
+                def aggregate_response(self, user_id: str) -&gt; dict:
+                    # 複数のサービスから必要なデータを収集
+                    user_data = self.user_service.get_user(user_id)
+                    notifications = self.notification_service.get_unread(user_id)
+                    preferences = self.preference_service.get_all(user_id)
+                    
+                    # モバイル用に最適化された形式で返す
+                    return {
+                        'user': {
+                            'id': user_data['id'],
+                            'name': user_data['name'],
+                            'avatar': user_data['avatar_url']
+                        },
+                        'unread_count': len(notifications),
+                        'theme': preferences.get('theme', 'light')
+                    }
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'graphql_gateway'</span><span class="p">:</span> <span class="s">'''
+            # GraphQL Gatewayでの認証
+            class GraphQLGateway:
+                def __init__(self):
+                    self.schema = build_schema()
+                    self.auth = AuthMiddleware()
+                
+                async def execute_query(self, query: str, token: str):
+                    # 認証
+                    user = await self.auth.validate_token(token)
+                    
+                    # コンテキストに認証情報を注入
+                    context = {
+                        'user': user,
+                        'permissions': user.permissions,
+                        'request_id': generate_request_id()
+                    }
+                    
+                    # GraphQLクエリの実行
+                    result = await graphql(
+                        self.schema,
+                        query,
+                        context=context,
+                        middleware=[
+                            PermissionMiddleware(),
+                            RateLimitMiddleware(),
+                            LoggingMiddleware()
+                        ]
+                    )
+                    
+                    return result
+            '''</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="922-api-gatewayの実装パターン">9.2.2 API Gatewayの実装パターン</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">APIGatewayImplementation</span><span class="p">:</span>
+    <span class="s">"""API Gateway実装パターン"""</span>
+    
+    <span class="k">def</span> <span class="nf">implementation_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""実装オプションの比較"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'commercial_solutions'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'aws_api_gateway'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'pros'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'フルマネージド'</span><span class="p">,</span>
+                        <span class="s">'AWS Cognitoとの統合'</span><span class="p">,</span>
+                        <span class="s">'Lambda認証との連携'</span>
+                    <span class="p">],</span>
+                    <span class="s">'cons'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'ベンダーロックイン'</span><span class="p">,</span>
+                        <span class="s">'カスタマイズの制限'</span><span class="p">,</span>
+                        <span class="s">'コスト'</span>
+                    <span class="p">],</span>
+                    <span class="s">'use_case'</span><span class="p">:</span> <span class="s">'AWSエコシステム利用時'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'kong'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'pros'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'プラグイン機能豊富'</span><span class="p">,</span>
+                        <span class="s">'オンプレミス可能'</span><span class="p">,</span>
+                        <span class="s">'パフォーマンス'</span>
+                    <span class="p">],</span>
+                    <span class="s">'cons'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'学習曲線'</span><span class="p">,</span>
+                        <span class="s">'エンタープライズ機能は有料'</span>
+                    <span class="p">],</span>
+                    <span class="s">'use_case'</span><span class="p">:</span> <span class="s">'フレキシブルな認証要件'</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            
+            <span class="s">'custom_implementation'</span><span class="p">:</span> <span class="s">'''
+            # FastAPIによるカスタムゲートウェイ
+            from fastapi import FastAPI, Request, HTTPException
+            from fastapi.middleware.cors import CORSMiddleware
+            import httpx
+            
+            app = FastAPI()
+            
+            # CORS設定
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["https://app.example.com"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+            
+            # サービスレジストリ
+            services = {
+                'users': 'http://user-service:8080',
+                'orders': 'http://order-service:8080',
+                'inventory': 'http://inventory-service:8080'
+            }
+            
+            @app.middleware("http")
+            async def auth_middleware(request: Request, call_next):
+                # 認証不要のパス
+                public_paths = ['/health', '/metrics', '/docs']
+                if request.url.path in public_paths:
+                    return await call_next(request)
+                
+                # トークン検証
+                token = request.headers.get('Authorization', '').replace('Bearer ', '')
+                if not token:
+                    raise HTTPException(status_code=401, detail="Missing token")
+                
+                try:
+                    # トークン検証とユーザー情報取得
+                    user = verify_token(token)
+                    request.state.user = user
+                except InvalidTokenError:
+                    raise HTTPException(status_code=401, detail="Invalid token")
+                
+                # リクエストにユーザー情報を追加
+                response = await call_next(request)
+                return response
+            
+            @app.api_route("/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+            async def proxy(service: str, path: str, request: Request):
+                if service not in services:
+                    raise HTTPException(status_code=404, detail="Service not found")
+                
+                # 内部トークンの生成
+                internal_token = generate_internal_token(request.state.user)
+                
+                # ヘッダーの準備
+                headers = dict(request.headers)
+                headers['X-Internal-Token'] = internal_token
+                headers['X-User-ID'] = str(request.state.user.id)
+                headers['X-Request-ID'] = generate_request_id()
+                
+                # プロキシリクエスト
+                async with httpx.AsyncClient() as client:
+                    response = await client.request(
+                        method=request.method,
+                        url=f"{services[service]}/{path}",
+                        headers=headers,
+                        content=await request.body(),
+                        params=request.query_params
+                    )
+                
+                return Response(
+                    content=response.content,
+                    status_code=response.status_code,
+                    headers=dict(response.headers)
+                )
+            '''</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">security_hardening</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""セキュリティ強化"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'rate_limiting'</span><span class="p">:</span> <span class="s">'''
+            from slowapi import Limiter, _rate_limit_exceeded_handler
+            from slowapi.util import get_remote_address
+            
+            limiter = Limiter(
+                key_func=get_remote_address,
+                default_limits=["1000 per hour"],
+                storage_uri="redis://localhost:6379"
+            )
+            
+            app.state.limiter = limiter
+            app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+            
+            @app.post("/api/auth/login")
+            @limiter.limit("5 per minute")
+            async def login(credentials: LoginCredentials):
+                # ログイン処理
+                pass
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'request_validation'</span><span class="p">:</span> <span class="s">'''
+            class SecurityMiddleware:
+                def __init__(self, app):
+                    self.app = app
+                
+                async def __call__(self, scope, receive, send):
+                    if scope["type"] == "http":
+                        # ヘッダーサイズチェック
+                        headers = dict(scope["headers"])
+                        if any(len(v) &gt; 8192 for v in headers.values()):
+                            response = Response(status_code=431)
+                            await response(scope, receive, send)
+                            return
+                        
+                        # SQLインジェクション対策
+                        path = scope["path"]
+                        if self.contains_sql_injection(path):
+                            response = Response(status_code=400)
+                            await response(scope, receive, send)
+                            return
+                    
+                    await self.app(scope, receive, send)
+                
+                def contains_sql_injection(self, value: str) -&gt; bool:
+                    patterns = [
+                        r"(</span><span class="se">\b</span><span class="s">UNION</span><span class="se">\b</span><span class="s">.*</span><span class="se">\b</span><span class="s">SELECT</span><span class="se">\b</span><span class="s">)",
+                        r"(</span><span class="se">\b</span><span class="s">DROP</span><span class="se">\b</span><span class="s">.*</span><span class="se">\b</span><span class="s">TABLE</span><span class="se">\b</span><span class="s">)",
+                        r"(</span><span class="se">\b</span><span class="s">INSERT</span><span class="se">\b</span><span class="s">.*</span><span class="se">\b</span><span class="s">INTO</span><span class="se">\b</span><span class="s">)",
+                        r"(</span><span class="se">\b</span><span class="s">DELETE</span><span class="se">\b</span><span class="s">.*</span><span class="se">\b</span><span class="s">FROM</span><span class="se">\b</span><span class="s">)"
+                    ]
+                    return any(re.search(p, value, re.IGNORECASE) for p in patterns)
+            '''</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="93-サービス間認証">9.3 サービス間認証</h2>
+
+<h3 id="931-サービスメッシュとmtls">9.3.1 サービスメッシュとmTLS</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ServiceMeshAuthentication</span><span class="p">:</span>
+    <span class="s">"""サービスメッシュでの認証"""</span>
+    
+    <span class="k">def</span> <span class="nf">mtls_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""mTLS実装"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'istio_configuration'</span><span class="p">:</span> <span class="s">'''
+            # Istio でのmTLS設定
+            apiVersion: security.istio.io/v1beta1
+            kind: PeerAuthentication
+            metadata:
+              name: default
+              namespace: production
+            spec:
+              mtls:
+                mode: STRICT  # すべての通信でmTLS必須
+            
+            ---
+            apiVersion: security.istio.io/v1beta1
+            kind: AuthorizationPolicy
+            metadata:
+              name: require-jwt
+              namespace: production
+            spec:
+              selector:
+                matchLabels:
+                  app: api-gateway
+              action: ALLOW
+              rules:
+              - from:
+                - source:
+                    requestPrincipals: ["*"]
+                when:
+                - key: request.auth.claims[iss]
+                  values: ["https://auth.example.com"]
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'certificate_management'</span><span class="p">:</span> <span class="s">'''
+            class CertificateManager:
+                """証明書の自動管理"""
+                
+                def __init__(self):
+                    self.cert_authority = CertificateAuthority()
+                    self.renewal_threshold = timedelta(days=30)
+                
+                async def rotate_certificates(self):
+                    """証明書の自動ローテーション"""
+                    services = await self.get_all_services()
+                    
+                    for service in services:
+                        cert = await self.get_certificate(service.name)
+                        
+                        if self.needs_renewal(cert):
+                            # 新しい証明書の生成
+                            new_cert = await self.cert_authority.issue_certificate(
+                                subject=service.name,
+                                validity_days=90
+                            )
+                            
+                            # 証明書の更新
+                            await self.update_certificate(service, new_cert)
+                            
+                            # 古い証明書の無効化
+                            await self.cert_authority.revoke_certificate(cert)
+                            
+                            logger.info(f"Rotated certificate for {service.name}")
+                
+                def needs_renewal(self, cert: Certificate) -&gt; bool:
+                    expiry = cert.not_valid_after
+                    return expiry - datetime.now() &lt; self.renewal_threshold
+            '''</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">service_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""サービスアイデンティティ"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'spiffe_implementation'</span><span class="p">:</span> <span class="s">'''
+            # SPIFFE/SPIRE によるサービスID
+            class SPIFFEIdentity:
+                """SPIFFE準拠のサービスアイデンティティ"""
+                
+                def __init__(self, trust_domain: str):
+                    self.trust_domain = trust_domain
+                    self.workload_api = WorkloadAPI()
+                
+                def get_service_identity(self) -&gt; str:
+                    """サービスのSPIFFE IDを取得"""
+                    # spiffe://trust-domain/path/to/service
+                    return f"spiffe://{self.trust_domain}/ns/{self.namespace}/sa/{self.service_account}"
+                
+                async def get_svid(self) -&gt; SVID:
+                    """SPIFFE Verifiable Identity Document の取得"""
+                    svid = await self.workload_api.fetch_svid()
+                    return svid
+                
+                async def validate_peer(self, peer_cert: Certificate) -&gt; bool:
+                    """ピアサービスの検証"""
+                    # SPIFFE IDの抽出
+                    spiffe_id = self.extract_spiffe_id(peer_cert)
+                    
+                    # 信頼するサービスのリスト
+                    trusted_services = await self.get_trusted_services()
+                    
+                    return spiffe_id in trusted_services
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'service_authentication_flow'</span><span class="p">:</span> <span class="s">'''
+            class ServiceAuthenticator:
+                """サービス間認証フロー"""
+                
+                def __init__(self):
+                    self.token_issuer = TokenIssuer()
+                    self.identity_provider = ServiceIdentityProvider()
+                
+                async def authenticate_service(self, client_cert: Certificate) -&gt; ServiceToken:
+                    # 1. クライアント証明書の検証
+                    if not self.verify_certificate(client_cert):
+                        raise AuthenticationError("Invalid certificate")
+                    
+                    # 2. サービスIDの抽出
+                    service_id = self.extract_service_id(client_cert)
+                    
+                    # 3. サービスの権限取得
+                    permissions = await self.get_service_permissions(service_id)
+                    
+                    # 4. サービストークンの発行
+                    token = self.token_issuer.issue_service_token(
+                        service_id=service_id,
+                        permissions=permissions,
+                        validity=timedelta(minutes=5)  # 短命トークン
+                    )
+                    
+                    return token
+                
+                def verify_certificate(self, cert: Certificate) -&gt; bool:
+                    # CA証明書での検証
+                    # 有効期限チェック
+                    # 失効リストチェック
+                    return True  # 簡略化
+            '''</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="932-apiキーとサービストークン">9.3.2 APIキーとサービストークン</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ServiceTokenManagement</span><span class="p">:</span>
+    <span class="s">"""サービストークン管理"""</span>
+    
+    <span class="k">def</span> <span class="nf">api_key_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""APIキーパターン"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'api_key_management'</span><span class="p">:</span> <span class="s">'''
+            class APIKeyManager:
+                """APIキーの管理"""
+                
+                def __init__(self, db, encryption_key):
+                    self.db = db
+                    self.cipher = Fernet(encryption_key)
+                
+                async def create_api_key(self, service_name: str, permissions: List[str]) -&gt; APIKey:
+                    # APIキーの生成
+                    key_id = f"sk_{generate_random_string(8)}"
+                    secret = f"{generate_random_string(32)}"
+                    api_key = f"{key_id}.{secret}"
+                    
+                    # ハッシュ化して保存
+                    hashed_secret = hashlib.sha256(secret.encode()).hexdigest()
+                    
+                    await self.db.api_keys.insert({
+                        'key_id': key_id,
+                        'secret_hash': hashed_secret,
+                        'service_name': service_name,
+                        'permissions': permissions,
+                        'created_at': datetime.utcnow(),
+                        'last_used_at': None,
+                        'expires_at': datetime.utcnow() + timedelta(days=365),
+                        'is_active': True
+                    })
+                    
+                    return APIKey(
+                        key=api_key,
+                        key_id=key_id,
+                        service_name=service_name
+                    )
+                
+                async def validate_api_key(self, api_key: str) -&gt; Optional[Service]:
+                    try:
+                        key_id, secret = api_key.split('.')
+                    except ValueError:
+                        return None
+                    
+                    # データベースから取得
+                    key_record = await self.db.api_keys.find_one({'key_id': key_id})
+                    if not key_record or not key_record['is_active']:
+                        return None
+                    
+                    # 有効期限チェック
+                    if key_record['expires_at'] &lt; datetime.utcnow():
+                        return None
+                    
+                    # シークレットの検証
+                    if not self.verify_secret(secret, key_record['secret_hash']):
+                        return None
+                    
+                    # 使用履歴の更新
+                    await self.db.api_keys.update_one(
+                        {'key_id': key_id},
+                        {'$set': {'last_used_at': datetime.utcnow()}}
+                    )
+                    
+                    return Service(
+                        name=key_record['service_name'],
+                        permissions=key_record['permissions']
+                    )
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'rotation_strategy'</span><span class="p">:</span> <span class="s">'''
+            class APIKeyRotation:
+                """APIキーのローテーション戦略"""
+                
+                def __init__(self, key_manager: APIKeyManager):
+                    self.key_manager = key_manager
+                    self.rotation_period = timedelta(days=90)
+                    self.overlap_period = timedelta(days=7)
+                
+                async def rotate_keys(self):
+                    """定期的なキーローテーション"""
+                    
+                    # ローテーション対象のキーを取得
+                    keys_to_rotate = await self.get_keys_for_rotation()
+                    
+                    for key in keys_to_rotate:
+                        # 新しいキーの生成
+                        new_key = await self.key_manager.create_api_key(
+                            service_name=key.service_name,
+                            permissions=key.permissions
+                        )
+                        
+                        # 通知
+                        await self.notify_service(key.service_name, {
+                            'action': 'key_rotation',
+                            'old_key_id': key.key_id,
+                            'new_key_id': new_key.key_id,
+                            'overlap_end': datetime.utcnow() + self.overlap_period
+                        })
+                        
+                        # 古いキーの有効期限設定
+                        await self.schedule_key_deactivation(
+                            key.key_id,
+                            datetime.utcnow() + self.overlap_period
+                        )
+            '''</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">service_to_service_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""サービス間トークン"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'token_exchange'</span><span class="p">:</span> <span class="s">'''
+            class TokenExchangeService:
+                """トークン交換サービス（RFC 8693準拠）"""
+                
+                async def exchange_token(self, request: TokenExchangeRequest) -&gt; TokenExchangeResponse:
+                    # 1. 元のトークンの検証
+                    subject_token_claims = self.validate_token(request.subject_token)
+                    
+                    # 2. アクターの検証（呼び出し元サービス）
+                    actor_claims = self.validate_token(request.actor_token)
+                    
+                    # 3. 委任可能性のチェック
+                    if not self.can_delegate(actor_claims, request.resource):
+                        raise ForbiddenError("Delegation not allowed")
+                    
+                    # 4. 新しいトークンの生成
+                    delegated_token = self.issue_delegated_token(
+                        original_subject=subject_token_claims['sub'],
+                        actor=actor_claims['sub'],
+                        audience=request.audience,
+                        scope=self.compute_delegated_scope(
+                            subject_token_claims['scope'],
+                            request.requested_scope
+                        ),
+                        validity=timedelta(minutes=5)  # 短命
+                    )
+                    
+                    return TokenExchangeResponse(
+                        access_token=delegated_token,
+                        token_type="Bearer",
+                        expires_in=300
+                    )
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'service_token_types'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'client_credentials'</span><span class="p">:</span> <span class="s">'''
+                # サービス自身の権限でのアクセス
+                async def get_service_token():
+                    response = await auth_client.token(
+                        grant_type="client_credentials",
+                        client_id=SERVICE_ID,
+                        client_secret=SERVICE_SECRET,
+                        scope="service.read service.write"
+                    )
+                    return response.access_token
+                '''</span><span class="p">,</span>
+                
+                <span class="s">'delegated_token'</span><span class="p">:</span> <span class="s">'''
+                # ユーザーの代理でのアクセス
+                async def get_delegated_token(user_token: str):
+                    response = await auth_client.exchange(
+                        subject_token=user_token,
+                        subject_token_type="access_token",
+                        actor_token=await get_service_token(),
+                        actor_token_type="access_token",
+                        resource="https://api.example.com/orders",
+                        audience="order-service"
+                    )
+                    return response.access_token
+                '''</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="94-zero-trust-architecture">9.4 Zero Trust Architecture</h2>
+
+<h3 id="941-zero-trustの原則">9.4.1 Zero Trustの原則</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ZeroTrustPrinciples</span><span class="p">:</span>
+    <span class="s">"""Zero Trust原則の実装"""</span>
+    
+    <span class="k">def</span> <span class="nf">core_principles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""中核となる原則"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'never_trust_always_verify'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'concept'</span><span class="p">:</span> <span class="s">'決して信頼せず、常に検証する'</span><span class="p">,</span>
+                <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                class ZeroTrustGateway:
+                    """すべてのリクエストを検証"""
+                    
+                    async def process_request(self, request: Request) -&gt; Response:
+                        # 1. デバイスの検証
+                        device_trust = await self.verify_device(request)
+                        if not device_trust.is_trusted:
+                            return Response(status=403, body="Untrusted device")
+                        
+                        # 2. ユーザーの認証
+                        user = await self.authenticate_user(request)
+                        if not user:
+                            return Response(status=401, body="Authentication required")
+                        
+                        # 3. コンテキストの評価
+                        risk_score = await self.evaluate_context(request, user, device_trust)
+                        
+                        # 4. 動的なアクセス判断
+                        if risk_score &gt; 70:
+                            # 高リスクの場合は追加認証
+                            if not await self.require_mfa(user):
+                                return Response(status=401, body="MFA required")
+                        
+                        # 5. 最小権限でのアクセス許可
+                        scoped_token = self.issue_scoped_token(user, request.resource)
+                        
+                        # 6. 継続的な監視
+                        self.monitor_session(user.id, request.session_id)
+                        
+                        return await self.forward_request(request, scoped_token)
+                '''</span>
+            <span class="p">},</span>
+            
+            <span class="s">'least_privilege_access'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'concept'</span><span class="p">:</span> <span class="s">'最小権限の原則'</span><span class="p">,</span>
+                <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                class LeastPrivilegeEnforcer:
+                    """最小権限の実施"""
+                    
+                    def compute_permissions(self, user: User, resource: Resource, context: Context) -&gt; Permissions:
+                        # ベース権限
+                        base_permissions = self.get_role_permissions(user.role)
+                        
+                        # リソース固有の権限
+                        resource_permissions = self.get_resource_permissions(resource)
+                        
+                        # コンテキストによる制限
+                        if context.is_external_network:
+                            base_permissions = self.restrict_for_external(base_permissions)
+                        
+                        if context.time_of_day not in user.allowed_hours:
+                            base_permissions = self.restrict_for_time(base_permissions)
+                        
+                        # 交差を取る（最小権限）
+                        return base_permissions.intersection(resource_permissions)
+                    
+                    def issue_scoped_token(self, user: User, resource: Resource) -&gt; str:
+                        permissions = self.compute_permissions(user, resource, get_context())
+                        
+                        claims = {
+                            'sub': user.id,
+                            'aud': resource.service,
+                            'scope': permissions.to_scope_string(),
+                            'exp': datetime.utcnow() + timedelta(minutes=5),  # 短命
+                            'context': {
+                                'ip': get_client_ip(),
+                                'device_id': get_device_id()
+                            }
+                        }
+                        
+                        return jwt.encode(claims, self.signing_key)
+                '''</span>
+            <span class="p">},</span>
+            
+            <span class="s">'verify_explicitly'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'concept'</span><span class="p">:</span> <span class="s">'明示的な検証'</span><span class="p">,</span>
+                <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                class ExplicitVerification:
+                    """すべてのアクセスを明示的に検証"""
+                    
+                    async def verify_access(self, subject: str, action: str, resource: str) -&gt; bool:
+                        # デフォルトは拒否
+                        decision = False
+                        
+                        # ポリシーエンジンでの評価
+                        policies = await self.get_applicable_policies(subject, resource)
+                        
+                        for policy in policies:
+                            result = self.evaluate_policy(policy, {
+                                'subject': subject,
+                                'action': action,
+                                'resource': resource,
+                                'environment': self.get_environment_attributes()
+                            })
+                            
+                            if result == 'DENY':
+                                # 明示的な拒否は最優先
+                                return False
+                            elif result == 'ALLOW':
+                                decision = True
+                        
+                        # 監査ログ
+                        await self.audit_access_decision(subject, action, resource, decision)
+                        
+                        return decision
+                '''</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">microsegmentation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""マイクロセグメンテーション"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'network_policies'</span><span class="p">:</span> <span class="s">'''
+            # Kubernetes NetworkPolicy
+            apiVersion: networking.k8s.io/v1
+            kind: NetworkPolicy
+            metadata:
+              name: api-gateway-policy
+            spec:
+              podSelector:
+                matchLabels:
+                  app: api-gateway
+              policyTypes:
+              - Ingress
+              - Egress
+              ingress:
+              - from:
+                - namespaceSelector:
+                    matchLabels:
+                      name: dmz
+                ports:
+                - protocol: TCP
+                  port: 443
+              egress:
+              - to:
+                - namespaceSelector:
+                    matchLabels:
+                      name: services
+                ports:
+                - protocol: TCP
+                  port: 8080
+              - to:
+                - namespaceSelector:
+                    matchLabels:
+                      name: auth
+                ports:
+                - protocol: TCP
+                  port: 9000
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'service_mesh_policies'</span><span class="p">:</span> <span class="s">'''
+            # Istio AuthorizationPolicy
+            apiVersion: security.istio.io/v1beta1
+            kind: AuthorizationPolicy
+            metadata:
+              name: order-service-policy
+            spec:
+              selector:
+                matchLabels:
+                  app: order-service
+              action: ALLOW
+              rules:
+              - from:
+                - source:
+                    principals: ["cluster.local/ns/default/sa/api-gateway"]
+                to:
+                - operation:
+                    methods: ["GET", "POST"]
+                    paths: ["/api/orders/*"]
+                when:
+                - key: request.auth.claims[scope]
+                  values: ["orders.read", "orders.write"]
+            '''</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="942-継続的な検証とリスク評価">9.4.2 継続的な検証とリスク評価</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ContinuousVerification</span><span class="p">:</span>
+    <span class="s">"""継続的な検証の実装"""</span>
+    
+    <span class="k">def</span> <span class="nf">risk_based_authentication</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""リスクベース認証"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'risk_engine'</span><span class="p">:</span> <span class="s">'''
+            class RiskEngine:
+                """リスク評価エンジン"""
+                
+                def __init__(self):
+                    self.ml_model = load_model('risk_assessment_model.pkl')
+                    self.rules_engine = RulesEngine()
+                
+                async def calculate_risk_score(self, request: Request, user: User) -&gt; RiskScore:
+                    # 特徴量の抽出
+                    features = {
+                        # デバイス関連
+                        'is_known_device': await self.is_known_device(user.id, request.device_id),
+                        'device_trust_score': await self.get_device_trust_score(request.device_id),
+                        
+                        # 位置情報関連
+                        'location_anomaly': await self.check_location_anomaly(user.id, request.ip),
+                        'impossible_travel': await self.check_impossible_travel(user.id, request.ip),
+                        
+                        # 行動パターン
+                        'unusual_time': self.is_unusual_access_time(user.id, request.timestamp),
+                        'access_frequency': await self.get_access_frequency(user.id),
+                        
+                        # リソース関連
+                        'resource_sensitivity': self.get_resource_sensitivity(request.resource),
+                        'unusual_resource': await self.is_unusual_resource(user.id, request.resource)
+                    }
+                    
+                    # MLモデルでのスコア計算
+                    ml_score = self.ml_model.predict_proba([features])[0][1] * 100
+                    
+                    # ルールベースのスコア
+                    rule_score = self.rules_engine.evaluate(features)
+                    
+                    # 統合スコア
+                    final_score = (ml_score * 0.7 + rule_score * 0.3)
+                    
+                    return RiskScore(
+                        score=final_score,
+                        factors=features,
+                        required_action=self.determine_action(final_score)
+                    )
+                
+                def determine_action(self, score: float) -&gt; str:
+                    if score &lt; 30:
+                        return "allow"
+                    elif score &lt; 60:
+                        return "challenge"  # 追加認証
+                    elif score &lt; 80:
+                        return "mfa_required"
+                    else:
+                        return "deny"
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'adaptive_policies'</span><span class="p">:</span> <span class="s">'''
+            class AdaptivePolicyEngine:
+                """適応型ポリシーエンジン"""
+                
+                async def enforce_policy(self, user: User, resource: Resource, risk_score: float):
+                    # リスクレベルに応じたポリシー選択
+                    if risk_score &lt; 30:
+                        # 低リスク：標準的なアクセス
+                        return StandardPolicy(
+                            session_timeout=timedelta(hours=8),
+                            concurrent_sessions=5
+                        )
+                    
+                    elif risk_score &lt; 60:
+                        # 中リスク：制限付きアクセス
+                        return RestrictedPolicy(
+                            session_timeout=timedelta(hours=2),
+                            concurrent_sessions=2,
+                            require_reauthentication_for_sensitive=True
+                        )
+                    
+                    else:
+                        # 高リスク：厳格なアクセス
+                        return StrictPolicy(
+                            session_timeout=timedelta(minutes=30),
+                            concurrent_sessions=1,
+                            require_mfa_for_all=True,
+                            audit_all_actions=True
+                        )
+            '''</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">continuous_monitoring</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""継続的監視"""</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'session_monitoring'</span><span class="p">:</span> <span class="s">'''
+            class SessionMonitor:
+                """セッション監視"""
+                
+                def __init__(self):
+                    self.anomaly_detector = AnomalyDetector()
+                    self.alert_service = AlertService()
+                
+                async def monitor_session(self, session_id: str):
+                    """セッションの継続的監視"""
+                    
+                    while True:
+                        session = await self.get_session(session_id)
+                        if not session or session.expired:
+                            break
+                        
+                        # アクティビティの収集
+                        activities = await self.collect_activities(session_id, last_5_minutes)
+                        
+                        # 異常検知
+                        anomalies = self.anomaly_detector.detect(activities)
+                        
+                        if anomalies:
+                            # リスクスコアの再計算
+                            new_risk_score = await self.recalculate_risk(session, anomalies)
+                            
+                            if new_risk_score &gt; session.risk_score + 20:
+                                # 大幅なリスク上昇
+                                await self.handle_risk_elevation(session, new_risk_score)
+                        
+                        # 定期的なヘルスチェック
+                        if not await self.verify_session_health(session):
+                            await self.terminate_session(session_id, "Health check failed")
+                            break
+                        
+                        await asyncio.sleep(30)  # 30秒ごとにチェック
+                
+                async def handle_risk_elevation(self, session: Session, new_risk_score: float):
+                    if new_risk_score &gt; 80:
+                        # 即座にセッション終了
+                        await self.terminate_session(session.id, "Risk threshold exceeded")
+                        await self.alert_service.send_security_alert(
+                            f"High risk session terminated: {session.id}"
+                        )
+                    elif new_risk_score &gt; 60:
+                        # 再認証を要求
+                        await self.require_reauthentication(session.id)
+                        await self.notify_user(session.user_id, "Unusual activity detected")
+            '''</span><span class="p">,</span>
+            
+            <span class="s">'behavioral_analytics'</span><span class="p">:</span> <span class="s">'''
+            class BehavioralAnalytics:
+                """行動分析"""
+                
+                def __init__(self):
+                    self.ml_pipeline = self.build_ml_pipeline()
+                    self.baseline_db = BaselineDatabase()
+                
+                def build_ml_pipeline(self):
+                    return Pipeline([
+                        ('feature_extraction', FeatureExtractor()),
+                        ('scaler', StandardScaler()),
+                        ('anomaly_detector', IsolationForest(contamination=0.1))
+                    ])
+                
+                async def analyze_user_behavior(self, user_id: str, activities: List[Activity]):
+                    # ユーザーのベースライン取得
+                    baseline = await self.baseline_db.get_baseline(user_id)
+                    
+                    # 特徴量の計算
+                    features = self.extract_features(activities)
+                    
+                    # ベースラインとの比較
+                    deviations = self.calculate_deviations(features, baseline)
+                    
+                    # 異常スコアの計算
+                    anomaly_scores = self.ml_pipeline.predict(features)
+                    
+                    # 詳細な分析結果
+                    return BehaviorAnalysis(
+                        user_id=user_id,
+                        anomaly_score=float(anomaly_scores.mean()),
+                        deviations=deviations,
+                        suspicious_patterns=self.identify_patterns(activities),
+                        recommendation=self.get_recommendation(anomaly_scores.mean())
+                    )
+            '''</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>この章では、マイクロサービス環境における認証認可の実装について学びました：</p>
+
+<ol>
+  <li><strong>分散システムの課題</strong>
+    <ul>
+      <li>サービス増加による複雑性</li>
+      <li>パフォーマンスとセキュリティのトレードオフ</li>
+      <li>一貫性と状態管理の難しさ</li>
+    </ul>
+  </li>
+  <li><strong>API Gatewayパターン</strong>
+    <ul>
+      <li>認証の単一化</li>
+      <li>トークン変換戦略</li>
+      <li>セキュリティ強化の実装</li>
+    </ul>
+  </li>
+  <li><strong>サービス間認証</strong>
+    <ul>
+      <li>mTLSによる相互認証</li>
+      <li>APIキーとトークン管理</li>
+      <li>サービスアイデンティティの確立</li>
+    </ul>
+  </li>
+  <li><strong>Zero Trust Architecture</strong>
+    <ul>
+      <li>常に検証する原則</li>
+      <li>最小権限の徹底</li>
+      <li>継続的なリスク評価</li>
+    </ul>
+  </li>
+</ol>
+
+<p>次章では、実装パターンとベストプラクティスについて、より具体的な実装例を通じて学びます。</p>
+
+<h2 id="演習問題">演習問題</h2>
+
+<h3 id="問題1マイクロサービス認証設計">問題1：マイクロサービス認証設計</h3>
+<p>10個のマイクロサービスからなるEコマースシステムの認証アーキテクチャを設計しなさい。以下を含めること：</p>
+<ul>
+  <li>サービス一覧と役割</li>
+  <li>認証フロー図</li>
+  <li>トークン戦略</li>
+  <li>エラー処理</li>
+</ul>
+
+<h3 id="問題2api-gateway実装">問題2：API Gateway実装</h3>
+<p>FastAPIを使用して、以下の機能を持つAPI Gatewayを実装しなさい：</p>
+<ul>
+  <li>JWT検証</li>
+  <li>レート制限（ユーザーごと）</li>
+  <li>サービスへのプロキシ</li>
+  <li>監査ログ</li>
+</ul>
+
+<h3 id="問題3zero-trust設計">問題3：Zero Trust設計</h3>
+<p>金融システムにZero Trust原則を適用した設計を作成しなさい：</p>
+<ul>
+  <li>リスク評価の要素（最低10個）</li>
+  <li>動的アクセス制御のルール</li>
+  <li>継続的検証の実装方法</li>
+  <li>インシデント対応フロー</li>
+</ul>
+
+<h3 id="問題4サービスメッシュ設定">問題4：サービスメッシュ設定</h3>
+<p>Istioを使用したマイクロサービス環境で、以下のセキュリティポリシーを実装しなさい：</p>
+<ul>
+  <li>すべてのサービス間でmTLS必須</li>
+  <li>特定のサービスのみがデータベースサービスにアクセス可能</li>
+  <li>外部からのトラフィックはAPI Gateway経由のみ</li>
+  <li>サービスごとのレート制限</li>
+</ul>
+
+<h3 id="問題5パフォーマンス最適化">問題5：パフォーマンス最適化</h3>
+<p>認証処理がボトルネックになっているマイクロサービスシステムの最適化計画を立てなさい：</p>
+<ul>
+  <li>現状分析（レイテンシ測定）</li>
+  <li>最適化案（最低5つ）</li>
+  <li>実装優先順位</li>
+  <li>期待される改善効果</li>
+</ul>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-08-auth-system-design/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">第8章：認証システム設計</span>
+      </a>
+    
+
+    <a href="/practical-auth-book/pr-preview/pr-162/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/practical-auth-book/pr-preview/pr-162/chapters/chapter-10-implementation-patterns/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">第10章：実装パターン</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/chapters/chapter-09-microservices-auth/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/practical-auth-book/pr-preview/pr-162/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-162/assets/js/theme.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-162/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>
