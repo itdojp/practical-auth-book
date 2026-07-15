@@ -9,7 +9,8 @@
   },
   "scripts": {
     "setup": "node easy-setup.js",
-    "build": "node scripts/build-simple.js",
+    "build": "bundle exec jekyll build --source docs --destination _site --trace",
+    "build:legacy": "node scripts/build-simple.js",
     "build:safe": "node scripts/build-with-conflict-detection.js",
     "build:full": "npm run build:safe",
     "preview": "npm run build && npx http-server docs -p 8080 --silent",

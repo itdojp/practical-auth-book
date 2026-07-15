@@ -54,7 +54,7 @@ jobs:
         set -euo pipefail
 
         # `docs/` is the canonical Pages source for this repository.
-        # The legacy `npm run build` path regenerates `docs/` from `src/`
+        # The legacy `npm run build:legacy` path regenerates `docs/` from `src/`
         # and can drop current Jekyll route/assets fixes, so PRs must not
         # change source markdown without carrying the matching published docs.
         git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"

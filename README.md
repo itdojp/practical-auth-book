@@ -29,6 +29,10 @@ npm run build:validate
 `book-config.json` とナビゲーションを同じ PR で更新してください。
 `build:validate` は正本の `docs/` を再生成せず、公開route、画像、anchorを含む内部リンクを検証します。
 
+`npm run build` は `docs/` を正本として Jekyll で `_site/` に生成します。ビルド中に
+追跡対象の `docs/` は変更されません。旧 `src/` から `docs/` を再生成する移行用処理が必要な場合だけ
+`npm run build:legacy`（または競合検出付きの `npm run build:safe`）を使用してください。
+
 ## フィードバック（誤り指摘・改善提案）
 
 誤字脱字、技術的な誤り、改善提案は Issue / PR で受け付けます。
