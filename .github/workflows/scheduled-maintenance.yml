@@ -32,6 +32,9 @@ jobs:
           npm ci --omit=optional 2>&1 | tee build.log
           npm run build 2>&1 | tee -a build.log
 
+      - name: Test maintenance state contract
+        run: node scripts/test-scheduled-maintenance.js
+
       - name: Check outdated dependencies
         id: outdated
         continue-on-error: true
