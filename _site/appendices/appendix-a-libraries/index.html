@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録A: ライブラリとツール - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録A: ライブラリとツール">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/appendices/appendix-a-libraries/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録A: ライブラリとツール">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-a-libraries/" class="toc-link active" aria-current="page">
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録a-ライブラリとツール">付録A: ライブラリとツール</h1>
+
+<h2 id="a1-認証ライブラリの比較">A.1 認証ライブラリの比較</h2>
+
+<h3 id="a11-nodejsjavascript">A.1.1 Node.js/JavaScript</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ライブラリ</th>
+      <th>特徴</th>
+      <th>適用場面</th>
+      <th>注意点</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Passport.js</strong></td>
+      <td>- 500+の認証戦略<br />- 柔軟なミドルウェア設計<br />- 大規模コミュニティ</td>
+      <td>- Express/Koa等のNode.jsアプリ<br />- 多様な認証方式が必要な場合</td>
+      <td>- セッション管理は別途必要<br />- TypeScript型定義が不完全</td>
+    </tr>
+    <tr>
+      <td><strong>Auth0 SDK</strong></td>
+      <td>- マネージドサービス<br />- 豊富な機能<br />- 優れたドキュメント</td>
+      <td>- 迅速な開発が必要<br />- エンタープライズ要件</td>
+      <td>- ベンダーロックイン<br />- コスト（MAU課金）</td>
+    </tr>
+    <tr>
+      <td><strong>Auth.js（旧 NextAuth.js）</strong></td>
+      <td>- Next.js最適化<br />- OAuth統合が簡単<br />- TypeScript完全対応</td>
+      <td>- Next.jsプロジェクト<br />- JAMstack架構</td>
+      <td>- Next.js以外では使いづらい<br />- カスタマイズに限界</td>
+    </tr>
+    <tr>
+      <td><strong>node-oidc-provider</strong></td>
+      <td>- OpenID Connect準拠<br />- 高度なカスタマイズ可能<br />- 認定実装</td>
+      <td>- OIDCプロバイダー構築<br />- 標準準拠が必須</td>
+      <td>- 学習曲線が急<br />- 設定が複雑</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>実装例：Passport.js</strong></p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">passport</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">passport</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">LocalStrategy</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">passport-local</span><span class="dl">'</span><span class="p">).</span><span class="nx">Strategy</span><span class="p">;</span>
+<span class="kd">const</span> <span class="nx">JwtStrategy</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">passport-jwt</span><span class="dl">'</span><span class="p">).</span><span class="nx">Strategy</span><span class="p">;</span>
+
+<span class="c1">// ローカル認証戦略</span>
+<span class="nx">passport</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="k">new</span> <span class="nx">LocalStrategy</span><span class="p">({</span>
+    <span class="na">usernameField</span><span class="p">:</span> <span class="dl">'</span><span class="s1">email</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">passwordField</span><span class="p">:</span> <span class="dl">'</span><span class="s1">password</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="k">async</span> <span class="p">(</span><span class="nx">email</span><span class="p">,</span> <span class="nx">password</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="kd">const</span> <span class="nx">user</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">User</span><span class="p">.</span><span class="nx">findOne</span><span class="p">({</span> <span class="nx">email</span> <span class="p">});</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">user</span> <span class="o">||</span> <span class="o">!</span><span class="k">await</span> <span class="nx">user</span><span class="p">.</span><span class="nx">validatePassword</span><span class="p">(</span><span class="nx">password</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">done</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="p">{</span> <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Invalid credentials</span><span class="dl">'</span> <span class="p">});</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nx">done</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">user</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">done</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">));</span>
+
+<span class="c1">// JWT認証戦略</span>
+<span class="nx">passport</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="k">new</span> <span class="nx">JwtStrategy</span><span class="p">({</span>
+    <span class="na">jwtFromRequest</span><span class="p">:</span> <span class="nx">ExtractJwt</span><span class="p">.</span><span class="nx">fromAuthHeaderAsBearerToken</span><span class="p">(),</span>
+    <span class="na">secretOrKey</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_SECRET</span>
+  <span class="p">},</span>
+  <span class="k">async</span> <span class="p">(</span><span class="nx">payload</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="kd">const</span> <span class="nx">user</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">User</span><span class="p">.</span><span class="nx">findById</span><span class="p">(</span><span class="nx">payload</span><span class="p">.</span><span class="nx">sub</span><span class="p">);</span>
+      <span class="k">return</span> <span class="nx">done</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">user</span> <span class="o">||</span> <span class="kc">false</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">done</span><span class="p">(</span><span class="nx">error</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">));</span>
+</code></pre></div></div>
+
+<h3 id="a12-python">A.1.2 Python</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ライブラリ</th>
+      <th>特徴</th>
+      <th>適用場面</th>
+      <th>注意点</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Django-Allauth</strong></td>
+      <td>- Django統合<br />- ソーシャル認証対応<br />- 管理画面付き</td>
+      <td>- Djangoプロジェクト<br />- 迅速な開発</td>
+      <td>- Django依存<br />- カスタマイズが複雑</td>
+    </tr>
+    <tr>
+      <td><strong>FastAPI-Users</strong></td>
+      <td>- 非同期対応<br />- 型安全<br />- モダンな設計</td>
+      <td>- FastAPIプロジェクト<br />- 高性能API</td>
+      <td>- 比較的新しい<br />- エコシステムが発展途上</td>
+    </tr>
+    <tr>
+      <td><strong>Authlib</strong></td>
+      <td>- OAuth/OIDC完全実装<br />- フレームワーク非依存<br />- 高品質コード</td>
+      <td>- 複雑な認証要件<br />- 標準準拠重視</td>
+      <td>- 低レベルAPI<br />- ドキュメントが技術的</td>
+    </tr>
+    <tr>
+      <td><strong>python-jose</strong></td>
+      <td>- JWT処理特化<br />- 暗号ライブラリ選択可<br />- 軽量</td>
+      <td>- JWT認証のみ<br />- マイクロサービス</td>
+      <td>- 認証フローは自前実装<br />- セキュリティ設定に注意</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>実装例：FastAPI-Users</strong></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
+<span class="kn">from</span> <span class="nn">fastapi_users</span> <span class="kn">import</span> <span class="n">FastAPIUsers</span><span class="p">,</span> <span class="n">BaseUserManager</span>
+<span class="kn">from</span> <span class="nn">fastapi_users.authentication</span> <span class="kn">import</span> <span class="n">JWTStrategy</span>
+<span class="kn">from</span> <span class="nn">fastapi_users.db</span> <span class="kn">import</span> <span class="n">SQLAlchemyUserDatabase</span>
+
+<span class="k">class</span> <span class="nc">UserManager</span><span class="p">(</span><span class="n">BaseUserManager</span><span class="p">[</span><span class="n">UserCreate</span><span class="p">,</span> <span class="n">UserDB</span><span class="p">]):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_after_register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">UserDB</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c1"># 登録後の処理
+</span>        <span class="k">await</span> <span class="n">send_welcome_email</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">email</span><span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_after_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">UserDB</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c1"># ログイン後の処理
+</span>        <span class="k">await</span> <span class="n">log_login_event</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nb">id</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_jwt_strategy</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">JWTStrategy</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">JWTStrategy</span><span class="p">(</span>
+        <span class="n">secret</span><span class="o">=</span><span class="n">settings</span><span class="p">.</span><span class="n">JWT_SECRET</span><span class="p">,</span>
+        <span class="n">lifetime_seconds</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+        <span class="n">token_audience</span><span class="o">=</span><span class="p">[</span><span class="s">"fastapi-users:auth"</span><span class="p">]</span>
+    <span class="p">)</span>
+
+<span class="n">fastapi_users</span> <span class="o">=</span> <span class="n">FastAPIUsers</span><span class="p">(</span>
+    <span class="n">get_user_manager</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">auth_backend</span><span class="p">],</span>
+    <span class="n">UserModel</span><span class="p">,</span>
+    <span class="n">UserCreateModel</span><span class="p">,</span>
+    <span class="n">UserUpdateModel</span><span class="p">,</span>
+    <span class="n">UserDB</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">app</span><span class="p">.</span><span class="n">include_router</span><span class="p">(</span>
+    <span class="n">fastapi_users</span><span class="p">.</span><span class="n">get_auth_router</span><span class="p">(</span><span class="n">auth_backend</span><span class="p">),</span>
+    <span class="n">prefix</span><span class="o">=</span><span class="s">"/auth"</span><span class="p">,</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s">"auth"</span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="a13-java">A.1.3 Java</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ライブラリ</th>
+      <th>特徴</th>
+      <th>適用場面</th>
+      <th>注意点</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Spring Security</strong></td>
+      <td>- 包括的セキュリティ<br />- Spring統合<br />- エンタープライズ標準</td>
+      <td>- Springアプリケーション<br />- 複雑な要件</td>
+      <td>- 設定が複雑<br />- 学習コスト高</td>
+    </tr>
+    <tr>
+      <td><strong>Apache Shiro</strong></td>
+      <td>- シンプルAPI<br />- フレームワーク非依存<br />- セッション管理込み</td>
+      <td>- 軽量な実装<br />- レガシーシステム</td>
+      <td>- 機能が限定的<br />- コミュニティ縮小</td>
+    </tr>
+    <tr>
+      <td><strong>Keycloak Adapter</strong></td>
+      <td>- Keycloak連携<br />- 多様なプロトコル<br />- 設定のみで動作</td>
+      <td>- Keycloak使用時<br />- SSO要件</td>
+      <td>- Keycloak依存<br />- オーバーヘッド</td>
+    </tr>
+    <tr>
+      <td><strong>Pac4j</strong></td>
+      <td>- 多プロトコル対応<br />- フレームワーク中立<br />- 軽量</td>
+      <td>- 複数認証方式<br />- マイクロサービス</td>
+      <td>- ドキュメント不足<br />- 日本語情報少</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>実装例：Spring Security</strong></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Configuration</span>
+<span class="nd">@EnableWebSecurity</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">SecurityConfig</span> <span class="o">{</span>
+    
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">SecurityFilterChain</span> <span class="nf">filterChain</span><span class="o">(</span><span class="nc">HttpSecurity</span> <span class="n">http</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">http</span>
+            <span class="o">.</span><span class="na">authorizeHttpRequests</span><span class="o">(</span><span class="n">authz</span> <span class="o">-&gt;</span> <span class="n">authz</span>
+                <span class="o">.</span><span class="na">requestMatchers</span><span class="o">(</span><span class="s">"/api/public/**"</span><span class="o">).</span><span class="na">permitAll</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">requestMatchers</span><span class="o">(</span><span class="s">"/api/admin/**"</span><span class="o">).</span><span class="na">hasRole</span><span class="o">(</span><span class="s">"ADMIN"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">anyRequest</span><span class="o">().</span><span class="na">authenticated</span><span class="o">()</span>
+            <span class="o">)</span>
+            <span class="o">.</span><span class="na">oauth2Login</span><span class="o">(</span><span class="n">oauth2</span> <span class="o">-&gt;</span> <span class="n">oauth2</span>
+                <span class="o">.</span><span class="na">userInfoEndpoint</span><span class="o">(</span><span class="n">userInfo</span> <span class="o">-&gt;</span> <span class="n">userInfo</span>
+                    <span class="o">.</span><span class="na">userService</span><span class="o">(</span><span class="n">customOAuth2UserService</span><span class="o">())</span>
+                <span class="o">)</span>
+            <span class="o">)</span>
+            <span class="o">.</span><span class="na">jwt</span><span class="o">(</span><span class="n">jwt</span> <span class="o">-&gt;</span> <span class="n">jwt</span>
+                <span class="o">.</span><span class="na">decoder</span><span class="o">(</span><span class="n">jwtDecoder</span><span class="o">())</span>
+            <span class="o">)</span>
+            <span class="o">.</span><span class="na">sessionManagement</span><span class="o">(</span><span class="n">session</span> <span class="o">-&gt;</span> <span class="n">session</span>
+                <span class="o">.</span><span class="na">sessionCreationPolicy</span><span class="o">(</span><span class="nc">SessionCreationPolicy</span><span class="o">.</span><span class="na">STATELESS</span><span class="o">)</span>
+            <span class="o">)</span>
+            <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+    <span class="o">}</span>
+    
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">JwtDecoder</span> <span class="nf">jwtDecoder</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">NimbusJwtDecoder</span><span class="o">.</span><span class="na">withPublicKey</span><span class="o">(</span><span class="n">publicKey</span><span class="o">()).</span><span class="na">build</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="a2-idプロバイダーsaasの比較">A.2 IDプロバイダー/SaaSの比較</h2>
+
+<h3 id="a21-商用サービス">A.2.1 商用サービス</h3>
+
+<p>※ 価格は変更されるため、公式料金表で要確認です。以下は傾向の整理です。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>サービス</th>
+      <th>特徴</th>
+      <th>価格帯</th>
+      <th>適用場面</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Auth0</strong></td>
+      <td>- 開発者フレンドリー<br />- 豊富な統合<br />- グローバル展開</td>
+      <td>無料枠あり/従量課金（要確認）</td>
+      <td>- スタートアップ<br />- B2C向け<br />- 迅速な開発</td>
+    </tr>
+    <tr>
+      <td><strong>Okta</strong></td>
+      <td>- エンタープライズ向け<br />- 高度な管理機能<br />- コンプライアンス対応</td>
+      <td>要見積もり/ユーザー課金（要確認）</td>
+      <td>- 大企業<br />- B2B/B2E<br />- 規制業界</td>
+    </tr>
+    <tr>
+      <td><strong>AWS Cognito</strong></td>
+      <td>- AWS統合<br />- サーバーレス対応<br />- 従量課金</td>
+      <td>無料枠あり/従量課金（要確認）</td>
+      <td>- AWSユーザー<br />- コスト重視<br />- シンプル要件</td>
+    </tr>
+    <tr>
+      <td><strong>Firebase Auth</strong></td>
+      <td>- Google統合<br />- リアルタイムDB連携<br />- モバイル最適化</td>
+      <td>無料枠あり/従量課金（要確認）</td>
+      <td>- モバイルアプリ<br />- Google生態系<br />- プロトタイプ</td>
+    </tr>
+    <tr>
+      <td><strong>Azure AD B2C</strong></td>
+      <td>- Microsoft統合<br />- エンタープライズ機能<br />- ハイブリッドID</td>
+      <td>無料枠あり/従量課金（要確認）</td>
+      <td>- Microsoft環境<br />- ハイブリッドクラウド</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="a22-オープンソース">A.2.2 オープンソース</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>プロダクト</th>
+      <th>特徴</th>
+      <th>運用難易度</th>
+      <th>適用場面</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Keycloak</strong></td>
+      <td>- Red Hat支援<br />- 完全機能<br />- 管理UI充実</td>
+      <td>中</td>
+      <td>- オンプレミス要件<br />- カスタマイズ必要<br />- エンタープライズ</td>
+    </tr>
+    <tr>
+      <td><strong>Ory</strong></td>
+      <td>- クラウドネイティブ<br />- マイクロサービス<br />- API中心</td>
+      <td>高</td>
+      <td>- Kubernetes環境<br />- 高度なカスタマイズ<br />- 開発者向け</td>
+    </tr>
+    <tr>
+      <td><strong>Authelia</strong></td>
+      <td>- リバースプロキシ統合<br />- 2FA対応<br />- シンプル</td>
+      <td>低</td>
+      <td>- ホームラボ<br />- 小規模環境<br />- Traefik/nginx利用</td>
+    </tr>
+    <tr>
+      <td><strong>Zitadel</strong></td>
+      <td>- イベントソーシング<br />- マルチテナント<br />- SaaS版あり</td>
+      <td>中</td>
+      <td>- B2B SaaS<br />- イベント駆動<br />- 監査重視</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="a3-パスワードハッシュライブラリ">A.3 パスワードハッシュライブラリ</h2>
+
+<h3 id="a31-推奨アルゴリズムと実装">A.3.1 推奨アルゴリズムと実装</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>アルゴリズム</th>
+      <th>ライブラリ</th>
+      <th>特徴</th>
+      <th>推奨設定</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Argon2</strong></td>
+      <td>argon2-cffi (Python)<br />argon2 (Node.js)<br />Spring Security</td>
+      <td>- 最新標準<br />- メモリハード<br />- 並列化可能</td>
+      <td>memory: 64MB<br />iterations: 3<br />parallelism: 2</td>
+    </tr>
+    <tr>
+      <td><strong>bcrypt</strong></td>
+      <td>bcrypt (各言語)<br />広くサポート</td>
+      <td>- 実績豊富<br />- 広範なサポート<br />- 固定メモリ</td>
+      <td>cost factor: 12<br />（目安。環境で要確認）</td>
+    </tr>
+    <tr>
+      <td><strong>scrypt</strong></td>
+      <td>scrypt (Node.js)<br />hashlib (Python)</td>
+      <td>- メモリハード<br />- ASIC耐性<br />- 調整可能</td>
+      <td>N: 16384<br />r: 8<br />p: 1</td>
+    </tr>
+    <tr>
+      <td><strong>PBKDF2</strong></td>
+      <td>標準ライブラリ<br />全言語対応</td>
+      <td>- 標準化<br />- 軽量<br />- FIPS認証</td>
+      <td>iterations: 600,000<br />SHA-256</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>実装例：Argon2</strong></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">argon2</span> <span class="kn">import</span> <span class="n">PasswordHasher</span>
+<span class="kn">from</span> <span class="nn">argon2.exceptions</span> <span class="kn">import</span> <span class="n">VerifyMismatchError</span>
+
+<span class="k">class</span> <span class="nc">SecurePasswordManager</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">ph</span> <span class="o">=</span> <span class="n">PasswordHasher</span><span class="p">(</span>
+            <span class="n">memory_cost</span><span class="o">=</span><span class="mi">65536</span><span class="p">,</span>  <span class="c1"># 64 MB
+</span>            <span class="n">time_cost</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>        <span class="c1"># 3 iterations
+</span>            <span class="n">parallelism</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>      <span class="c1"># 2 parallel threads
+</span>            <span class="n">hash_len</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>        <span class="c1"># 32 bytes
+</span>            <span class="n">salt_len</span><span class="o">=</span><span class="mi">16</span>         <span class="c1"># 16 bytes
+</span>        <span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">hash_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""パスワードをハッシュ化"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">ph</span><span class="p">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">verify_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">hash</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""パスワードを検証"""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">ph</span><span class="p">.</span><span class="n">verify</span><span class="p">(</span><span class="nb">hash</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+            <span class="c1"># 必要に応じてrehash
+</span>            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">ph</span><span class="p">.</span><span class="n">check_needs_rehash</span><span class="p">(</span><span class="nb">hash</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">ph</span><span class="p">.</span><span class="nb">hash</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="k">except</span> <span class="n">VerifyMismatchError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
+</code></pre></div></div>
+
+<h2 id="a4-jwtセッション管理ライブラリ">A.4 JWT/セッション管理ライブラリ</h2>
+
+<h3 id="a41-jwt実装の比較">A.4.1 JWT実装の比較</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>言語</th>
+      <th>ライブラリ</th>
+      <th>特徴</th>
+      <th>注意点</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>JavaScript</strong></td>
+      <td>jsonwebtoken<br />jose</td>
+      <td>標準実装<br />最新仕様対応</td>
+      <td>algorithm指定必須<br />JWK対応</td>
+    </tr>
+    <tr>
+      <td><strong>Python</strong></td>
+      <td>PyJWT<br />python-jose</td>
+      <td>シンプル<br />高機能</td>
+      <td>暗号ライブラリ選択<br />依存関係多</td>
+    </tr>
+    <tr>
+      <td><strong>Java</strong></td>
+      <td>Nimbus JOSE<br />jjwt</td>
+      <td>完全実装<br />Android対応</td>
+      <td>サイズ大<br />設定複雑</td>
+    </tr>
+    <tr>
+      <td><strong>Go</strong></td>
+      <td>golang-jwt<br />jose2go</td>
+      <td>高性能<br />標準準拠</td>
+      <td>APIが低レベル<br />v3/v4で破壊的変更</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>セキュアな実装例</strong></p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">jwt</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">jsonwebtoken</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">jwksRsa</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">jwks-rsa</span><span class="dl">'</span><span class="p">);</span>
+
+<span class="kd">class</span> <span class="nx">JWTManager</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// 公開鍵の動的取得</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">jwksClient</span> <span class="o">=</span> <span class="nx">jwksRsa</span><span class="p">({</span>
+            <span class="na">cache</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="na">rateLimit</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="na">jwksRequestsPerMinute</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="na">jwksUri</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWKS_URI</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="nx">signToken</span><span class="p">(</span><span class="nx">payload</span><span class="p">,</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{})</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">defaultOptions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="na">algorithm</span><span class="p">:</span> <span class="dl">'</span><span class="s1">RS256</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">expiresIn</span><span class="p">:</span> <span class="dl">'</span><span class="s1">1h</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">issuer</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_ISSUER</span><span class="p">,</span>
+            <span class="na">audience</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_AUDIENCE</span><span class="p">,</span>
+            <span class="na">keyid</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_KEY_ID</span>
+        <span class="p">};</span>
+        
+        <span class="k">return</span> <span class="nx">jwt</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span>
+            <span class="nx">payload</span><span class="p">,</span>
+            <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_PRIVATE_KEY</span><span class="p">,</span>
+            <span class="p">{</span> <span class="p">...</span><span class="nx">defaultOptions</span><span class="p">,</span> <span class="p">...</span><span class="nx">options</span> <span class="p">}</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="nx">verifyToken</span><span class="p">(</span><span class="nx">token</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">getKey</span> <span class="o">=</span> <span class="p">(</span><span class="nx">header</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">jwksClient</span><span class="p">.</span><span class="nx">getSigningKey</span><span class="p">(</span><span class="nx">header</span><span class="p">.</span><span class="nx">kid</span><span class="p">,</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+                <span class="kd">const</span> <span class="nx">signingKey</span> <span class="o">=</span> <span class="nx">key</span><span class="p">.</span><span class="nx">publicKey</span> <span class="o">||</span> <span class="nx">key</span><span class="p">.</span><span class="nx">rsaPublicKey</span><span class="p">;</span>
+                <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">signingKey</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">};</span>
+        
+        <span class="k">return</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nx">jwt</span><span class="p">.</span><span class="nx">verify</span><span class="p">(</span><span class="nx">token</span><span class="p">,</span> <span class="nx">getKey</span><span class="p">,</span> <span class="p">{</span>
+                <span class="na">algorithms</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">RS256</span><span class="dl">'</span><span class="p">],</span>
+                <span class="na">issuer</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_ISSUER</span><span class="p">,</span>
+                <span class="na">audience</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">JWT_AUDIENCE</span>
+            <span class="p">},</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">decoded</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">reject</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+                <span class="k">else</span> <span class="nx">resolve</span><span class="p">(</span><span class="nx">decoded</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="a5-webauthnfido2実装">A.5 WebAuthn/FIDO2実装</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>ライブラリ</th>
+      <th>言語</th>
+      <th>特徴</th>
+      <th>実装難易度</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SimpleWebAuthn</strong></td>
+      <td>TypeScript/JS</td>
+      <td>- 使いやすいAPI<br />- 充実したドキュメント</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td><strong>py_webauthn</strong></td>
+      <td>Python</td>
+      <td>- Python標準<br />- 型アノテーション対応</td>
+      <td>中</td>
+    </tr>
+    <tr>
+      <td><strong>WebAuthn4J</strong></td>
+      <td>Java</td>
+      <td>- Spring統合<br />- 詳細な検証</td>
+      <td>高</td>
+    </tr>
+    <tr>
+      <td><strong>go-webauthn</strong></td>
+      <td>Go</td>
+      <td>- Duoメンテナンス<br />- 高性能</td>
+      <td>中</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>実装例：SimpleWebAuthn</strong></p>
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> 
+    <span class="nx">generateRegistrationOptions</span><span class="p">,</span>
+    <span class="nx">verifyRegistrationResponse</span><span class="p">,</span>
+    <span class="nx">generateAuthenticationOptions</span><span class="p">,</span>
+    <span class="nx">verifyAuthenticationResponse</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@simplewebauthn/server</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nx">WebAuthnService</span> <span class="p">{</span>
+    <span class="k">async</span> <span class="nx">startRegistration</span><span class="p">(</span><span class="nx">user</span><span class="p">:</span> <span class="nx">User</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">options</span> <span class="o">=</span> <span class="nx">generateRegistrationOptions</span><span class="p">({</span>
+            <span class="na">rpName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Example Corp</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">rpID</span><span class="p">:</span> <span class="dl">'</span><span class="s1">example.com</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">userID</span><span class="p">:</span> <span class="nx">user</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span>
+            <span class="na">userName</span><span class="p">:</span> <span class="nx">user</span><span class="p">.</span><span class="nx">email</span><span class="p">,</span>
+            <span class="na">userDisplayName</span><span class="p">:</span> <span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+            <span class="na">attestationType</span><span class="p">:</span> <span class="dl">'</span><span class="s1">indirect</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">authenticatorSelection</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">authenticatorAttachment</span><span class="p">:</span> <span class="dl">'</span><span class="s1">platform</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">userVerification</span><span class="p">:</span> <span class="dl">'</span><span class="s1">required</span><span class="dl">'</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+        
+        <span class="c1">// チャレンジを保存</span>
+        <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">saveChallenge</span><span class="p">(</span><span class="nx">user</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">challenge</span><span class="p">);</span>
+        
+        <span class="k">return</span> <span class="nx">options</span><span class="p">;</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="nx">completeRegistration</span><span class="p">(</span>
+        <span class="nx">user</span><span class="p">:</span> <span class="nx">User</span><span class="p">,</span>
+        <span class="nx">credential</span><span class="p">:</span> <span class="nx">RegistrationCredentialJSON</span>
+    <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">expectedChallenge</span> <span class="o">=</span> <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">getChallenge</span><span class="p">(</span><span class="nx">user</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+        
+        <span class="kd">const</span> <span class="nx">verification</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">verifyRegistrationResponse</span><span class="p">({</span>
+            <span class="nx">credential</span><span class="p">,</span>
+            <span class="nx">expectedChallenge</span><span class="p">,</span>
+            <span class="na">expectedOrigin</span><span class="p">:</span> <span class="dl">'</span><span class="s1">https://example.com</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">expectedRPID</span><span class="p">:</span> <span class="dl">'</span><span class="s1">example.com</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">requireUserVerification</span><span class="p">:</span> <span class="kc">true</span>
+        <span class="p">});</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="nx">verification</span><span class="p">.</span><span class="nx">verified</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">saveCredential</span><span class="p">(</span><span class="nx">user</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="p">{</span>
+                <span class="na">credentialID</span><span class="p">:</span> <span class="nx">verification</span><span class="p">.</span><span class="nx">registrationInfo</span><span class="p">.</span><span class="nx">credentialID</span><span class="p">,</span>
+                <span class="na">publicKey</span><span class="p">:</span> <span class="nx">verification</span><span class="p">.</span><span class="nx">registrationInfo</span><span class="p">.</span><span class="nx">credentialPublicKey</span><span class="p">,</span>
+                <span class="na">counter</span><span class="p">:</span> <span class="nx">verification</span><span class="p">.</span><span class="nx">registrationInfo</span><span class="p">.</span><span class="nx">counter</span>
+            <span class="p">});</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="nx">verification</span><span class="p">.</span><span class="nx">verified</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="a6-選定のためのチェックリスト">A.6 選定のためのチェックリスト</h2>
+
+<h3 id="技術選定時の評価項目">技術選定時の評価項目</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">security_requirements</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">暗号アルゴリズムの最新性</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">既知の脆弱性の有無</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">セキュリティアップデートの頻度</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">デフォルト設定の安全性</span>
+
+<span class="na">compatibility</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">対象プラットフォームのサポート</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">既存システムとの統合容易性</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">標準規格への準拠度</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">バージョン互換性</span>
+
+<span class="na">performance</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ベンチマーク結果</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">メモリ使用量</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">レスポンスタイム</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">スケーラビリティ</span>
+
+<span class="na">maintainability</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ドキュメントの充実度</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">コミュニティの活発さ</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">商用サポートの有無</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ライセンスの適合性</span>
+
+<span class="na">cost</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">初期導入コスト</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ランニングコスト</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">隠れたコスト（運用・教育）</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">スケール時のコスト予測</span>
+</code></pre></div></div>
+
+<h3 id="推奨構成例">推奨構成例</h3>
+
+<p><strong>小規模アプリケーション（〜1万ユーザー）</strong></p>
+<ul>
+  <li>認証: Auth.js（旧 NextAuth.js） or Django-Allauth</li>
+  <li>パスワード: bcrypt (cost=12)</li>
+  <li>セッション: JWTまたはCookieセッション</li>
+  <li>MFA: TOTP (Google Authenticator互換)</li>
+</ul>
+
+<p><strong>中規模SaaS（〜10万ユーザー）</strong></p>
+<ul>
+  <li>認証: Auth0 or AWS Cognito</li>
+  <li>パスワード: Argon2id</li>
+  <li>セッション: JWT + Refresh Token</li>
+  <li>MFA: WebAuthn + TOTP fallback</li>
+</ul>
+
+<p><strong>エンタープライズ（10万ユーザー〜）</strong></p>
+<ul>
+  <li>認証: Okta or Keycloak</li>
+  <li>パスワード: 段階的にパスワードレスへ</li>
+  <li>セッション: Distributed session with Redis</li>
+  <li>MFA: WebAuthn + 複数バックアップ方式</li>
+</ul>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/appendices/appendix-0-environment-setup/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録0 環境構築と runnable minimum</span>
+      </a>
+    
+
+    <a href="/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/appendices/appendix-b-troubleshooting/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録B: トラブルシューティング</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-a-libraries/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

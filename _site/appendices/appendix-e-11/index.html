@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録E-11: 第11章演習問題解答 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録E-11: 第11章演習問題解答">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/appendices/appendix-e-11/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録E-11: 第11章演習問題解答">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-11/" class="toc-link active" aria-current="page">
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録e-11-第11章演習問題解答">付録E-11: 第11章演習問題解答</h1>
+
+<h2 id="問題1脅威モデリング">問題1：脅威モデリング</h2>
+
+<h3 id="解答">解答</h3>
+
+<p><strong>銀行オンラインバンキングシステムの脅威モデル</strong></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BankingSystemThreatModel</span><span class="p">:</span>
+    <span class="s">"""銀行システムの脅威モデル"""</span>
+    
+    <span class="k">def</span> <span class="nf">system_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""システム概要"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'components'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'frontend'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Web Application'</span><span class="p">,</span> <span class="s">'Mobile App (iOS/Android)'</span><span class="p">],</span>
+                <span class="s">'api_layer'</span><span class="p">:</span> <span class="p">[</span><span class="s">'API Gateway'</span><span class="p">,</span> <span class="s">'Authentication Service'</span><span class="p">,</span> <span class="s">'Transaction Service'</span><span class="p">],</span>
+                <span class="s">'backend'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Core Banking System'</span><span class="p">,</span> <span class="s">'Database Cluster'</span><span class="p">,</span> <span class="s">'HSM (Hardware Security Module)'</span><span class="p">],</span>
+                <span class="s">'external'</span><span class="p">:</span> <span class="p">[</span><span class="s">'SMS Gateway'</span><span class="p">,</span> <span class="s">'Email Service'</span><span class="p">,</span> <span class="s">'Credit Bureau API'</span><span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s">'data_flow'</span><span class="p">:</span> <span class="s">'''
+            User → CDN → WAF → Load Balancer → API Gateway → Backend Services → Database
+                     ↓                                ↓
+                  Mobile App                 External Services
+            '''</span><span class="p">,</span>
+            <span class="s">'security_boundaries'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'Internet → DMZ'</span><span class="p">,</span>
+                <span class="s">'DMZ → Internal Network'</span><span class="p">,</span>
+                <span class="s">'Internal Network → Core Banking'</span><span class="p">,</span>
+                <span class="s">'Core Banking → HSM'</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">threat_identification</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""脅威の識別（STRIDE）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'spoofing'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'フィッシングによる認証情報窃取'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'ユーザー認証'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'フィッシング対策の教育'</span><span class="p">,</span>
+                        <span class="s">'ドメイン監視とテイクダウン'</span><span class="p">,</span>
+                        <span class="s">'ブラウザでの警告表示'</span><span class="p">,</span>
+                        <span class="s">'トランザクション署名の実装'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'セッショントークンの偽造'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'API認証'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'暗号学的に安全なトークン生成'</span><span class="p">,</span>
+                        <span class="s">'トークンの短期有効期限（5分）'</span><span class="p">,</span>
+                        <span class="s">'デバイスバインディング'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            
+            <span class="s">'tampering'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'送金額の改ざん'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'トランザクションデータ'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'エンドツーエンドの暗号化'</span><span class="p">,</span>
+                        <span class="s">'トランザクション署名（HSM使用）'</span><span class="p">,</span>
+                        <span class="s">'チェックサムによる整合性確認'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'モバイルアプリの改造'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'モバイルアプリケーション'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'アプリの難読化'</span><span class="p">,</span>
+                        <span class="s">'ルート/Jailbreak検知'</span><span class="p">,</span>
+                        <span class="s">'アプリ証明書のピンニング'</span><span class="p">,</span>
+                        <span class="s">'リモートアテステーション'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            
+            <span class="s">'repudiation'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'不正送金の否認'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'取引記録'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'全操作の監査ログ記録'</span><span class="p">,</span>
+                        <span class="s">'タイムスタンプ付きデジタル署名'</span><span class="p">,</span>
+                        <span class="s">'取引確認の多要素認証'</span><span class="p">,</span>
+                        <span class="s">'ブロックチェーンによる記録'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            
+            <span class="s">'information_disclosure'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'データベースからの大量情報漏洩'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'顧客データベース'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'LOW'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'データベース暗号化（TDE）'</span><span class="p">,</span>
+                        <span class="s">'アクセス制御の厳格化'</span><span class="p">,</span>
+                        <span class="s">'データマスキング'</span><span class="p">,</span>
+                        <span class="s">'DLPソリューションの導入'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'APIレスポンスからの情報漏洩'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'API通信'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'最小限の情報開示原則'</span><span class="p">,</span>
+                        <span class="s">'フィールドレベルの暗号化'</span><span class="p">,</span>
+                        <span class="s">'エラーメッセージの汎用化'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            
+            <span class="s">'denial_of_service'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'DDoS攻撃'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'Webサービス全体'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'CDN/DDoS防御サービス'</span><span class="p">,</span>
+                        <span class="s">'レート制限'</span><span class="p">,</span>
+                        <span class="s">'自動スケーリング'</span><span class="p">,</span>
+                        <span class="s">'フェイルオーバー機構'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'リソース枯渇攻撃'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'認証サービス'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'リソースクォータ設定'</span><span class="p">,</span>
+                        <span class="s">'サーキットブレーカー'</span><span class="p">,</span>
+                        <span class="s">'バックプレッシャー制御'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            
+            <span class="s">'elevation_of_privilege'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'threat'</span><span class="p">:</span> <span class="s">'一般ユーザーから管理者権限への昇格'</span><span class="p">,</span>
+                    <span class="s">'target'</span><span class="p">:</span> <span class="s">'権限管理システム'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'LOW'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'最小権限の原則'</span><span class="p">,</span>
+                        <span class="s">'権限の定期的レビュー'</span><span class="p">,</span>
+                        <span class="s">'Just-In-Time権限付与'</span><span class="p">,</span>
+                        <span class="s">'特権アクセス管理（PAM）'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">attack_scenarios</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""具体的な攻撃シナリオ"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'account_takeover_scenario'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'アカウント乗っ取りシナリオ'</span><span class="p">,</span>
+                <span class="s">'steps'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'1. フィッシングメールでユーザーを偽サイトに誘導'</span><span class="p">,</span>
+                    <span class="s">'2. 認証情報を窃取'</span><span class="p">,</span>
+                    <span class="s">'3. 正規サイトにログイン'</span><span class="p">,</span>
+                    <span class="s">'4. 送金限度額を確認'</span><span class="p">,</span>
+                    <span class="s">'5. 複数の少額送金で検知を回避'</span><span class="p">,</span>
+                    <span class="s">'6. 最終的に口座を空にする'</span>
+                <span class="p">],</span>
+                <span class="s">'countermeasures'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'ログイン時の異常検知（新しいデバイス、場所）'</span><span class="p">,</span>
+                    <span class="s">'送金パターンの異常検知'</span><span class="p">,</span>
+                    <span class="s">'ステップアップ認証（高額送金時）'</span><span class="p">,</span>
+                    <span class="s">'クーリングオフ期間（24時間）'</span><span class="p">,</span>
+                    <span class="s">'送金先のリスクスコアリング'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'insider_threat_scenario'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'内部犯行シナリオ'</span><span class="p">,</span>
+                <span class="s">'steps'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'1. 銀行職員が顧客データにアクセス'</span><span class="p">,</span>
+                    <span class="s">'2. VIP顧客の取引パターンを分析'</span><span class="p">,</span>
+                    <span class="s">'3. 情報を外部に売却'</span><span class="p">,</span>
+                    <span class="s">'4. または、システムに細工を仕掛ける'</span>
+                <span class="p">],</span>
+                <span class="s">'countermeasures'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'職務分離（Segregation of Duties）'</span><span class="p">,</span>
+                    <span class="s">'アクセスログの完全記録と分析'</span><span class="p">,</span>
+                    <span class="s">'異常アクセスパターンの検知'</span><span class="p">,</span>
+                    <span class="s">'データアクセスの承認ワークフロー'</span><span class="p">,</span>
+                    <span class="s">'定期的な権限棚卸し'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'supply_chain_attack_scenario'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'description'</span><span class="p">:</span> <span class="s">'サプライチェーン攻撃シナリオ'</span><span class="p">,</span>
+                <span class="s">'steps'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'1. 第三者ライブラリに悪意のあるコードを混入'</span><span class="p">,</span>
+                    <span class="s">'2. 定期的な依存関係更新で混入'</span><span class="p">,</span>
+                    <span class="s">'3. 本番環境でバックドアが動作'</span><span class="p">,</span>
+                    <span class="s">'4. 顧客データを外部に送信'</span>
+                <span class="p">],</span>
+                <span class="s">'countermeasures'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'依存関係の脆弱性スキャン'</span><span class="p">,</span>
+                    <span class="s">'SBOMの管理'</span><span class="p">,</span>
+                    <span class="s">'コンテナイメージの署名検証'</span><span class="p">,</span>
+                    <span class="s">'ランタイムセキュリティ監視'</span><span class="p">,</span>
+                    <span class="s">'ネットワークの出口制御'</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">risk_assessment_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""リスク評価マトリクス"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'calculation'</span><span class="p">:</span> <span class="s">'Risk = Likelihood × Impact'</span><span class="p">,</span>
+            <span class="s">'matrix'</span><span class="p">:</span> <span class="s">'''
+            Impact
+              ↑
+            Critical │ Medium  │  High   │Critical │Critical │
+            High     │  Low    │ Medium  │  High   │Critical │
+            Medium   │  Low    │  Low    │ Medium  │  High   │
+            Low      │  Low    │  Low    │  Low    │ Medium  │
+                     └─────────┴─────────┴─────────┴─────────┘
+                        Low     Medium    High    Critical
+                                    Likelihood →
+            '''</span><span class="p">,</span>
+            <span class="s">'risk_treatment'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'CRITICAL'</span><span class="p">:</span> <span class="s">'Immediate action required, executive escalation'</span><span class="p">,</span>
+                <span class="s">'HIGH'</span><span class="p">:</span> <span class="s">'Action within 30 days, management approval'</span><span class="p">,</span>
+                <span class="s">'MEDIUM'</span><span class="p">:</span> <span class="s">'Action within 90 days, standard process'</span><span class="p">,</span>
+                <span class="s">'LOW'</span><span class="p">:</span> <span class="s">'Accept or monitor, periodic review'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="問題2攻撃シミュレーション">問題2：攻撃シミュレーション</h2>
+
+<h3 id="解答-1">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">secrets</span>
+<span class="kn">import</span> <span class="nn">bcrypt</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="k">class</span> <span class="nc">SecureAuthenticationSystem</span><span class="p">:</span>
+    <span class="s">"""セキュアな認証システムの実装"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">pepper</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>  <span class="c1"># アプリケーション固有のペッパー
+</span>        
+    <span class="c1"># 1. タイミング攻撃を考慮したユーザー認証
+</span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">authenticate_user_timing_safe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="s">"""タイミング攻撃に対して安全な認証"""</span>
+        
+        <span class="c1"># 一定時間を確保（最小実行時間）
+</span>        <span class="n">min_time</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># 100ms
+</span>        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># ユーザー取得
+</span>            <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_user_by_username</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+            
+            <span class="c1"># ダミーハッシュ（ユーザーが存在しない場合用）
+</span>            <span class="n">dummy_hash</span> <span class="o">=</span> <span class="sa">b</span><span class="s">'$2b$12$dummy.hash.for.timing.attack.protection.against.user.enum'</span>
+            
+            <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                <span class="n">stored_hash</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+                <span class="n">is_valid</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="p">.</span><span class="n">checkpw</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">_prepare_password</span><span class="p">(</span><span class="n">password</span><span class="p">).</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+                    <span class="n">stored_hash</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># ユーザーが存在しない場合でも同じ処理時間
+</span>                <span class="n">bcrypt</span><span class="p">.</span><span class="n">checkpw</span><span class="p">(</span><span class="sa">b</span><span class="s">'dummy_password'</span><span class="p">,</span> <span class="n">dummy_hash</span><span class="p">)</span>
+                <span class="n">is_valid</span> <span class="o">=</span> <span class="bp">False</span>
+            
+            <span class="c1"># 処理時間の調整
+</span>            <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="k">if</span> <span class="n">elapsed</span> <span class="o">&lt;</span> <span class="n">min_time</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">min_time</span> <span class="o">-</span> <span class="n">elapsed</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">is_valid</span> <span class="ow">and</span> <span class="n">user</span><span class="p">:</span>
+                <span class="c1"># 成功時の追加チェック
+</span>                <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">.</span><span class="n">is_active</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">"Account is disabled"</span>
+                <span class="k">if</span> <span class="n">user</span><span class="p">.</span><span class="n">requires_password_change</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">"Password change required"</span>
+                
+                <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">None</span>
+            
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">"Invalid credentials"</span>
+            
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># エラー時も一定時間を確保
+</span>            <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="k">if</span> <span class="n">elapsed</span> <span class="o">&lt;</span> <span class="n">min_time</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">min_time</span> <span class="o">-</span> <span class="n">elapsed</span><span class="p">)</span>
+            
+            <span class="c1"># エラー情報を漏らさない
+</span>            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">"Authentication failed"</span>
+    
+    <span class="c1"># 2. レインボーテーブル攻撃に強いパスワード保存
+</span>    <span class="k">def</span> <span class="nf">hash_password_secure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""レインボーテーブル攻撃に強いパスワードハッシュ化"""</span>
+        
+        <span class="c1"># パスワード強度チェック
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_validate_password_strength</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"Password does not meet security requirements"</span><span class="p">)</span>
+        
+        <span class="c1"># ペッパーを追加（データベース外で管理）
+</span>        <span class="n">peppered_password</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_prepare_password</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+        
+        <span class="c1"># bcryptでハッシュ化（自動的にソルトを生成）
+</span>        <span class="c1"># ワークファクター12（2^12回の反復）
+</span>        <span class="n">hashed</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="p">.</span><span class="n">hashpw</span><span class="p">(</span>
+            <span class="n">peppered_password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+            <span class="n">bcrypt</span><span class="p">.</span><span class="n">gensalt</span><span class="p">(</span><span class="n">rounds</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">hashed</span><span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_prepare_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""パスワードにペッパーを追加"""</span>
+        <span class="k">return</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">pepper</span><span class="p">,</span>
+            <span class="n">password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+            <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span>
+        <span class="p">).</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">+</span> <span class="n">password</span>
+    
+    <span class="k">def</span> <span class="nf">_validate_password_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""パスワード強度の検証"""</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="c1"># NIST SP 800-63B準拠
+</span>        <span class="c1"># - 一般的な脆弱なパスワードのチェック
+</span>        <span class="c1"># - 複雑性要件は強制しない（長さを重視）
+</span>        
+        <span class="c1"># 既知の脆弱なパスワードリストとの照合
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_is_common_password</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="c1"># 連続する文字の確認
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_has_sequential_chars</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="k">return</span> <span class="bp">True</span>
+    
+    <span class="c1"># 3. セッション固定攻撃の防御
+</span>    <span class="k">class</span> <span class="nc">SessionManager</span><span class="p">:</span>
+        <span class="s">"""セッション固定攻撃に対する防御を実装"""</span>
+        
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">sessions</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">session_config</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">'secure'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">'httponly'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">'samesite'</span><span class="p">:</span> <span class="s">'Strict'</span><span class="p">,</span>
+                <span class="s">'max_age'</span><span class="p">:</span> <span class="mi">3600</span>
+            <span class="p">}</span>
+        
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Session</span><span class="p">:</span>
+            <span class="s">"""セキュアなセッション作成"""</span>
+            
+            <span class="c1"># 既存のセッションIDは信頼しない
+</span>            <span class="n">old_session_id</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">cookies</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'session_id'</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">old_session_id</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">invalidate_session</span><span class="p">(</span><span class="n">old_session_id</span><span class="p">)</span>
+            
+            <span class="c1"># 新しいセッションIDを生成（予測不可能）
+</span>            <span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_generate_secure_session_id</span><span class="p">()</span>
+            
+            <span class="c1"># セッションデータの作成
+</span>            <span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+                <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">,</span>
+                <span class="n">created_at</span><span class="o">=</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">(),</span>
+                <span class="n">last_activity</span><span class="o">=</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">(),</span>
+                <span class="n">ip_address</span><span class="o">=</span><span class="n">request</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">host</span><span class="p">,</span>
+                <span class="n">user_agent</span><span class="o">=</span><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'User-Agent'</span><span class="p">),</span>
+                <span class="n">fingerprint</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">_calculate_fingerprint</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="p">)</span>
+            
+            <span class="c1"># セッションの保存
+</span>            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_store_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">session</span>
+        
+        <span class="k">def</span> <span class="nf">_generate_secure_session_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="s">"""暗号学的に安全なセッションID生成"""</span>
+            <span class="c1"># 256ビットのランダムな値
+</span>            <span class="n">random_bytes</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+            
+            <span class="c1"># タイムスタンプを含める（リプレイ攻撃対策）
+</span>            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">struct</span><span class="p">.</span><span class="n">pack</span><span class="p">(</span><span class="s">'&gt;Q'</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000000</span><span class="p">))</span>
+            
+            <span class="c1"># HMACで署名
+</span>            <span class="n">session_data</span> <span class="o">=</span> <span class="n">random_bytes</span> <span class="o">+</span> <span class="n">timestamp</span>
+            <span class="n">signature</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span><span class="p">,</span>
+                <span class="n">session_data</span><span class="p">,</span>
+                <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span>
+            <span class="p">).</span><span class="n">digest</span><span class="p">()</span>
+            
+            <span class="c1"># Base64エンコード
+</span>            <span class="n">session_id</span> <span class="o">=</span> <span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span>
+                <span class="n">session_data</span> <span class="o">+</span> <span class="n">signature</span>
+            <span class="p">).</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">).</span><span class="n">rstrip</span><span class="p">(</span><span class="s">'='</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">session_id</span>
+        
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">validate_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]:</span>
+            <span class="s">"""セッション検証（固定攻撃対策込み）"""</span>
+            
+            <span class="n">session</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_get_session</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            
+            <span class="c1"># セッション固定攻撃の検知
+</span>            <span class="k">if</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_detect_session_fixation</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">invalidate_session</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SecurityException</span><span class="p">(</span><span class="s">"Session fixation attack detected"</span><span class="p">)</span>
+            
+            <span class="c1"># フィンガープリントの検証
+</span>            <span class="n">current_fingerprint</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_calculate_fingerprint</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">_verify_fingerprint</span><span class="p">(</span><span class="n">session</span><span class="p">.</span><span class="n">fingerprint</span><span class="p">,</span> <span class="n">current_fingerprint</span><span class="p">):</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">invalidate_session</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            
+            <span class="c1"># IPアドレスの変更チェック（オプション）
+</span>            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'bind_session_to_ip'</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">session</span><span class="p">.</span><span class="n">ip_address</span> <span class="o">!=</span> <span class="n">request</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">host</span><span class="p">:</span>
+                    <span class="c1"># 詳細なリスク評価
+</span>                    <span class="n">risk_score</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_assess_ip_change_risk</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">risk_score</span> <span class="o">&gt;</span> <span class="mf">0.7</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">None</span>
+            
+            <span class="c1"># ログイン後のセッションID再生成（重要）
+</span>            <span class="k">if</span> <span class="n">session</span><span class="p">.</span><span class="n">needs_regeneration</span><span class="p">:</span>
+                <span class="n">new_session</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_regenerate_session</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">new_session</span>
+            
+            <span class="c1"># セッションの更新
+</span>            <span class="n">session</span><span class="p">.</span><span class="n">last_activity</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_update_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">session</span>
+        
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">_detect_session_fixation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="s">"""セッション固定攻撃の検知"""</span>
+            
+            <span class="c1"># 同一セッションIDの使用履歴
+</span>            <span class="n">history</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_get_session_history</span><span class="p">(</span><span class="n">session</span><span class="p">.</span><span class="nb">id</span><span class="p">)</span>
+            
+            <span class="c1"># 複数のユーザーで使用されていないか
+</span>            <span class="n">unique_users</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">h</span><span class="p">.</span><span class="n">user_id</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span> <span class="k">if</span> <span class="n">h</span><span class="p">.</span><span class="n">user_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_users</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            
+            <span class="c1"># 認証前後での使用
+</span>            <span class="n">pre_auth_use</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">h</span><span class="p">.</span><span class="n">authenticated</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">)</span>
+            <span class="n">post_auth_use</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">h</span><span class="p">.</span><span class="n">authenticated</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">pre_auth_use</span> <span class="ow">and</span> <span class="n">post_auth_use</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">session</span><span class="p">.</span><span class="n">regenerated</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            
+            <span class="k">return</span> <span class="bp">False</span>
+    
+    <span class="c1"># 4. CSRFトークンの実装
+</span>    <span class="k">class</span> <span class="nc">CSRFProtection</span><span class="p">:</span>
+        <span class="s">"""CSRF保護の実装"""</span>
+        
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">token_lifetime</span> <span class="o">=</span> <span class="mi">3600</span>  <span class="c1"># 1時間
+</span>            <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+        
+        <span class="k">def</span> <span class="nf">generate_csrf_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+            <span class="s">"""CSRFトークンの生成"""</span>
+            
+            <span class="c1"># トークンの生成
+</span>            <span class="n">token_value</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">token_urlsafe</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">())</span>
+            
+            <span class="c1"># トークンデータの作成
+</span>            <span class="n">token_data</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">token_value</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s">"</span>
+            
+            <span class="c1"># 署名の作成
+</span>            <span class="n">signature</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span><span class="p">,</span>
+                <span class="n">token_data</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+                <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span>
+            <span class="p">).</span><span class="n">hexdigest</span><span class="p">()</span>
+            
+            <span class="c1"># 最終的なトークン
+</span>            <span class="n">csrf_token</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">token_data</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">signature</span><span class="si">}</span><span class="s">"</span>
+            
+            <span class="c1"># ダブルサブミットクッキー用の値
+</span>            <span class="n">cookie_token</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">token_value</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s">"</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+                <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span>
+            <span class="p">).</span><span class="n">hexdigest</span><span class="p">()</span>
+            
+            <span class="k">return</span> <span class="n">csrf_token</span><span class="p">,</span> <span class="n">cookie_token</span>
+        
+        <span class="k">def</span> <span class="nf">validate_csrf_token</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">cookie_token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">request_method</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="s">"""CSRFトークンの検証"""</span>
+            
+            <span class="c1"># 安全なメソッドはスキップ
+</span>            <span class="k">if</span> <span class="n">request_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s">'GET'</span><span class="p">,</span> <span class="s">'HEAD'</span><span class="p">,</span> <span class="s">'OPTIONS'</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">cookie_token</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># トークンの分解
+</span>                <span class="n">parts</span> <span class="o">=</span> <span class="n">token</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">':'</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                
+                <span class="n">token_value</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">token_session_id</span><span class="p">,</span> <span class="n">signature</span> <span class="o">=</span> <span class="n">parts</span>
+                
+                <span class="c1"># セッションIDの確認
+</span>                <span class="k">if</span> <span class="n">token_session_id</span> <span class="o">!=</span> <span class="n">session_id</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                
+                <span class="c1"># 有効期限の確認
+</span>                <span class="n">token_age</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">())</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">token_age</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">token_lifetime</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                
+                <span class="c1"># 署名の検証
+</span>                <span class="n">expected_signature</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">token_value</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s">"</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+                    <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span>
+                <span class="p">).</span><span class="n">hexdigest</span><span class="p">()</span>
+                
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">hmac</span><span class="p">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">signature</span><span class="p">,</span> <span class="n">expected_signature</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                
+                <span class="c1"># ダブルサブミットクッキーの検証
+</span>                <span class="n">expected_cookie</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">.</span><span class="n">new</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">signing_key</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">token_value</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s">"</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+                    <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span>
+                <span class="p">).</span><span class="n">hexdigest</span><span class="p">()</span>
+                
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">hmac</span><span class="p">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">cookie_token</span><span class="p">,</span> <span class="n">expected_cookie</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                
+                <span class="k">return</span> <span class="bp">True</span>
+                
+            <span class="k">except</span> <span class="nb">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="k">def</span> <span class="nf">get_csrf_cookie_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="s">"""CSRFクッキーの設定"""</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s">'key'</span><span class="p">:</span> <span class="s">'csrf_token'</span><span class="p">,</span>
+                <span class="s">'httponly'</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>  <span class="c1"># JavaScriptからアクセス可能にする
+</span>                <span class="s">'secure'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">'samesite'</span><span class="p">:</span> <span class="s">'Strict'</span><span class="p">,</span>
+                <span class="s">'path'</span><span class="p">:</span> <span class="s">'/'</span><span class="p">,</span>
+                <span class="s">'max_age'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">token_lifetime</span>
+            <span class="p">}</span>
+
+<span class="c1"># 使用例とテスト
+</span><span class="k">async</span> <span class="k">def</span> <span class="nf">test_secure_authentication</span><span class="p">():</span>
+    <span class="n">auth_system</span> <span class="o">=</span> <span class="n">SecureAuthenticationSystem</span><span class="p">()</span>
+    
+    <span class="c1"># パスワードのハッシュ化
+</span>    <span class="n">password</span> <span class="o">=</span> <span class="s">"MySecureP@ssw0rd123!"</span>
+    <span class="n">hashed</span> <span class="o">=</span> <span class="n">auth_system</span><span class="p">.</span><span class="n">hash_password_secure</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Hashed password: </span><span class="si">{</span><span class="n">hashed</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="c1"># 認証のテスト（タイミング攻撃対策付き）
+</span>    <span class="n">success</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="k">await</span> <span class="n">auth_system</span><span class="p">.</span><span class="n">authenticate_user_timing_safe</span><span class="p">(</span>
+        <span class="s">"user@example.com"</span><span class="p">,</span>
+        <span class="n">password</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># セッション管理
+</span>    <span class="n">session_manager</span> <span class="o">=</span> <span class="n">auth_system</span><span class="p">.</span><span class="n">SessionManager</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session_manager</span><span class="p">.</span><span class="n">create_session</span><span class="p">(</span><span class="s">"user123"</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Session created: </span><span class="si">{</span><span class="n">session</span><span class="p">.</span><span class="nb">id</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="c1"># CSRF保護
+</span>    <span class="n">csrf</span> <span class="o">=</span> <span class="n">auth_system</span><span class="p">.</span><span class="n">CSRFProtection</span><span class="p">()</span>
+    <span class="n">csrf_token</span><span class="p">,</span> <span class="n">cookie_token</span> <span class="o">=</span> <span class="n">csrf</span><span class="p">.</span><span class="n">generate_csrf_token</span><span class="p">(</span><span class="n">session</span><span class="p">.</span><span class="nb">id</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"CSRF token: </span><span class="si">{</span><span class="n">csrf_token</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="問題3インシデント対応計画">問題3：インシデント対応計画</h2>
+
+<h3 id="解答-2">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">EcommerceIncidentResponsePlan</span><span class="p">:</span>
+    <span class="s">"""Eコマースサイトのインシデント対応計画"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">incident_id</span> <span class="o">=</span> <span class="s">"INC-2024-0315-001"</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">incident_start</span> <span class="o">=</span> <span class="s">"2024-03-15 14:30:00 UTC"</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">detection_time</span> <span class="o">=</span> <span class="s">"2024-03-15 16:15:00 UTC"</span>
+        
+    <span class="k">def</span> <span class="nf">immediate_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""即時対応（0〜2時間）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'phase'</span><span class="p">:</span> <span class="s">'IMMEDIATE_CONTAINMENT'</span><span class="p">,</span>
+            <span class="s">'timeline'</span><span class="p">:</span> <span class="s">'0-2 hours'</span><span class="p">,</span>
+            <span class="s">'actions'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'影響を受けた管理者アカウントの即時無効化'</span><span class="p">,</span>
+                    <span class="s">'command'</span><span class="p">:</span> <span class="s">'''
+                    UPDATE admin_users 
+                    SET status = 'SUSPENDED', 
+                        suspended_at = NOW(),
+                        suspended_reason = 'Security incident INC-2024-0315-001'
+                    WHERE id IN (SELECT admin_id FROM suspicious_admin_logins);
+                    '''</span><span class="p">,</span>
+                    <span class="s">'responsible'</span><span class="p">:</span> <span class="s">'Security Team'</span><span class="p">,</span>
+                    <span class="s">'eta'</span><span class="p">:</span> <span class="s">'5 minutes'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'全管理者セッションの無効化'</span><span class="p">,</span>
+                    <span class="s">'command'</span><span class="p">:</span> <span class="s">'''
+                    DELETE FROM admin_sessions;
+                    FLUSHDB on Redis admin_session_cache;
+                    '''</span><span class="p">,</span>
+                    <span class="s">'responsible'</span><span class="p">:</span> <span class="s">'DevOps Team'</span><span class="p">,</span>
+                    <span class="s">'eta'</span><span class="p">:</span> <span class="s">'10 minutes'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'管理者パネルへのアクセス制限'</span><span class="p">,</span>
+                    <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                    # Nginxでの一時的なIP制限
+                    location /admin {
+                        allow 10.0.0.0/8;  # 社内ネットワークのみ
+                        deny all;
+                    }
+                    '''</span><span class="p">,</span>
+                    <span class="s">'responsible'</span><span class="p">:</span> <span class="s">'Infrastructure Team'</span><span class="p">,</span>
+                    <span class="s">'eta'</span><span class="p">:</span> <span class="s">'15 minutes'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'影響範囲の初期評価'</span><span class="p">,</span>
+                    <span class="s">'queries'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'''
+                        -- 不正アクセスのあった時間帯の管理者操作
+                        SELECT * FROM admin_audit_logs
+                        WHERE timestamp BETWEEN '2024-03-13 16:00:00' AND NOW()
+                        AND admin_id IN (SELECT admin_id FROM suspicious_admin_logins)
+                        ORDER BY timestamp;
+                        '''</span><span class="p">,</span>
+                        <span class="s">'''
+                        -- アクセスされた顧客データ
+                        SELECT DISTINCT customer_id, action, timestamp
+                        FROM data_access_logs
+                        WHERE accessed_by IN (SELECT admin_id FROM suspicious_admin_logins)
+                        AND timestamp &gt; '2024-03-13 16:00:00';
+                        '''</span>
+                    <span class="p">],</span>
+                    <span class="s">'responsible'</span><span class="p">:</span> <span class="s">'Security Analyst'</span><span class="p">,</span>
+                    <span class="s">'eta'</span><span class="p">:</span> <span class="s">'30 minutes'</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'communication'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'internal'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s">'to'</span><span class="p">:</span> <span class="s">'Executive Team'</span><span class="p">,</span>
+                        <span class="s">'message'</span><span class="p">:</span> <span class="s">'Critical security incident detected. Admin compromise confirmed.'</span><span class="p">,</span>
+                        <span class="s">'channel'</span><span class="p">:</span> <span class="s">'Secure phone call'</span><span class="p">,</span>
+                        <span class="s">'time'</span><span class="p">:</span> <span class="s">'+15 minutes'</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'to'</span><span class="p">:</span> <span class="s">'All IT Staff'</span><span class="p">,</span>
+                        <span class="s">'message'</span><span class="p">:</span> <span class="s">'All hands on deck. Join incident response channel.'</span><span class="p">,</span>
+                        <span class="s">'channel'</span><span class="p">:</span> <span class="s">'Slack #incident-response'</span><span class="p">,</span>
+                        <span class="s">'time'</span><span class="p">:</span> <span class="s">'+5 minutes'</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="s">'external'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'customers'</span><span class="p">:</span> <span class="s">'Not yet - pending impact assessment'</span><span class="p">,</span>
+                    <span class="s">'authorities'</span><span class="p">:</span> <span class="s">'Prepare notification, send if PII confirmed compromised'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">investigation_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""調査フェーズ（2〜6時間）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'phase'</span><span class="p">:</span> <span class="s">'INVESTIGATION'</span><span class="p">,</span>
+            <span class="s">'timeline'</span><span class="p">:</span> <span class="s">'2-6 hours'</span><span class="p">,</span>
+            <span class="s">'forensics'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'log_preservation'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Create snapshots of all relevant databases'</span><span class="p">,</span>
+                    <span class="s">'Export and secure all logs from past 7 days'</span><span class="p">,</span>
+                    <span class="s">'Capture network traffic for analysis'</span><span class="p">,</span>
+                    <span class="s">'Preserve WAF logs'</span>
+                <span class="p">],</span>
+                <span class="s">'timeline_reconstruction'</span><span class="p">:</span> <span class="s">'''
+                -- 攻撃者の行動タイムライン
+                WITH attacker_timeline AS (
+                    SELECT 
+                        timestamp,
+                        source_ip,
+                        user_agent,
+                        action,
+                        target_resource,
+                        response_code
+                    FROM combined_logs
+                    WHERE session_id IN (
+                        SELECT DISTINCT session_id 
+                        FROM admin_sessions 
+                        WHERE admin_id = 'compromised_admin_123'
+                    )
+                    ORDER BY timestamp
+                )
+                SELECT * FROM attacker_timeline;
+                '''</span><span class="p">,</span>
+                <span class="s">'ioc_extraction'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'ip_addresses'</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s">'user_agents'</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s">'accessed_endpoints'</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s">'modified_data'</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s">'exfiltrated_data'</span><span class="p">:</span> <span class="p">[]</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'impact_assessment'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'data_accessed'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'customer_records'</span><span class="p">:</span> <span class="s">'Run query to count affected customers'</span><span class="p">,</span>
+                    <span class="s">'payment_info'</span><span class="p">:</span> <span class="s">'Check if payment tables were accessed'</span><span class="p">,</span>
+                    <span class="s">'personal_info'</span><span class="p">:</span> <span class="s">'Verify PII access scope'</span>
+                <span class="p">},</span>
+                <span class="s">'systems_compromised'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Admin panel'</span><span class="p">,</span>
+                    <span class="s">'Customer database (read-only)'</span><span class="p">,</span>
+                    <span class="s">'Order management system'</span>
+                <span class="p">],</span>
+                <span class="s">'business_impact'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'revenue_at_risk'</span><span class="p">:</span> <span class="s">'Calculate based on affected customers'</span><span class="p">,</span>
+                    <span class="s">'regulatory_exposure'</span><span class="p">:</span> <span class="s">'GDPR, PCI-DSS compliance'</span><span class="p">,</span>
+                    <span class="s">'reputation_damage'</span><span class="p">:</span> <span class="s">'High - customer trust'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">containment_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""封じ込め戦略（6〜12時間）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'phase'</span><span class="p">:</span> <span class="s">'CONTAINMENT'</span><span class="p">,</span>
+            <span class="s">'timeline'</span><span class="p">:</span> <span class="s">'6-12 hours'</span><span class="p">,</span>
+            <span class="s">'technical_measures'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'measure'</span><span class="p">:</span> <span class="s">'全管理者パスワードの強制リセット'</span><span class="p">,</span>
+                    <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                    UPDATE admin_users 
+                    SET password_reset_required = TRUE,
+                        password_reset_token = generate_secure_token(),
+                        password_reset_expires = NOW() + INTERVAL '24 hours';
+                    '''</span><span class="p">,</span>
+                    <span class="s">'notification'</span><span class="p">:</span> <span class="s">'Email all admins with secure reset link'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'measure'</span><span class="p">:</span> <span class="s">'MFA必須化'</span><span class="p">,</span>
+                    <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                    UPDATE system_settings 
+                    SET admin_mfa_required = TRUE,
+                        admin_mfa_grace_period = 0;
+                    '''</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'measure'</span><span class="p">:</span> <span class="s">'監査ログの強化'</span><span class="p">,</span>
+                    <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'''
+                    -- 詳細ログの有効化
+                    SET GLOBAL general_log = 'ON';
+                    SET GLOBAL log_output = 'TABLE';
+                    
+                    -- 全クエリの記録
+                    SET GLOBAL audit_log_policy = 'ALL';
+                    '''</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'measure'</span><span class="p">:</span> <span class="s">'ネットワークセグメンテーション'</span><span class="p">,</span>
+                    <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'Isolate admin network from production'</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'customer_protection'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'影響を受けた顧客アカウントの保護'</span><span class="p">,</span>
+                    <span class="s">'steps'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Flag affected accounts for monitoring'</span><span class="p">,</span>
+                        <span class="s">'Enable additional fraud detection rules'</span><span class="p">,</span>
+                        <span class="s">'Prepare password reset for affected users'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'不正な注文の検出'</span><span class="p">,</span>
+                    <span class="s">'query'</span><span class="p">:</span> <span class="s">'''
+                    SELECT * FROM orders
+                    WHERE created_at &gt; '2024-03-13 16:00:00'
+                    AND customer_id IN (
+                        SELECT customer_id FROM potentially_affected_customers
+                    )
+                    AND (
+                        shipping_address_changed = TRUE OR
+                        payment_method_changed = TRUE OR
+                        order_amount &gt; historical_average * 2
+                    );
+                    '''</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">recovery_plan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""復旧計画（12〜48時間）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'phase'</span><span class="p">:</span> <span class="s">'RECOVERY'</span><span class="p">,</span>
+            <span class="s">'timeline'</span><span class="p">:</span> <span class="s">'12-48 hours'</span><span class="p">,</span>
+            <span class="s">'system_hardening'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'component'</span><span class="p">:</span> <span class="s">'Admin Authentication'</span><span class="p">,</span>
+                    <span class="s">'improvements'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Implement hardware key requirement for admins'</span><span class="p">,</span>
+                        <span class="s">'Add IP allowlisting for admin access'</span><span class="p">,</span>
+                        <span class="s">'Implement session recording for admin actions'</span><span class="p">,</span>
+                        <span class="s">'Deploy privileged access management (PAM) solution'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'component'</span><span class="p">:</span> <span class="s">'Monitoring'</span><span class="p">,</span>
+                    <span class="s">'improvements'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Deploy SIEM with custom rules'</span><span class="p">,</span>
+                        <span class="s">'Implement behavioral analytics'</span><span class="p">,</span>
+                        <span class="s">'Set up real-time alerting for anomalies'</span><span class="p">,</span>
+                        <span class="s">'Create security dashboard'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'gradual_restoration'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'phase_1'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'time'</span><span class="p">:</span> <span class="s">'+12 hours'</span><span class="p">,</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'Restore read-only admin access'</span><span class="p">,</span>
+                    <span class="s">'validation'</span><span class="p">:</span> <span class="s">'Verify all logging working'</span>
+                <span class="p">},</span>
+                <span class="s">'phase_2'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'time'</span><span class="p">:</span> <span class="s">'+24 hours'</span><span class="p">,</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'Enable write operations with approval workflow'</span><span class="p">,</span>
+                    <span class="s">'validation'</span><span class="p">:</span> <span class="s">'Test approval mechanism'</span>
+                <span class="p">},</span>
+                <span class="s">'phase_3'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'time'</span><span class="p">:</span> <span class="s">'+48 hours'</span><span class="p">,</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'Full functionality with enhanced monitoring'</span><span class="p">,</span>
+                    <span class="s">'validation'</span><span class="p">:</span> <span class="s">'Complete security audit'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">communication_plan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""コミュニケーション計画"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'stakeholder_matrix'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'customers'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'affected'</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s">'when'</span><span class="p">:</span> <span class="s">'Within 24 hours of confirmation'</span><span class="p">,</span>
+                        <span class="s">'how'</span><span class="p">:</span> <span class="s">'Direct email + in-app notification'</span><span class="p">,</span>
+                        <span class="s">'message'</span><span class="p">:</span> <span class="s">'Security notice with specific actions'</span>
+                    <span class="p">},</span>
+                    <span class="s">'general'</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s">'when'</span><span class="p">:</span> <span class="s">'Within 48 hours'</span><span class="p">,</span>
+                        <span class="s">'how'</span><span class="p">:</span> <span class="s">'Blog post + email'</span><span class="p">,</span>
+                        <span class="s">'message'</span><span class="p">:</span> <span class="s">'Transparency report'</span>
+                    <span class="p">}</span>
+                <span class="p">},</span>
+                <span class="s">'regulators'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'gdpr'</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s">'when'</span><span class="p">:</span> <span class="s">'Within 72 hours'</span><span class="p">,</span>
+                        <span class="s">'how'</span><span class="p">:</span> <span class="s">'Official notification form'</span><span class="p">,</span>
+                        <span class="s">'content'</span><span class="p">:</span> <span class="s">'Full breach report'</span>
+                    <span class="p">},</span>
+                    <span class="s">'pci'</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s">'when'</span><span class="p">:</span> <span class="s">'Immediately'</span><span class="p">,</span>
+                        <span class="s">'how'</span><span class="p">:</span> <span class="s">'Phone + written follow-up'</span><span class="p">,</span>
+                        <span class="s">'content'</span><span class="p">:</span> <span class="s">'Initial assessment'</span>
+                    <span class="p">}</span>
+                <span class="p">},</span>
+                <span class="s">'media'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'strategy'</span><span class="p">:</span> <span class="s">'Proactive disclosure'</span><span class="p">,</span>
+                    <span class="s">'spokesperson'</span><span class="p">:</span> <span class="s">'CISO'</span><span class="p">,</span>
+                    <span class="s">'key_messages'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Swift detection and response'</span><span class="p">,</span>
+                        <span class="s">'Customer data protection measures'</span><span class="p">,</span>
+                        <span class="s">'Ongoing improvements'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">post_incident_review</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""事後レビュー"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'timeline'</span><span class="p">:</span> <span class="s">'1 week post-incident'</span><span class="p">,</span>
+            <span class="s">'participants'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'CISO'</span><span class="p">,</span> <span class="s">'CTO'</span><span class="p">,</span> <span class="s">'Security Team'</span><span class="p">,</span>
+                <span class="s">'DevOps'</span><span class="p">,</span> <span class="s">'Customer Service Lead'</span>
+            <span class="p">],</span>
+            <span class="s">'agenda'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'Timeline review'</span><span class="p">,</span>
+                <span class="s">'Decision effectiveness'</span><span class="p">,</span>
+                <span class="s">'Communication assessment'</span><span class="p">,</span>
+                <span class="s">'Technical gaps identified'</span><span class="p">,</span>
+                <span class="s">'Process improvements'</span>
+            <span class="p">],</span>
+            <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'Incident report'</span><span class="p">,</span>
+                <span class="s">'Lessons learned document'</span><span class="p">,</span>
+                <span class="s">'Action items with owners'</span><span class="p">,</span>
+                <span class="s">'Updated incident response playbook'</span>
+            <span class="p">],</span>
+            <span class="s">'metrics'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'detection_time'</span><span class="p">:</span> <span class="s">'Time from breach to detection'</span><span class="p">,</span>
+                <span class="s">'containment_time'</span><span class="p">:</span> <span class="s">'Time from detection to containment'</span><span class="p">,</span>
+                <span class="s">'recovery_time'</span><span class="p">:</span> <span class="s">'Time to full restoration'</span><span class="p">,</span>
+                <span class="s">'customer_impact'</span><span class="p">:</span> <span class="s">'Number of affected users'</span><span class="p">,</span>
+                <span class="s">'financial_impact'</span><span class="p">:</span> <span class="s">'Total cost of incident'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="問題4セキュリティ監査">問題4：セキュリティ監査</h2>
+
+<h3 id="解答-3">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">SaaSSecurityAuditPlan</span><span class="p">:</span>
+    <span class="s">"""中規模SaaS企業のセキュリティ監査計画"""</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">company_profile</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'employees'</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s">'customers'</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
+            <span class="s">'annual_revenue'</span><span class="p">:</span> <span class="s">'$20M'</span><span class="p">,</span>
+            <span class="s">'data_sensitivity'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+            <span class="s">'compliance_requirements'</span><span class="p">:</span> <span class="p">[</span><span class="s">'SOC2'</span><span class="p">,</span> <span class="s">'ISO27001'</span><span class="p">,</span> <span class="s">'GDPR'</span><span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">audit_scope_and_objectives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""監査スコープと目標"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'scope'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'included'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Authentication and authorization systems'</span><span class="p">,</span>
+                    <span class="s">'User identity management'</span><span class="p">,</span>
+                    <span class="s">'Access control mechanisms'</span><span class="p">,</span>
+                    <span class="s">'Session management'</span><span class="p">,</span>
+                    <span class="s">'API security'</span><span class="p">,</span>
+                    <span class="s">'Privileged access management'</span><span class="p">,</span>
+                    <span class="s">'Third-party integrations'</span><span class="p">,</span>
+                    <span class="s">'Audit logging and monitoring'</span>
+                <span class="p">],</span>
+                <span class="s">'excluded'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Physical security'</span><span class="p">,</span>
+                    <span class="s">'Non-production environments'</span><span class="p">,</span>
+                    <span class="s">'Third-party vendor assessments'</span>
+                <span class="p">],</span>
+                <span class="s">'systems'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Production authentication service'</span><span class="p">,</span>
+                    <span class="s">'Identity provider (IdP)'</span><span class="p">,</span>
+                    <span class="s">'Customer portal'</span><span class="p">,</span>
+                    <span class="s">'Admin console'</span><span class="p">,</span>
+                    <span class="s">'API gateway'</span><span class="p">,</span>
+                    <span class="s">'Database access layer'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s">'objectives'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'Verify compliance with security standards'</span><span class="p">,</span>
+                <span class="s">'Identify vulnerabilities in auth systems'</span><span class="p">,</span>
+                <span class="s">'Assess access control effectiveness'</span><span class="p">,</span>
+                <span class="s">'Evaluate incident response readiness'</span><span class="p">,</span>
+                <span class="s">'Review security configurations'</span><span class="p">,</span>
+                <span class="s">'Test detection capabilities'</span>
+            <span class="p">],</span>
+            <span class="s">'success_criteria'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'no_critical_findings'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">'high_findings_threshold'</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s">'compliance_score'</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span>
+                <span class="s">'remediation_timeline'</span><span class="p">:</span> <span class="s">'90 days'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">audit_methodology</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""監査手法とツール"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'framework'</span><span class="p">:</span> <span class="s">'NIST Cybersecurity Framework + CIS Controls'</span><span class="p">,</span>
+            <span class="s">'approach'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'phase_1'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Discovery and Planning'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Documentation review'</span><span class="p">,</span>
+                        <span class="s">'Architecture analysis'</span><span class="p">,</span>
+                        <span class="s">'Stakeholder interviews'</span><span class="p">,</span>
+                        <span class="s">'Risk assessment'</span>
+                    <span class="p">],</span>
+                    <span class="s">'tools'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Document management system'</span><span class="p">,</span>
+                        <span class="s">'Visio/Draw.io for diagrams'</span><span class="p">,</span>
+                        <span class="s">'Risk assessment templates'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s">'phase_2'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Technical Assessment'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Configuration review'</span><span class="p">,</span>
+                        <span class="s">'Vulnerability scanning'</span><span class="p">,</span>
+                        <span class="s">'Penetration testing'</span><span class="p">,</span>
+                        <span class="s">'Code review'</span>
+                    <span class="p">],</span>
+                    <span class="s">'tools'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Burp Suite Pro'</span><span class="p">,</span>
+                        <span class="s">'OWASP ZAP'</span><span class="p">,</span>
+                        <span class="s">'Nessus'</span><span class="p">,</span>
+                        <span class="s">'SonarQube'</span><span class="p">,</span>
+                        <span class="s">'Git security scanning'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s">'phase_3'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Process and Compliance Review'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Policy review'</span><span class="p">,</span>
+                        <span class="s">'Procedure validation'</span><span class="p">,</span>
+                        <span class="s">'Compliance mapping'</span><span class="p">,</span>
+                        <span class="s">'Training assessment'</span>
+                    <span class="p">],</span>
+                    <span class="s">'tools'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'GRC platform'</span><span class="p">,</span>
+                        <span class="s">'Compliance matrices'</span><span class="p">,</span>
+                        <span class="s">'Interview guides'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'testing_methodology'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'black_box'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'percentage'</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+                    <span class="s">'focus'</span><span class="p">:</span> <span class="s">'External attacker perspective'</span>
+                <span class="p">},</span>
+                <span class="s">'gray_box'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'percentage'</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+                    <span class="s">'focus'</span><span class="p">:</span> <span class="s">'Authenticated user perspective'</span>
+                <span class="p">},</span>
+                <span class="s">'white_box'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'percentage'</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                    <span class="s">'focus'</span><span class="p">:</span> <span class="s">'Code and configuration review'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">timeline_3_months</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""3ヶ月間のタイムライン"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'month_1'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'week_1_2'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Planning and Discovery'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Kick-off meeting'</span><span class="p">,</span>
+                        <span class="s">'Scope finalization'</span><span class="p">,</span>
+                        <span class="s">'Documentation collection'</span><span class="p">,</span>
+                        <span class="s">'Initial interviews'</span><span class="p">,</span>
+                        <span class="s">'Environment access setup'</span>
+                    <span class="p">],</span>
+                    <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Audit charter'</span><span class="p">,</span>
+                        <span class="s">'Detailed project plan'</span><span class="p">,</span>
+                        <span class="s">'Risk assessment matrix'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s">'week_3_4'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Architecture and Design Review'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'System architecture review'</span><span class="p">,</span>
+                        <span class="s">'Data flow analysis'</span><span class="p">,</span>
+                        <span class="s">'Integration mapping'</span><span class="p">,</span>
+                        <span class="s">'Security control assessment'</span>
+                    <span class="p">],</span>
+                    <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Architecture assessment report'</span><span class="p">,</span>
+                        <span class="s">'Initial findings document'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'month_2'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'week_5_6'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Technical Testing - Part 1'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Authentication mechanism testing'</span><span class="p">,</span>
+                        <span class="s">'Session management review'</span><span class="p">,</span>
+                        <span class="s">'Password policy validation'</span><span class="p">,</span>
+                        <span class="s">'MFA implementation check'</span>
+                    <span class="p">],</span>
+                    <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Authentication test results'</span><span class="p">,</span>
+                        <span class="s">'Vulnerability report v1'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s">'week_7_8'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Technical Testing - Part 2'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Authorization testing'</span><span class="p">,</span>
+                        <span class="s">'API security assessment'</span><span class="p">,</span>
+                        <span class="s">'Privilege escalation testing'</span><span class="p">,</span>
+                        <span class="s">'Integration security review'</span>
+                    <span class="p">],</span>
+                    <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Authorization test results'</span><span class="p">,</span>
+                        <span class="s">'API security report'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'month_3'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'week_9_10'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Process and Compliance'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Policy compliance check'</span><span class="p">,</span>
+                        <span class="s">'Operational procedure review'</span><span class="p">,</span>
+                        <span class="s">'Incident response testing'</span><span class="p">,</span>
+                        <span class="s">'Training effectiveness'</span>
+                    <span class="p">],</span>
+                    <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Compliance assessment'</span><span class="p">,</span>
+                        <span class="s">'Process maturity report'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s">'week_11_12'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Reporting and Remediation Planning'</span><span class="p">,</span>
+                    <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Finding consolidation'</span><span class="p">,</span>
+                        <span class="s">'Risk rating assignment'</span><span class="p">,</span>
+                        <span class="s">'Remediation planning'</span><span class="p">,</span>
+                        <span class="s">'Executive presentation'</span><span class="p">,</span>
+                        <span class="s">'Knowledge transfer'</span>
+                    <span class="p">],</span>
+                    <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Final audit report'</span><span class="p">,</span>
+                        <span class="s">'Executive summary'</span><span class="p">,</span>
+                        <span class="s">'Remediation roadmap'</span><span class="p">,</span>
+                        <span class="s">'Presentation materials'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">deliverables_and_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""成果物とレポート形式"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'report_structure'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'executive_summary'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'length'</span><span class="p">:</span> <span class="s">'2-3 pages'</span><span class="p">,</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Overall security posture'</span><span class="p">,</span>
+                        <span class="s">'Critical findings summary'</span><span class="p">,</span>
+                        <span class="s">'Risk assessment'</span><span class="p">,</span>
+                        <span class="s">'Compliance status'</span><span class="p">,</span>
+                        <span class="s">'Key recommendations'</span>
+                    <span class="p">],</span>
+                    <span class="s">'audience'</span><span class="p">:</span> <span class="s">'C-suite, Board'</span>
+                <span class="p">},</span>
+                <span class="s">'technical_report'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'length'</span><span class="p">:</span> <span class="s">'50-75 pages'</span><span class="p">,</span>
+                    <span class="s">'sections'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Methodology'</span><span class="p">,</span>
+                        <span class="s">'Detailed findings'</span><span class="p">,</span>
+                        <span class="s">'Evidence and screenshots'</span><span class="p">,</span>
+                        <span class="s">'Attack scenarios'</span><span class="p">,</span>
+                        <span class="s">'Technical recommendations'</span><span class="p">,</span>
+                        <span class="s">'Configuration guides'</span>
+                    <span class="p">],</span>
+                    <span class="s">'audience'</span><span class="p">:</span> <span class="s">'Security team, DevOps'</span>
+                <span class="p">},</span>
+                <span class="s">'compliance_report'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'length'</span><span class="p">:</span> <span class="s">'30-40 pages'</span><span class="p">,</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Compliance framework mapping'</span><span class="p">,</span>
+                        <span class="s">'Gap analysis'</span><span class="p">,</span>
+                        <span class="s">'Control effectiveness'</span><span class="p">,</span>
+                        <span class="s">'Evidence documentation'</span><span class="p">,</span>
+                        <span class="s">'Certification readiness'</span>
+                    <span class="p">],</span>
+                    <span class="s">'audience'</span><span class="p">:</span> <span class="s">'Compliance team, Auditors'</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'finding_format'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'structure'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'title'</span><span class="p">:</span> <span class="s">'Clear, descriptive title'</span><span class="p">,</span>
+                    <span class="s">'severity'</span><span class="p">:</span> <span class="s">'Critical/High/Medium/Low'</span><span class="p">,</span>
+                    <span class="s">'category'</span><span class="p">:</span> <span class="s">'Authentication/Authorization/Configuration'</span><span class="p">,</span>
+                    <span class="s">'description'</span><span class="p">:</span> <span class="s">'Detailed explanation'</span><span class="p">,</span>
+                    <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'Screenshots, logs, code snippets'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'Business and technical impact'</span><span class="p">,</span>
+                    <span class="s">'likelihood'</span><span class="p">:</span> <span class="s">'Probability assessment'</span><span class="p">,</span>
+                    <span class="s">'recommendations'</span><span class="p">:</span> <span class="s">'Step-by-step remediation'</span><span class="p">,</span>
+                    <span class="s">'references'</span><span class="p">:</span> <span class="s">'Standards, best practices'</span>
+                <span class="p">},</span>
+                <span class="s">'risk_rating_matrix'</span><span class="p">:</span> <span class="s">'''
+                Risk = Likelihood × Impact
+                
+                Critical: Immediate action required
+                High: Fix within 30 days
+                Medium: Fix within 90 days
+                Low: Fix within 180 days
+                '''</span>
+            <span class="p">},</span>
+            <span class="s">'additional_deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Security Metrics Dashboard'</span><span class="p">,</span>
+                    <span class="s">'format'</span><span class="p">:</span> <span class="s">'Interactive dashboard'</span><span class="p">,</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="s">'KPIs, trends, benchmarks'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Remediation Tracker'</span><span class="p">,</span>
+                    <span class="s">'format'</span><span class="p">:</span> <span class="s">'Spreadsheet/JIRA'</span><span class="p">,</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="s">'Finding tracking, assignments, progress'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Security Awareness Materials'</span><span class="p">,</span>
+                    <span class="s">'format'</span><span class="p">:</span> <span class="s">'Presentations, guides'</span><span class="p">,</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="s">'Training materials based on findings'</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">audit_checklist_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""監査チェックリストサンプル"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'authentication_checklist'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'item'</span><span class="p">:</span> <span class="s">'Password Policy Compliance'</span><span class="p">,</span>
+                    <span class="s">'checks'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Minimum length ≥ 12 characters'</span><span class="p">,</span>
+                        <span class="s">'Complexity requirements aligned with NIST'</span><span class="p">,</span>
+                        <span class="s">'Password history enforcement'</span><span class="p">,</span>
+                        <span class="s">'Breach password detection'</span><span class="p">,</span>
+                        <span class="s">'Account lockout policy'</span>
+                    <span class="p">],</span>
+                    <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'Configuration files, test results'</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'item'</span><span class="p">:</span> <span class="s">'Multi-Factor Authentication'</span><span class="p">,</span>
+                    <span class="s">'checks'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'MFA available for all users'</span><span class="p">,</span>
+                        <span class="s">'MFA required for admins'</span><span class="p">,</span>
+                        <span class="s">'Backup authentication methods'</span><span class="p">,</span>
+                        <span class="s">'MFA bypass controls'</span><span class="p">,</span>
+                        <span class="s">'Recovery procedures'</span>
+                    <span class="p">],</span>
+                    <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'User statistics, configuration'</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'authorization_checklist'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'item'</span><span class="p">:</span> <span class="s">'Access Control Model'</span><span class="p">,</span>
+                    <span class="s">'checks'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'RBAC/ABAC implementation'</span><span class="p">,</span>
+                        <span class="s">'Principle of least privilege'</span><span class="p">,</span>
+                        <span class="s">'Segregation of duties'</span><span class="p">,</span>
+                        <span class="s">'Regular access reviews'</span><span class="p">,</span>
+                        <span class="s">'Orphaned account detection'</span>
+                    <span class="p">],</span>
+                    <span class="s">'evidence'</span><span class="p">:</span> <span class="s">'Role matrices, review records'</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="問題5ゼロトラスト移行">問題5：ゼロトラスト移行</h2>
+
+<h3 id="解答-4">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ZeroTrustMigrationPlan</span><span class="p">:</span>
+    <span class="s">"""ゼロトラストアーキテクチャへの移行計画"""</span>
+    
+    <span class="k">def</span> <span class="nf">current_state_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""現状分析（As-Is）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'architecture_type'</span><span class="p">:</span> <span class="s">'Perimeter-based (Castle-and-Moat)'</span><span class="p">,</span>
+            <span class="s">'current_components'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'network_security'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'perimeter_firewall'</span><span class="p">:</span> <span class="s">'Fortinet FortiGate'</span><span class="p">,</span>
+                    <span class="s">'vpn'</span><span class="p">:</span> <span class="s">'Traditional SSL VPN for remote access'</span><span class="p">,</span>
+                    <span class="s">'network_segmentation'</span><span class="p">:</span> <span class="s">'VLAN-based, limited microsegmentation'</span><span class="p">,</span>
+                    <span class="s">'internal_trust'</span><span class="p">:</span> <span class="s">'Implicit trust within network perimeter'</span>
+                <span class="p">},</span>
+                <span class="s">'identity_management'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'directory'</span><span class="p">:</span> <span class="s">'Active Directory on-premises'</span><span class="p">,</span>
+                    <span class="s">'authentication'</span><span class="p">:</span> <span class="s">'Username/password, limited MFA'</span><span class="p">,</span>
+                    <span class="s">'sso'</span><span class="p">:</span> <span class="s">'ADFS for some applications'</span><span class="p">,</span>
+                    <span class="s">'privileged_access'</span><span class="p">:</span> <span class="s">'Shared admin accounts'</span>
+                <span class="p">},</span>
+                <span class="s">'application_security'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'access_control'</span><span class="p">:</span> <span class="s">'Network-based (IP restrictions)'</span><span class="p">,</span>
+                    <span class="s">'api_security'</span><span class="p">:</span> <span class="s">'Basic API keys'</span><span class="p">,</span>
+                    <span class="s">'encryption'</span><span class="p">:</span> <span class="s">'TLS for external, limited internal'</span>
+                <span class="p">},</span>
+                <span class="s">'device_management'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'corporate_devices'</span><span class="p">:</span> <span class="s">'Domain-joined, GPO managed'</span><span class="p">,</span>
+                    <span class="s">'byod'</span><span class="p">:</span> <span class="s">'Limited support via VPN'</span><span class="p">,</span>
+                    <span class="s">'compliance'</span><span class="p">:</span> <span class="s">'Manual checks'</span>
+                <span class="p">},</span>
+                <span class="s">'monitoring'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'logging'</span><span class="p">:</span> <span class="s">'Decentralized, limited retention'</span><span class="p">,</span>
+                    <span class="s">'siem'</span><span class="p">:</span> <span class="s">'Basic implementation'</span><span class="p">,</span>
+                    <span class="s">'visibility'</span><span class="p">:</span> <span class="s">'Network-focused, limited application insight'</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'current_challenges'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'VPN bottlenecks for remote workers'</span><span class="p">,</span>
+                <span class="s">'Lateral movement risk after breach'</span><span class="p">,</span>
+                <span class="s">'Limited visibility into encrypted traffic'</span><span class="p">,</span>
+                <span class="s">'Complex firewall rules'</span><span class="p">,</span>
+                <span class="s">'Shadow IT proliferation'</span><span class="p">,</span>
+                <span class="s">'Inconsistent security policies'</span>
+            <span class="p">],</span>
+            <span class="s">'risk_assessment'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'high_risks'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Compromised credentials = network access'</span><span class="p">,</span>
+                    <span class="s">'Limited cloud security'</span><span class="p">,</span>
+                    <span class="s">'Insufficient endpoint protection'</span><span class="p">,</span>
+                    <span class="s">'Weak third-party access controls'</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">target_architecture</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""目標アーキテクチャ（To-Be）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'architecture_type'</span><span class="p">:</span> <span class="s">'Zero Trust Network Architecture (ZTNA)'</span><span class="p">,</span>
+            <span class="s">'core_principles'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'never_trust_always_verify'</span><span class="p">:</span> <span class="s">'Every access request verified'</span><span class="p">,</span>
+                <span class="s">'least_privilege'</span><span class="p">:</span> <span class="s">'Minimal access by default'</span><span class="p">,</span>
+                <span class="s">'assume_breach'</span><span class="p">:</span> <span class="s">'Design for compromised environment'</span><span class="p">,</span>
+                <span class="s">'verify_explicitly'</span><span class="p">:</span> <span class="s">'Multi-factor verification'</span><span class="p">,</span>
+                <span class="s">'continuous_verification'</span><span class="p">:</span> <span class="s">'Not just at login'</span>
+            <span class="p">},</span>
+            <span class="s">'target_components'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'identity_and_access'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'identity_provider'</span><span class="p">:</span> <span class="s">'Cloud-based IdP (Okta/Azure AD)'</span><span class="p">,</span>
+                    <span class="s">'authentication'</span><span class="p">:</span> <span class="s">'Passwordless + MFA everywhere'</span><span class="p">,</span>
+                    <span class="s">'authorization'</span><span class="p">:</span> <span class="s">'Dynamic, context-aware policies'</span><span class="p">,</span>
+                    <span class="s">'privileged_access'</span><span class="p">:</span> <span class="s">'Just-in-time, zero standing privileges'</span>
+                <span class="p">},</span>
+                <span class="s">'device_trust'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'device_registry'</span><span class="p">:</span> <span class="s">'All devices registered and managed'</span><span class="p">,</span>
+                    <span class="s">'compliance_checking'</span><span class="p">:</span> <span class="s">'Continuous compliance validation'</span><span class="p">,</span>
+                    <span class="s">'trust_scoring'</span><span class="p">:</span> <span class="s">'Risk-based device trust levels'</span><span class="p">,</span>
+                    <span class="s">'byod_support'</span><span class="p">:</span> <span class="s">'Full support with isolation'</span>
+                <span class="p">},</span>
+                <span class="s">'network_architecture'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'microsegmentation'</span><span class="p">:</span> <span class="s">'Identity-based, not network-based'</span><span class="p">,</span>
+                    <span class="s">'software_defined_perimeter'</span><span class="p">:</span> <span class="s">'Dynamic, encrypted tunnels'</span><span class="p">,</span>
+                    <span class="s">'direct_to_cloud'</span><span class="p">:</span> <span class="s">'No backhauling through datacenter'</span><span class="p">,</span>
+                    <span class="s">'zero_trust_proxy'</span><span class="p">:</span> <span class="s">'All access through proxy'</span>
+                <span class="p">},</span>
+                <span class="s">'application_security'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'api_gateway'</span><span class="p">:</span> <span class="s">'Centralized API management'</span><span class="p">,</span>
+                    <span class="s">'service_mesh'</span><span class="p">:</span> <span class="s">'mTLS between all services'</span><span class="p">,</span>
+                    <span class="s">'policy_engine'</span><span class="p">:</span> <span class="s">'Centralized policy decision point'</span><span class="p">,</span>
+                    <span class="s">'encryption'</span><span class="p">:</span> <span class="s">'End-to-end encryption everywhere'</span>
+                <span class="p">},</span>
+                <span class="s">'data_protection'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'classification'</span><span class="p">:</span> <span class="s">'Automated data classification'</span><span class="p">,</span>
+                    <span class="s">'dlp'</span><span class="p">:</span> <span class="s">'Context-aware DLP'</span><span class="p">,</span>
+                    <span class="s">'encryption'</span><span class="p">:</span> <span class="s">'Data-centric security'</span><span class="p">,</span>
+                    <span class="s">'rights_management'</span><span class="p">:</span> <span class="s">'Persistent data protection'</span>
+                <span class="p">},</span>
+                <span class="s">'monitoring_and_analytics'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'siem_soar'</span><span class="p">:</span> <span class="s">'Advanced threat detection'</span><span class="p">,</span>
+                    <span class="s">'ueba'</span><span class="p">:</span> <span class="s">'User behavior analytics'</span><span class="p">,</span>
+                    <span class="s">'continuous_monitoring'</span><span class="p">:</span> <span class="s">'Real-time risk assessment'</span><span class="p">,</span>
+                    <span class="s">'automated_response'</span><span class="p">:</span> <span class="s">'Policy-driven remediation'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">migration_steps_6_months</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""6ヶ月の移行ステップ"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'month_1'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Foundation and Planning'</span><span class="p">,</span>
+                <span class="s">'objectives'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Establish Zero Trust program'</span><span class="p">,</span>
+                    <span class="s">'Complete detailed assessment'</span><span class="p">,</span>
+                    <span class="s">'Define success metrics'</span>
+                <span class="p">],</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Form Zero Trust team'</span><span class="p">,</span>
+                        <span class="s">'deliverable'</span><span class="p">:</span> <span class="s">'RACI matrix, project charter'</span><span class="p">,</span>
+                        <span class="s">'stakeholders'</span><span class="p">:</span> <span class="p">[</span><span class="s">'CISO'</span><span class="p">,</span> <span class="s">'CIO'</span><span class="p">,</span> <span class="s">'Network'</span><span class="p">,</span> <span class="s">'Security'</span><span class="p">,</span> <span class="s">'Apps'</span><span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Asset and data discovery'</span><span class="p">,</span>
+                        <span class="s">'deliverable'</span><span class="p">:</span> <span class="s">'Complete asset inventory'</span><span class="p">,</span>
+                        <span class="s">'tools'</span><span class="p">:</span> <span class="p">[</span><span class="s">'ServiceNow'</span><span class="p">,</span> <span class="s">'Lansweeper'</span><span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Risk assessment'</span><span class="p">,</span>
+                        <span class="s">'deliverable'</span><span class="p">:</span> <span class="s">'Risk heat map, priority matrix'</span><span class="p">,</span>
+                        <span class="s">'focus'</span><span class="p">:</span> <span class="s">'Critical assets first'</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Vendor selection'</span><span class="p">,</span>
+                        <span class="s">'deliverable'</span><span class="p">:</span> <span class="s">'Vendor shortlist, POC plan'</span><span class="p">,</span>
+                        <span class="s">'evaluate'</span><span class="p">:</span> <span class="p">[</span><span class="s">'ZTNA platforms'</span><span class="p">,</span> <span class="s">'CASB'</span><span class="p">,</span> <span class="s">'IdP'</span><span class="p">]</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="s">'quick_wins'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Enable MFA for all admin accounts'</span><span class="p">,</span>
+                    <span class="s">'Implement password policy improvements'</span><span class="p">,</span>
+                    <span class="s">'Begin logging centralization'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s">'month_2_3'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Identity-Centric Security'</span><span class="p">,</span>
+                <span class="s">'objectives'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Modernize identity infrastructure'</span><span class="p">,</span>
+                    <span class="s">'Implement strong authentication'</span><span class="p">,</span>
+                    <span class="s">'Begin policy development'</span>
+                <span class="p">],</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Deploy cloud IdP'</span><span class="p">,</span>
+                        <span class="s">'steps'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Set up Okta/Azure AD tenant'</span><span class="p">,</span>
+                            <span class="s">'Integrate with AD'</span><span class="p">,</span>
+                            <span class="s">'Migrate first application batch'</span><span class="p">,</span>
+                            <span class="s">'Configure MFA policies'</span>
+                        <span class="p">],</span>
+                        <span class="s">'milestone'</span><span class="p">:</span> <span class="s">'30% apps integrated'</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Implement privileged access management'</span><span class="p">,</span>
+                        <span class="s">'solution'</span><span class="p">:</span> <span class="s">'CyberArk or similar'</span><span class="p">,</span>
+                        <span class="s">'scope'</span><span class="p">:</span> <span class="s">'All admin accounts'</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Device trust framework'</span><span class="p">,</span>
+                        <span class="s">'components'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Device inventory'</span><span class="p">,</span>
+                            <span class="s">'Certificate deployment'</span><span class="p">,</span>
+                            <span class="s">'Compliance policies'</span><span class="p">,</span>
+                            <span class="s">'MDM integration'</span>
+                        <span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Policy engine setup'</span><span class="p">,</span>
+                        <span class="s">'deliverable'</span><span class="p">:</span> <span class="s">'Initial policy set'</span><span class="p">,</span>
+                        <span class="s">'approach'</span><span class="p">:</span> <span class="s">'Start with monitor mode'</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="s">'metrics'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'mfa_adoption'</span><span class="p">:</span> <span class="s">'100% admins, 50% users'</span><span class="p">,</span>
+                    <span class="s">'passwordless'</span><span class="p">:</span> <span class="s">'20% pilot users'</span><span class="p">,</span>
+                    <span class="s">'device_registration'</span><span class="p">:</span> <span class="s">'60% corporate devices'</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">'month_4_5'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Network and Application Transformation'</span><span class="p">,</span>
+                <span class="s">'objectives'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Deploy ZTNA infrastructure'</span><span class="p">,</span>
+                    <span class="s">'Implement microsegmentation'</span><span class="p">,</span>
+                    <span class="s">'Secure application access'</span>
+                <span class="p">],</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Deploy Zero Trust Network Access'</span><span class="p">,</span>
+                        <span class="s">'components'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Install ZT proxy/gateway'</span><span class="p">,</span>
+                            <span class="s">'Configure identity integration'</span><span class="p">,</span>
+                            <span class="s">'Create access policies'</span><span class="p">,</span>
+                            <span class="s">'Migrate VPN users'</span>
+                        <span class="p">],</span>
+                        <span class="s">'target'</span><span class="p">:</span> <span class="s">'50% remote users migrated'</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Implement microsegmentation'</span><span class="p">,</span>
+                        <span class="s">'approach'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Deploy Illumio/Guardicore'</span><span class="p">,</span>
+                            <span class="s">'Map application dependencies'</span><span class="p">,</span>
+                            <span class="s">'Create segmentation policies'</span><span class="p">,</span>
+                            <span class="s">'Enable enforcement gradually'</span>
+                        <span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'API security enhancement'</span><span class="p">,</span>
+                        <span class="s">'implementation'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Deploy API gateway'</span><span class="p">,</span>
+                            <span class="s">'Implement OAuth 2.0/OIDC'</span><span class="p">,</span>
+                            <span class="s">'Enable mutual TLS'</span><span class="p">,</span>
+                            <span class="s">'API inventory and classification'</span>
+                        <span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'CASB deployment'</span><span class="p">,</span>
+                        <span class="s">'scope'</span><span class="p">:</span> <span class="s">'Critical SaaS applications'</span><span class="p">,</span>
+                        <span class="s">'features'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Visibility'</span><span class="p">,</span> <span class="s">'DLP'</span><span class="p">,</span> <span class="s">'Threat protection'</span><span class="p">]</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="s">'decommission'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Legacy VPN (partial)'</span><span class="p">,</span>
+                    <span class="s">'Network-based access rules'</span><span class="p">,</span>
+                    <span class="s">'Shared service accounts'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s">'month_6'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'phase'</span><span class="p">:</span> <span class="s">'Optimization and Maturation'</span><span class="p">,</span>
+                <span class="s">'objectives'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Complete migration'</span><span class="p">,</span>
+                    <span class="s">'Optimize policies'</span><span class="p">,</span>
+                    <span class="s">'Establish operations'</span>
+                <span class="p">],</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Complete application migration'</span><span class="p">,</span>
+                        <span class="s">'target'</span><span class="p">:</span> <span class="s">'100% critical apps'</span><span class="p">,</span>
+                        <span class="s">'validation'</span><span class="p">:</span> <span class="s">'User acceptance testing'</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Advanced threat protection'</span><span class="p">,</span>
+                        <span class="s">'components'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'UEBA implementation'</span><span class="p">,</span>
+                            <span class="s">'Automated response playbooks'</span><span class="p">,</span>
+                            <span class="s">'Threat intelligence integration'</span>
+                        <span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Policy optimization'</span><span class="p">,</span>
+                        <span class="s">'approach'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Analyze policy violations'</span><span class="p">,</span>
+                            <span class="s">'Refine access rules'</span><span class="p">,</span>
+                            <span class="s">'Implement dynamic policies'</span><span class="p">,</span>
+                            <span class="s">'Remove legacy rules'</span>
+                        <span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s">'task'</span><span class="p">:</span> <span class="s">'Operational handover'</span><span class="p">,</span>
+                        <span class="s">'deliverables'</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="s">'Runbooks'</span><span class="p">,</span>
+                            <span class="s">'Training completion'</span><span class="p">,</span>
+                            <span class="s">'Support model'</span><span class="p">,</span>
+                            <span class="s">'Success metrics'</span>
+                        <span class="p">]</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="s">'final_state'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'vpn_usage'</span><span class="p">:</span> <span class="s">'&lt;10% (exception only)'</span><span class="p">,</span>
+                    <span class="s">'zero_trust_coverage'</span><span class="p">:</span> <span class="s">'95% resources'</span><span class="p">,</span>
+                    <span class="s">'policy_decisions'</span><span class="p">:</span> <span class="s">'&gt;1M daily'</span><span class="p">,</span>
+                    <span class="s">'mean_time_to_detect'</span><span class="p">:</span> <span class="s">'&lt;5 minutes'</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">risks_and_mitigations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""リスクと対策"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'technical_risks'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'risk'</span><span class="p">:</span> <span class="s">'Service disruption during migration'</span><span class="p">,</span>
+                    <span class="s">'probability'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Phased rollout approach'</span><span class="p">,</span>
+                        <span class="s">'Extensive testing in staging'</span><span class="p">,</span>
+                        <span class="s">'Rollback plans for each phase'</span><span class="p">,</span>
+                        <span class="s">'Parallel run period'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'risk'</span><span class="p">:</span> <span class="s">'Performance degradation'</span><span class="p">,</span>
+                    <span class="s">'probability'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Capacity planning'</span><span class="p">,</span>
+                        <span class="s">'Performance baselines'</span><span class="p">,</span>
+                        <span class="s">'Edge proxy deployment'</span><span class="p">,</span>
+                        <span class="s">'Caching strategies'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'risk'</span><span class="p">:</span> <span class="s">'Integration complexity'</span><span class="p">,</span>
+                    <span class="s">'probability'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Detailed integration planning'</span><span class="p">,</span>
+                        <span class="s">'Vendor professional services'</span><span class="p">,</span>
+                        <span class="s">'POC for each integration'</span><span class="p">,</span>
+                        <span class="s">'Standardized APIs'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'organizational_risks'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'risk'</span><span class="p">:</span> <span class="s">'User resistance'</span><span class="p">,</span>
+                    <span class="s">'probability'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Early stakeholder engagement'</span><span class="p">,</span>
+                        <span class="s">'Clear communication plan'</span><span class="p">,</span>
+                        <span class="s">'Training programs'</span><span class="p">,</span>
+                        <span class="s">'Champion network'</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s">'risk'</span><span class="p">:</span> <span class="s">'Skills gap'</span><span class="p">,</span>
+                    <span class="s">'probability'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'HIGH'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Training investment'</span><span class="p">,</span>
+                        <span class="s">'Hire ZT expertise'</span><span class="p">,</span>
+                        <span class="s">'Vendor support contracts'</span><span class="p">,</span>
+                        <span class="s">'Knowledge transfer plans'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'budget_risks'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s">'risk'</span><span class="p">:</span> <span class="s">'Cost overrun'</span><span class="p">,</span>
+                    <span class="s">'probability'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'impact'</span><span class="p">:</span> <span class="s">'MEDIUM'</span><span class="p">,</span>
+                    <span class="s">'mitigation'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'Detailed cost modeling'</span><span class="p">,</span>
+                        <span class="s">'Phased investment'</span><span class="p">,</span>
+                        <span class="s">'ROI tracking'</span><span class="p">,</span>
+                        <span class="s">'Executive sponsorship'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s">'success_factors'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'Strong executive sponsorship'</span><span class="p">,</span>
+                <span class="s">'Clear communication'</span><span class="p">,</span>
+                <span class="s">'Incremental approach'</span><span class="p">,</span>
+                <span class="s">'Continuous measurement'</span><span class="p">,</span>
+                <span class="s">'User-centric design'</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/appendices/appendix-e-10/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録E-10: 第10章演習問題解答</span>
+      </a>
+    
+
+    <a href="/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/appendices/appendix-e-12/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録E-12: 第12章演習問題解答</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-e-11/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

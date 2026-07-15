@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録E-2: 第2章演習問題解答 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録E-2: 第2章演習問題解答">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/appendices/appendix-e-02/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録E-2: 第2章演習問題解答">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-02/" class="toc-link active" aria-current="page">
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録e-2-第2章演習問題解答">付録E-2: 第2章演習問題解答</h1>
+
+<h2 id="問題1パスワードハッシュ化の実装">問題1：パスワードハッシュ化の実装</h2>
+
+<h3 id="完全な実装例">完全な実装例</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">bcrypt</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">secrets</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="k">class</span> <span class="nc">SecurePasswordSystem</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">work_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">work_factor</span> <span class="o">=</span> <span class="n">work_factor</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">password_history</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># ユーザーごとのパスワード履歴
+</span>        
+    <span class="k">def</span> <span class="nf">validate_password_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="s">"""パスワード強度の検証"""</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># 長さチェック
+</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
+            <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"パスワードは12文字以上必要です"</span><span class="p">)</span>
+        
+        <span class="c1"># 複雑性チェック
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="p">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s">'[A-Z]'</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"大文字を1文字以上含めてください"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="p">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s">'[a-z]'</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"小文字を1文字以上含めてください"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="p">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s">'\d'</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"数字を1文字以上含めてください"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="p">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s">'[!@#$%^&amp;*(),.?":{}|&lt;&gt;]'</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"特殊文字を1文字以上含めてください"</span><span class="p">)</span>
+        
+        <span class="c1"># 一般的なパターンのチェック
+</span>        <span class="n">common_patterns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">'password'</span><span class="p">,</span> <span class="s">'12345'</span><span class="p">,</span> <span class="s">'qwerty'</span><span class="p">,</span> <span class="s">'admin'</span><span class="p">,</span> <span class="s">'letmein'</span><span class="p">,</span>
+            <span class="n">username</span><span class="p">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="n">username</span> <span class="k">else</span> <span class="bp">None</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">common_patterns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pattern</span> <span class="ow">and</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">password</span><span class="p">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s">"'</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s">'を含むパスワードは使用できません"</span><span class="p">)</span>
+        
+        <span class="c1"># 連続文字のチェック
+</span>        <span class="k">if</span> <span class="n">re</span><span class="p">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s">'(.)\1{2,}'</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"同じ文字を3回以上連続で使用できません"</span><span class="p">)</span>
+        
+        <span class="c1"># キーボードパターンのチェック
+</span>        <span class="n">keyboard_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">'qwerty'</span><span class="p">,</span> <span class="s">'asdf'</span><span class="p">,</span> <span class="s">'zxcv'</span><span class="p">,</span> <span class="s">'1234'</span><span class="p">,</span> <span class="s">'4321'</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">keyboard_patterns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">password</span><span class="p">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"キーボードの並び順をパスワードに使用できません"</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">errors</span>
+    
+    <span class="k">def</span> <span class="nf">hash_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="s">"""パスワードをbcryptでハッシュ化"""</span>
+        <span class="c1"># ワークファクターの動的調整
+</span>        <span class="c1"># 目標: ハッシュ化に0.2〜0.5秒かかるように調整
+</span>        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="n">salt</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="p">.</span><span class="n">gensalt</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">work_factor</span><span class="p">)</span>
+        <span class="n">hashed</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="p">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span> <span class="n">salt</span><span class="p">)</span>
+        
+        <span class="n">hash_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        
+        <span class="c1"># パフォーマンスログ（本番環境では別途ログシステムへ）
+</span>        <span class="k">if</span> <span class="n">hash_time</span> <span class="o">&lt;</span> <span class="mf">0.2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Warning: Hash time too fast (</span><span class="si">{</span><span class="n">hash_time</span><span class="si">:</span><span class="p">.</span><span class="mi">3</span><span class="n">f</span><span class="si">}</span><span class="s">s). Consider increasing work factor."</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">hash_time</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Warning: Hash time too slow (</span><span class="si">{</span><span class="n">hash_time</span><span class="si">:</span><span class="p">.</span><span class="mi">3</span><span class="n">f</span><span class="si">}</span><span class="s">s). Consider decreasing work factor."</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">hashed</span>
+    
+    <span class="k">def</span> <span class="nf">verify_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stored_hash</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""パスワードの検証（タイミング攻撃対策済み）"""</span>
+        <span class="c1"># bcrypt.checkpwは内部で定数時間比較を行う
+</span>        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">bcrypt</span><span class="p">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span> <span class="n">stored_hash</span><span class="p">)</span>
+        <span class="k">except</span> <span class="nb">Exception</span><span class="p">:</span>
+            <span class="c1"># エラー時もタイミングを一定に保つ
+</span>            <span class="n">bcrypt</span><span class="p">.</span><span class="n">checkpw</span><span class="p">(</span><span class="sa">b</span><span class="s">"dummy"</span><span class="p">,</span> <span class="sa">b</span><span class="s">"$2b$12$dummy.hash.for.timing.attack.prevention"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    
+    <span class="k">def</span> <span class="nf">needs_rehash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stored_hash</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="s">"""ハッシュの再計算が必要かチェック"""</span>
+        <span class="c1"># bcryptのフォーマット: $2b$12$...
+</span>        <span class="c1"># 12の部分がワークファクター
+</span>        <span class="k">try</span><span class="p">:</span>
+            <span class="n">current_wf</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stored_hash</span><span class="p">.</span><span class="n">decode</span><span class="p">().</span><span class="n">split</span><span class="p">(</span><span class="s">'$'</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">current_wf</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">work_factor</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    
+    <span class="k">def</span> <span class="nf">update_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">old_password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">new_password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                       <span class="n">stored_hash</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="s">"""パスワードの更新"""</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># 現在のパスワードを確認
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">verify_password</span><span class="p">(</span><span class="n">old_password</span><span class="p">,</span> <span class="n">stored_hash</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="s">"現在のパスワードが正しくありません"</span><span class="p">]</span>
+        
+        <span class="c1"># 新しいパスワードの強度チェック
+</span>        <span class="n">is_valid</span><span class="p">,</span> <span class="n">validation_errors</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">validate_password_strength</span><span class="p">(</span><span class="n">new_password</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">validation_errors</span>
+        
+        <span class="c1"># パスワード履歴チェック（過去5回分）
+</span>        <span class="k">if</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">password_history</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">old_hash</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">password_history</span><span class="p">[</span><span class="n">user_id</span><span class="p">][</span><span class="o">-</span><span class="mi">5</span><span class="p">:]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">verify_password</span><span class="p">(</span><span class="n">new_password</span><span class="p">,</span> <span class="n">old_hash</span><span class="p">):</span>
+                    <span class="n">errors</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"過去5回以内に使用したパスワードは再利用できません"</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">errors</span>
+        
+        <span class="c1"># 新しいパスワードをハッシュ化
+</span>        <span class="n">new_hash</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">hash_password</span><span class="p">(</span><span class="n">new_password</span><span class="p">)</span>
+        
+        <span class="c1"># 履歴に追加
+</span>        <span class="k">if</span> <span class="n">user_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">password_history</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">password_history</span><span class="p">[</span><span class="n">user_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">password_history</span><span class="p">[</span><span class="n">user_id</span><span class="p">].</span><span class="n">append</span><span class="p">(</span><span class="n">new_hash</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="n">new_hash</span><span class="p">,</span> <span class="p">[]</span>
+    
+    <span class="k">def</span> <span class="nf">generate_secure_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> 
+                               <span class="n">memorable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""セキュアなパスワードの生成"""</span>
+        <span class="k">if</span> <span class="n">memorable</span><span class="p">:</span>
+            <span class="c1"># 記憶しやすいパスフレーズ
+</span>            <span class="n">words</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s">'correct'</span><span class="p">,</span> <span class="s">'horse'</span><span class="p">,</span> <span class="s">'battery'</span><span class="p">,</span> <span class="s">'staple'</span><span class="p">,</span> <span class="s">'cloud'</span><span class="p">,</span>
+                <span class="s">'mountain'</span><span class="p">,</span> <span class="s">'river'</span><span class="p">,</span> <span class="s">'sunset'</span><span class="p">,</span> <span class="s">'coffee'</span><span class="p">,</span> <span class="s">'purple'</span><span class="p">,</span>
+                <span class="s">'dragon'</span><span class="p">,</span> <span class="s">'wizard'</span><span class="p">,</span> <span class="s">'crystal'</span><span class="p">,</span> <span class="s">'thunder'</span><span class="p">,</span> <span class="s">'phoenix'</span>
+            <span class="p">]</span>
+            <span class="n">selected_words</span> <span class="o">=</span> <span class="p">[</span><span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+            
+            <span class="c1"># 単語の最初を大文字に
+</span>            <span class="n">selected_words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected_words</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">capitalize</span><span class="p">()</span>
+            
+            <span class="c1"># 数字と特殊文字を追加
+</span>            <span class="n">number</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">randbelow</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">special</span> <span class="o">=</span> <span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="s">'!@#$%'</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="s">'-'</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">selected_words</span><span class="p">)</span><span class="si">}{</span><span class="n">number</span><span class="si">}{</span><span class="n">special</span><span class="si">}</span><span class="s">"</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 完全にランダムなパスワード
+</span>            <span class="n">charset</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s">'abcdefghijklmnopqrstuvwxyz'</span> <span class="o">+</span>
+                <span class="s">'ABCDEFGHIJKLMNOPQRSTUVWXYZ'</span> <span class="o">+</span>
+                <span class="s">'0123456789'</span> <span class="o">+</span>
+                <span class="s">'!@#$%^&amp;*()_+-=[]{}|;:,.&lt;&gt;?'</span>
+            <span class="p">)</span>
+            
+            <span class="c1"># 各カテゴリから最低1文字を確保
+</span>            <span class="n">password</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="s">'abcdefghijklmnopqrstuvwxyz'</span><span class="p">),</span>
+                <span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="s">'ABCDEFGHIJKLMNOPQRSTUVWXYZ'</span><span class="p">),</span>
+                <span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="s">'0123456789'</span><span class="p">),</span>
+                <span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="s">'!@#$%^&amp;*()_+-=[]{}|;:,.&lt;&gt;?'</span><span class="p">)</span>
+            <span class="p">]</span>
+            
+            <span class="c1"># 残りをランダムに
+</span>            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span> <span class="o">-</span> <span class="mi">4</span><span class="p">):</span>
+                <span class="n">password</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">secrets</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="n">charset</span><span class="p">))</span>
+            
+            <span class="c1"># シャッフル
+</span>            <span class="n">secrets</span><span class="p">.</span><span class="n">SystemRandom</span><span class="p">().</span><span class="n">shuffle</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="s">''</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+
+<span class="c1"># 使用例とテスト
+</span><span class="k">def</span> <span class="nf">test_password_system</span><span class="p">():</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">SecurePasswordSystem</span><span class="p">(</span><span class="n">work_factor</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    
+    <span class="c1"># パスワード強度テスト
+</span>    <span class="n">test_passwords</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">"weak"</span><span class="p">,</span> <span class="s">"予想通り弱い"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">"Password123!"</span><span class="p">,</span> <span class="s">"一般的だが受け入れ可能"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">"C0mpl3x!P@ssw0rd#2024"</span><span class="p">,</span> <span class="s">"強力"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">"correct-horse-battery-staple"</span><span class="p">,</span> <span class="s">"パスフレーズ"</span><span class="p">),</span>
+    <span class="p">]</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="s">"=== パスワード強度テスト ==="</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="n">test_passwords</span><span class="p">:</span>
+        <span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">system</span><span class="p">.</span><span class="n">validate_password_strength</span><span class="p">(</span><span class="n">pwd</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"</span><span class="se">\n</span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">pwd</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"有効: </span><span class="si">{</span><span class="n">is_valid</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">"エラー:"</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+    
+    <span class="c1"># ハッシュ化とベンチマーク
+</span>    <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">=== ハッシュ化ベンチマーク ==="</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">]:</span>
+        <span class="n">system</span><span class="p">.</span><span class="n">work_factor</span> <span class="o">=</span> <span class="n">wf</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">hashed</span> <span class="o">=</span> <span class="n">system</span><span class="p">.</span><span class="n">hash_password</span><span class="p">(</span><span class="s">"TestPassword123!"</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Work Factor </span><span class="si">{</span><span class="n">wf</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="p">.</span><span class="mi">3</span><span class="n">f</span><span class="si">}</span><span class="s"> seconds"</span><span class="p">)</span>
+    
+    <span class="c1"># セキュアなパスワード生成
+</span>    <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">=== パスワード生成 ==="</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"ランダム: </span><span class="si">{</span><span class="n">system</span><span class="p">.</span><span class="n">generate_secure_password</span><span class="p">()</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"記憶可能: </span><span class="si">{</span><span class="n">system</span><span class="p">.</span><span class="n">generate_secure_password</span><span class="p">(</span><span class="n">memorable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">test_password_system</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h3 id="実装のポイント">実装のポイント</h3>
+
+<ol>
+  <li><strong>ワークファクターの選択</strong>
+    <ul>
+      <li>現在のハードウェアで0.2〜0.5秒かかる値を選択</li>
+      <li>定期的な見直しが必要（ムーアの法則）</li>
+    </ul>
+  </li>
+  <li><strong>タイミング攻撃対策</strong>
+    <ul>
+      <li>bcryptは内部で定数時間比較を実施</li>
+      <li>エラー時も同じ処理時間を確保</li>
+    </ul>
+  </li>
+  <li><strong>パスワード履歴</strong>
+    <ul>
+      <li>NIST SP 800-63Bでは履歴チェックは推奨されていない</li>
+      <li>ただし、規制要件がある場合は実装</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="問題2totp実装の比較">問題2：TOTP実装の比較</h2>
+
+<h3 id="詳細な比較分析">詳細な比較分析</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>機能</th>
+      <th>Google Authenticator</th>
+      <th>Authy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>基本機能</strong></td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>TOTP/HOTP</td>
+      <td>✓</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>QRコード読み取り</td>
+      <td>✓</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>手動入力</td>
+      <td>✓</td>
+      <td>✓</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>セキュリティ機能</strong></td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>アプリパスワード</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>生体認証ロック</td>
+      <td>デバイス依存</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>暗号化バックアップ</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>デバイス認証</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>バックアップとリカバリー</strong></td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>クラウドバックアップ</td>
+      <td>Googleアカウント（Android）</td>
+      <td>Authy専用</td>
+    </tr>
+    <tr>
+      <td>マルチデバイス</td>
+      <td>限定的</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>アカウント転送</td>
+      <td>QRコード転送</td>
+      <td>電話番号認証</td>
+    </tr>
+    <tr>
+      <td>オフライン動作</td>
+      <td>✓</td>
+      <td>✓</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>ユーザビリティ</strong></td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>UI/UX</td>
+      <td>シンプル</td>
+      <td>高機能</td>
+    </tr>
+    <tr>
+      <td>検索機能</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>カテゴリ分け</td>
+      <td>✗</td>
+      <td>✓</td>
+    </tr>
+    <tr>
+      <td>ダークモード</td>
+      <td>✓</td>
+      <td>✓</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="企業採用における考慮事項">企業採用における考慮事項</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TOTPProviderEvaluation</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">criteria</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'google_authenticator'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'pros'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'広く認知されている'</span><span class="p">,</span>
+                    <span class="s">'シンプルで使いやすい'</span><span class="p">,</span>
+                    <span class="s">'無料'</span><span class="p">,</span>
+                    <span class="s">'オープンソース準拠'</span>
+                <span class="p">],</span>
+                <span class="s">'cons'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'バックアップ機能が限定的'</span><span class="p">,</span>
+                    <span class="s">'エンタープライズ機能なし'</span><span class="p">,</span>
+                    <span class="s">'サポートなし'</span><span class="p">,</span>
+                    <span class="s">'デバイス紛失時のリスク'</span>
+                <span class="p">],</span>
+                <span class="s">'best_for'</span><span class="p">:</span> <span class="s">'個人利用、小規模組織'</span>
+            <span class="p">},</span>
+            <span class="s">'authy'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'pros'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'暗号化バックアップ'</span><span class="p">,</span>
+                    <span class="s">'マルチデバイス対応'</span><span class="p">,</span>
+                    <span class="s">'エンタープライズ機能'</span><span class="p">,</span>
+                    <span class="s">'APIアクセス可能'</span>
+                <span class="p">],</span>
+                <span class="s">'cons'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'電話番号依存'</span><span class="p">,</span>
+                    <span class="s">'プロプライエタリ'</span><span class="p">,</span>
+                    <span class="s">'Twilioへの依存'</span><span class="p">,</span>
+                    <span class="s">'SIMスワップリスク'</span>
+                <span class="p">],</span>
+                <span class="s">'best_for'</span><span class="p">:</span> <span class="s">'中規模組織、リモートワーク環境'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">enterprise_recommendation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organization_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                                <span class="n">remote_work</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> 
+                                <span class="n">compliance_required</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="s">"""組織に適したソリューションを推奨"""</span>
+        
+        <span class="k">if</span> <span class="n">organization_size</span> <span class="o">&gt;</span> <span class="mi">1000</span> <span class="ow">or</span> <span class="n">compliance_required</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">"""
+            推奨: エンタープライズ向けMFAソリューション
+            - Duo Security
+            - Microsoft Authenticator (Azure AD統合)
+            - RSA SecurID
+            
+            理由:
+            - 中央管理機能
+            - 監査ログ
+            - コンプライアンス対応
+            - SLA保証
+            """</span>
+        
+        <span class="k">elif</span> <span class="n">remote_work</span> <span class="ow">and</span> <span class="n">organization_size</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">"""
+            推奨: Authy または Microsoft Authenticator
+            
+            理由:
+            - マルチデバイス対応
+            - バックアップ機能
+            - IT管理の簡素化
+            """</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">"""
+            推奨: Google Authenticator + 適切なバックアップ手順
+            
+            理由:
+            - シンプルで信頼性が高い
+            - コストゼロ
+            - ユーザー教育が容易
+            
+            追加対策:
+            - リカバリーコードの安全な保管
+            - バックアップ認証方式の設定
+            """</span>
+</code></pre></div></div>
+
+<h2 id="問題3生体認証システムの設計">問題3：生体認証システムの設計</h2>
+
+<h3 id="中規模企業向け生体認証システム">中規模企業向け生体認証システム</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BiometricSystemDesign</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">company_profile</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'employees'</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s">'locations'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s">'budget'</span><span class="p">:</span> <span class="mi">250000</span><span class="p">,</span>  <span class="c1"># USD
+</span>            <span class="s">'security_level'</span><span class="p">:</span> <span class="s">'medium-high'</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">recommended_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'primary_biometric'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'指紋認証'</span><span class="p">,</span>
+                <span class="s">'devices'</span><span class="p">:</span> <span class="s">'Capacitive fingerprint readers'</span><span class="p">,</span>
+                <span class="s">'deployment'</span><span class="p">:</span> <span class="s">'All entry points and workstations'</span><span class="p">,</span>
+                <span class="s">'reasons'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'成熟した技術で信頼性が高い'</span><span class="p">,</span>
+                    <span class="s">'FAR: 0.001%, FRR: 0.1%'</span><span class="p">,</span>
+                    <span class="s">'コストパフォーマンスが良い'</span><span class="p">,</span>
+                    <span class="s">'ユーザー受容度が高い'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'secondary_biometric'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'顔認証'</span><span class="p">,</span>
+                <span class="s">'devices'</span><span class="p">:</span> <span class="s">'IP cameras with facial recognition'</span><span class="p">,</span>
+                <span class="s">'deployment'</span><span class="p">:</span> <span class="s">'Main entrances and secure areas'</span><span class="p">,</span>
+                <span class="s">'reasons'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'非接触で衛生的'</span><span class="p">,</span>
+                    <span class="s">'マスク着用時の代替手段'</span><span class="p">,</span>
+                    <span class="s">'監視システムとの統合可能'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'fallback_authentication'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'primary_fallback'</span><span class="p">:</span> <span class="s">'PINコード + IDカード'</span><span class="p">,</span>
+                <span class="s">'secondary_fallback'</span><span class="p">:</span> <span class="s">'モバイルアプリ認証'</span><span class="p">,</span>
+                <span class="s">'emergency'</span><span class="p">:</span> <span class="s">'セキュリティデスクでの本人確認'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'privacy_protection'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'template_protection'</span><span class="p">:</span> <span class="s">'Cancelable biometrics'</span><span class="p">,</span>
+                <span class="s">'storage'</span><span class="p">:</span> <span class="s">'Encrypted local storage only'</span><span class="p">,</span>
+                <span class="s">'retention'</span><span class="p">:</span> <span class="s">'2 years with consent renewal'</span><span class="p">,</span>
+                <span class="s">'audit'</span><span class="p">:</span> <span class="s">'All access logged and reviewed monthly'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">implementation_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'phase1'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'2 months'</span><span class="p">,</span>
+                <span class="s">'scope'</span><span class="p">:</span> <span class="s">'Pilot with IT department (50 users)'</span><span class="p">,</span>
+                <span class="s">'cost'</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'システム選定と調達'</span><span class="p">,</span>
+                    <span class="s">'インフラ構築'</span><span class="p">,</span>
+                    <span class="s">'パイロットユーザーの登録'</span><span class="p">,</span>
+                    <span class="s">'初期フィードバック収集'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'phase2'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'3 months'</span><span class="p">,</span>
+                <span class="s">'scope'</span><span class="p">:</span> <span class="s">'Main office deployment (300 users)'</span><span class="p">,</span>
+                <span class="s">'cost'</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'本社への展開'</span><span class="p">,</span>
+                    <span class="s">'ヘルプデスク体制構築'</span><span class="p">,</span>
+                    <span class="s">'ユーザートレーニング'</span><span class="p">,</span>
+                    <span class="s">'プロセス最適化'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'phase3'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'3 months'</span><span class="p">,</span>
+                <span class="s">'scope'</span><span class="p">:</span> <span class="s">'Full deployment (500 users)'</span><span class="p">,</span>
+                <span class="s">'cost'</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'全拠点への展開'</span><span class="p">,</span>
+                    <span class="s">'レガシーシステムの廃止'</span><span class="p">,</span>
+                    <span class="s">'監査とコンプライアンス確認'</span><span class="p">,</span>
+                    <span class="s">'運用移行'</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">roi_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""ROI計算"""</span>
+        <span class="c1"># コスト
+</span>        <span class="n">initial_investment</span> <span class="o">=</span> <span class="mi">250000</span>
+        <span class="n">annual_operation</span> <span class="o">=</span> <span class="mi">50000</span>
+        
+        <span class="c1"># 利益
+</span>        <span class="n">benefits</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'password_reset_reduction'</span><span class="p">:</span> <span class="mi">35000</span><span class="p">,</span>  <span class="c1"># 年間
+</span>            <span class="s">'security_incident_prevention'</span><span class="p">:</span> <span class="mi">500000</span><span class="p">,</span>  <span class="c1"># 3年間で1回防止
+</span>            <span class="s">'productivity_improvement'</span><span class="p">:</span> <span class="mi">60000</span><span class="p">,</span>  <span class="c1"># 年間（ログイン時間短縮）
+</span>            <span class="s">'compliance_certification'</span><span class="p">:</span> <span class="mi">100000</span>  <span class="c1"># 一時的
+</span>        <span class="p">}</span>
+        
+        <span class="c1"># 3年間のROI
+</span>        <span class="n">total_cost</span> <span class="o">=</span> <span class="n">initial_investment</span> <span class="o">+</span> <span class="p">(</span><span class="n">annual_operation</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">total_benefit</span> <span class="o">=</span> <span class="p">(</span><span class="n">benefits</span><span class="p">[</span><span class="s">'password_reset_reduction'</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> 
+                        <span class="n">benefits</span><span class="p">[</span><span class="s">'productivity_improvement'</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span>
+                        <span class="n">benefits</span><span class="p">[</span><span class="s">'security_incident_prevention'</span><span class="p">]</span> <span class="o">+</span>
+                        <span class="n">benefits</span><span class="p">[</span><span class="s">'compliance_certification'</span><span class="p">])</span>
+        
+        <span class="n">roi</span> <span class="o">=</span> <span class="p">((</span><span class="n">total_benefit</span> <span class="o">-</span> <span class="n">total_cost</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_cost</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'total_investment'</span><span class="p">:</span> <span class="n">total_cost</span><span class="p">,</span>
+            <span class="s">'total_benefit'</span><span class="p">:</span> <span class="n">total_benefit</span><span class="p">,</span>
+            <span class="s">'roi_percentage'</span><span class="p">:</span> <span class="n">roi</span><span class="p">,</span>
+            <span class="s">'break_even_months'</span><span class="p">:</span> <span class="mi">18</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="プライバシー保護の詳細設計">プライバシー保護の詳細設計</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BiometricPrivacyFramework</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">privacy_controls</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'data_minimization'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'store_only'</span><span class="p">:</span> <span class="p">[</span><span class="s">'template_hash'</span><span class="p">,</span> <span class="s">'quality_score'</span><span class="p">],</span>
+                <span class="s">'never_store'</span><span class="p">:</span> <span class="p">[</span><span class="s">'raw_images'</span><span class="p">,</span> <span class="s">'minutiae_points'</span><span class="p">],</span>
+                <span class="s">'immediate_deletion'</span><span class="p">:</span> <span class="p">[</span><span class="s">'capture_data'</span><span class="p">,</span> <span class="s">'intermediate_processing'</span><span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'access_control'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'enrollment'</span><span class="p">:</span> <span class="p">[</span><span class="s">'HR Admin'</span><span class="p">,</span> <span class="s">'Security Admin'</span><span class="p">],</span>
+                <span class="s">'verification'</span><span class="p">:</span> <span class="p">[</span><span class="s">'System Only'</span><span class="p">],</span>
+                <span class="s">'audit'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Security Officer'</span><span class="p">,</span> <span class="s">'Compliance Officer'</span><span class="p">],</span>
+                <span class="s">'deletion'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Data Protection Officer'</span><span class="p">,</span> <span class="s">'User Self-Service'</span><span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'encryption'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'at_rest'</span><span class="p">:</span> <span class="s">'AES-256-GCM'</span><span class="p">,</span>
+                <span class="s">'in_transit'</span><span class="p">:</span> <span class="s">'TLS 1.3'</span><span class="p">,</span>
+                <span class="s">'key_management'</span><span class="p">:</span> <span class="s">'HSM-based'</span><span class="p">,</span>
+                <span class="s">'key_rotation'</span><span class="p">:</span> <span class="s">'Annual'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">generate_privacy_notice</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">"""
+        生体認証システム プライバシー通知
+        
+        1. 収集する情報
+           - 指紋の特徴点（暗号化されたテンプレートのみ）
+           - 登録日時とデバイス情報
+        
+        2. 利用目的
+           - 施設およびシステムへの安全なアクセス制御
+           - 不正アクセスの防止
+        
+        3. 保存期間
+           - 在職期間中 + 退職後6ヶ月
+           - 同意撤回時は即座に削除
+        
+        4. あなたの権利
+           - いつでも同意を撤回できます
+           - 代替認証手段を利用できます
+           - 自分のデータへのアクセス権があります
+        
+        5. セキュリティ対策
+           - 生体情報は復元不可能な形式で保存
+           - すべてのアクセスは記録されます
+           - 定期的なセキュリティ監査を実施
+        """</span>
+</code></pre></div></div>
+
+<h2 id="問題4mfa導入計画">問題4：MFA導入計画</h2>
+
+<h3 id="段階的展開計画">段階的展開計画</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MFAMigrationPlan</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">current_state</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'auth_method'</span><span class="p">:</span> <span class="s">'password_only'</span><span class="p">,</span>
+            <span class="s">'user_count'</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="s">'systems'</span><span class="p">:</span> <span class="p">[</span><span class="s">'email'</span><span class="p">,</span> <span class="s">'erp'</span><span class="p">,</span> <span class="s">'crm'</span><span class="p">,</span> <span class="s">'file_share'</span><span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">phase_rollout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'phase0_preparation'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'1 month'</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'MFAソリューション選定'</span><span class="p">,</span>
+                    <span class="s">'インフラ準備'</span><span class="p">,</span>
+                    <span class="s">'ヘルプデスク訓練'</span><span class="p">,</span>
+                    <span class="s">'ドキュメント作成'</span>
+                <span class="p">],</span>
+                <span class="s">'success_metrics'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'インフラテスト完了'</span><span class="p">,</span>
+                    <span class="s">'サポートチーム訓練完了率 100%'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'phase1_pilot'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'1 month'</span><span class="p">,</span>
+                <span class="s">'target_users'</span><span class="p">:</span> <span class="s">'IT部門（50名）'</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'TOTPアプリ配布'</span><span class="p">,</span>
+                    <span class="s">'enrollment開始'</span><span class="p">,</span>
+                    <span class="s">'フィードバック収集'</span><span class="p">,</span>
+                    <span class="s">'プロセス改善'</span>
+                <span class="p">],</span>
+                <span class="s">'success_metrics'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'enrollment率 95%以上'</span><span class="p">,</span>
+                    <span class="s">'ログイン成功率 98%以上'</span><span class="p">,</span>
+                    <span class="s">'サポートチケット 10件/週以下'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'phase2_high_privilege'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'2 months'</span><span class="p">,</span>
+                <span class="s">'target_users'</span><span class="p">:</span> <span class="s">'管理者・財務部門（200名）'</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'高権限ユーザーへの展開'</span><span class="p">,</span>
+                    <span class="s">'ポリシー強制開始'</span><span class="p">,</span>
+                    <span class="s">'インシデント対応訓練'</span>
+                <span class="p">],</span>
+                <span class="s">'success_metrics'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'コンプライアンス要件達成'</span><span class="p">,</span>
+                    <span class="s">'セキュリティインシデント 0件'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'phase3_general_availability'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'3 months'</span><span class="p">,</span>
+                <span class="s">'target_users'</span><span class="p">:</span> <span class="s">'全従業員（1000名）'</span><span class="p">,</span>
+                <span class="s">'activities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'部門ごとの段階展開'</span><span class="p">,</span>
+                    <span class="s">'レガシー認証の無効化'</span><span class="p">,</span>
+                    <span class="s">'継続的改善'</span>
+                <span class="p">],</span>
+                <span class="s">'success_metrics'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'enrollment率 98%以上'</span><span class="p">,</span>
+                    <span class="s">'ユーザー満足度 80%以上'</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">user_education_program</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'awareness_campaign'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'kick_off_event'</span><span class="p">:</span> <span class="s">'MFAの重要性と利点'</span><span class="p">,</span>
+                <span class="s">'email_series'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'Week 1: なぜMFAが必要か'</span><span class="p">,</span>
+                    <span class="s">'Week 2: MFAの設定方法'</span><span class="p">,</span>
+                    <span class="s">'Week 3: よくある質問'</span><span class="p">,</span>
+                    <span class="s">'Week 4: ベストプラクティス'</span>
+                <span class="p">],</span>
+                <span class="s">'intranet_resources'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'ビデオチュートリアル'</span><span class="p">,</span>
+                    <span class="s">'ステップバイステップガイド'</span><span class="p">,</span>
+                    <span class="s">'FAQ'</span><span class="p">,</span>
+                    <span class="s">'トラブルシューティング'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'hands_on_training'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'format'</span><span class="p">:</span> <span class="s">'オプション参加のワークショップ'</span><span class="p">,</span>
+                <span class="s">'duration'</span><span class="p">:</span> <span class="s">'30分'</span><span class="p">,</span>
+                <span class="s">'content'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'MFAアプリのインストール'</span><span class="p">,</span>
+                    <span class="s">'QRコードスキャン実習'</span><span class="p">,</span>
+                    <span class="s">'バックアップコードの保管'</span><span class="p">,</span>
+                    <span class="s">'デバイス紛失時の対応'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'support_materials'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'quick_reference_card'</span><span class="p">:</span> <span class="s">'A4 1枚の簡易ガイド'</span><span class="p">,</span>
+                <span class="s">'video_tutorials'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'iOS'</span><span class="p">:</span> <span class="s">'3分動画'</span><span class="p">,</span>
+                    <span class="s">'Android'</span><span class="p">:</span> <span class="s">'3分動画'</span><span class="p">,</span>
+                    <span class="s">'Web'</span><span class="p">:</span> <span class="s">'5分動画'</span>
+                <span class="p">},</span>
+                <span class="s">'multilingual'</span><span class="p">:</span> <span class="p">[</span><span class="s">'日本語'</span><span class="p">,</span> <span class="s">'英語'</span><span class="p">,</span> <span class="s">'中国語'</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">support_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'tier1_helpdesk'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'staffing'</span><span class="p">:</span> <span class="s">'3名増員（展開期間中）'</span><span class="p">,</span>
+                <span class="s">'training'</span><span class="p">:</span> <span class="s">'16時間の専門トレーニング'</span><span class="p">,</span>
+                <span class="s">'tools'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'リモートアシスタンスツール'</span><span class="p">,</span>
+                    <span class="s">'ナレッジベース'</span><span class="p">,</span>
+                    <span class="s">'チケット管理システム'</span>
+                <span class="p">],</span>
+                <span class="s">'sla'</span><span class="p">:</span> <span class="s">'初回応答15分以内'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'tier2_technical'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'responsibilities'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'複雑な技術問題'</span><span class="p">,</span>
+                    <span class="s">'システム統合問題'</span><span class="p">,</span>
+                    <span class="s">'バグ対応'</span>
+                <span class="p">],</span>
+                <span class="s">'escalation'</span><span class="p">:</span> <span class="s">'1時間以内'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'self_service'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'portal_features'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'MFAデバイス管理'</span><span class="p">,</span>
+                    <span class="s">'バックアップコード再発行'</span><span class="p">,</span>
+                    <span class="s">'セッション管理'</span><span class="p">,</span>
+                    <span class="s">'アクティビティログ閲覧'</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="成功指標の詳細定義">成功指標の詳細定義</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">define_success_metrics</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s">'adoption_metrics'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">'enrollment_rate'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'98%'</span><span class="p">,</span>
+                <span class="s">'measurement'</span><span class="p">:</span> <span class="s">'MFA有効化ユーザー数 / 全ユーザー数'</span><span class="p">,</span>
+                <span class="s">'frequency'</span><span class="p">:</span> <span class="s">'Weekly'</span>
+            <span class="p">},</span>
+            <span class="s">'active_usage'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'95%'</span><span class="p">,</span>
+                <span class="s">'measurement'</span><span class="p">:</span> <span class="s">'過去30日間のMFA利用者数 / enrollment済みユーザー数'</span><span class="p">,</span>
+                <span class="s">'frequency'</span><span class="p">:</span> <span class="s">'Monthly'</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        
+        <span class="s">'security_metrics'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">'account_compromise'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'90% reduction'</span><span class="p">,</span>
+                <span class="s">'baseline'</span><span class="p">:</span> <span class="s">'Pre-MFA incident rate'</span><span class="p">,</span>
+                <span class="s">'measurement'</span><span class="p">:</span> <span class="s">'Monthly security incidents'</span>
+            <span class="p">},</span>
+            <span class="s">'phishing_resistance'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'0 successful attacks'</span><span class="p">,</span>
+                <span class="s">'measurement'</span><span class="p">:</span> <span class="s">'Phishing simulation results'</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        
+        <span class="s">'operational_metrics'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">'login_success_rate'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'99%'</span><span class="p">,</span>
+                <span class="s">'measurement'</span><span class="p">:</span> <span class="s">'Successful MFA authentications / Total attempts'</span>
+            <span class="p">},</span>
+            <span class="s">'support_tickets'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'&lt;5% of users per month'</span><span class="p">,</span>
+                <span class="s">'categories'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Setup'</span><span class="p">,</span> <span class="s">'Daily Use'</span><span class="p">,</span> <span class="s">'Recovery'</span><span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s">'mttr'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'&lt;30 minutes'</span><span class="p">,</span>
+                <span class="s">'measurement'</span><span class="p">:</span> <span class="s">'Mean Time To Resolution for MFA issues'</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        
+        <span class="s">'user_satisfaction'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">'nps_score'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'&gt;50'</span><span class="p">,</span>
+                <span class="s">'frequency'</span><span class="p">:</span> <span class="s">'Quarterly'</span>
+            <span class="p">},</span>
+            <span class="s">'ease_of_use'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'target'</span><span class="p">:</span> <span class="s">'4/5 rating'</span><span class="p">,</span>
+                <span class="s">'method'</span><span class="p">:</span> <span class="s">'Post-login micro-survey'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="問題5セキュリティインシデント対応">問題5：セキュリティインシデント対応</h2>
+
+<h3 id="包括的なインシデント対応計画">包括的なインシデント対応計画</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BiometricBreachResponse</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">incident_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'type'</span><span class="p">:</span> <span class="s">'Biometric database unauthorized access'</span><span class="p">,</span>
+            <span class="s">'discovered'</span><span class="p">:</span> <span class="s">'2024-MM-DD HH:MM'</span><span class="p">,</span>
+            <span class="s">'severity'</span><span class="p">:</span> <span class="s">'CRITICAL'</span><span class="p">,</span>
+            <span class="s">'potential_impact'</span><span class="p">:</span> <span class="s">'Unknown'</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">immediate_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""初動対応（最初の4時間）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'hour_1'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'1. インシデント対応チームの招集'</span><span class="p">,</span>
+                <span class="s">'2. 影響を受けるシステムの特定'</span><span class="p">,</span>
+                <span class="s">'3. 生体認証システムの一時停止'</span><span class="p">,</span>
+                <span class="s">'4. 代替認証手段の有効化'</span><span class="p">,</span>
+                <span class="s">'5. 証拠保全の開始'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'hour_2'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'1. 不正アクセスの経路特定'</span><span class="p">,</span>
+                <span class="s">'2. 他のシステムへの波及確認'</span><span class="p">,</span>
+                <span class="s">'3. 法執行機関への連絡準備'</span><span class="p">,</span>
+                <span class="s">'4. 法務部門との協議開始'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'hour_3_4'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'1. 影響範囲の初期評価完了'</span><span class="p">,</span>
+                <span class="s">'2. 経営層への報告'</span><span class="p">,</span>
+                <span class="s">'3. 外部専門家の招聘判断'</span><span class="p">,</span>
+                <span class="s">'4. 通知計画の策定開始'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'critical_actions'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'system_isolation'</span><span class="p">:</span> <span class="s">'ネットワークから生体認証DBを隔離'</span><span class="p">,</span>
+                <span class="s">'access_revocation'</span><span class="p">:</span> <span class="s">'全管理者アクセスの一時停止'</span><span class="p">,</span>
+                <span class="s">'logging_enhancement'</span><span class="p">:</span> <span class="s">'全システムの監査ログレベル最大化'</span><span class="p">,</span>
+                <span class="s">'backup_verification'</span><span class="p">:</span> <span class="s">'バックアップの完全性確認'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">investigation_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""影響調査（24〜72時間）"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'technical_investigation'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'log_analysis'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'アクセスログの完全解析'</span><span class="p">,</span>
+                    <span class="s">'異常パターンの特定'</span><span class="p">,</span>
+                    <span class="s">'データ流出の痕跡確認'</span>
+                <span class="p">],</span>
+                <span class="s">'forensics'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'メモリダンプの取得'</span><span class="p">,</span>
+                    <span class="s">'ネットワークトラフィック解析'</span><span class="p">,</span>
+                    <span class="s">'マルウェアスキャン'</span>
+                <span class="p">],</span>
+                <span class="s">'impact_assessment'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'影響を受けたレコード数'</span><span class="p">,</span>
+                    <span class="s">'アクセスされたデータの種類'</span><span class="p">,</span>
+                    <span class="s">'データ改ざんの有無'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'business_impact'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'affected_users'</span><span class="p">:</span> <span class="s">'SQL: SELECT COUNT(*) FROM biometric_access_log WHERE...'</span><span class="p">,</span>
+                <span class="s">'data_classification'</span><span class="p">:</span> <span class="s">'個人情報、生体情報、アクセス履歴'</span><span class="p">,</span>
+                <span class="s">'regulatory_requirements'</span><span class="p">:</span> <span class="s">'GDPR 72時間以内の報告義務'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">notification_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""通知戦略"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'internal_notification'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'immediate'</span><span class="p">:</span> <span class="p">[</span><span class="s">'CEO'</span><span class="p">,</span> <span class="s">'CISO'</span><span class="p">,</span> <span class="s">'Legal'</span><span class="p">,</span> <span class="s">'HR'</span><span class="p">],</span>
+                <span class="s">'within_4h'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Board of Directors'</span><span class="p">,</span> <span class="s">'Department Heads'</span><span class="p">],</span>
+                <span class="s">'within_24h'</span><span class="p">:</span> <span class="p">[</span><span class="s">'All Employees'</span><span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'external_notification'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'regulatory'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'timing'</span><span class="p">:</span> <span class="s">'Within 72 hours'</span><span class="p">,</span>
+                    <span class="s">'recipients'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Data Protection Authority'</span><span class="p">,</span> <span class="s">'Industry Regulator'</span><span class="p">],</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="s">'Nature of breach, affected data, measures taken'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'affected_individuals'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'timing'</span><span class="p">:</span> <span class="s">'Without undue delay'</span><span class="p">,</span>
+                    <span class="s">'method'</span><span class="p">:</span> <span class="p">[</span><span class="s">'Email'</span><span class="p">,</span> <span class="s">'Registered Mail'</span><span class="p">,</span> <span class="s">'Phone (high-risk)'</span><span class="p">],</span>
+                    <span class="s">'content'</span><span class="p">:</span> <span class="s">"""
+                    件名: 重要なセキュリティ通知
+                    
+                    お客様各位、
+                    
+                    このたび、弊社の生体認証システムへの不正アクセスが
+                    確認されました。
+                    
+                    影響を受ける可能性のある情報:
+                    - 暗号化された生体認証テンプレート
+                    - アクセス日時
+                    - ユーザーID
+                    
+                    重要: 生体情報は暗号化され、元の指紋や顔画像を
+                    復元することはできません。
+                    
+                    対応措置:
+                    1. 生体認証システムをリセット
+                    2. 全ユーザーの再登録を要請
+                    3. セキュリティ監視の強化
+                    
+                    ご質問は専用ホットライン（例）: 0120-000-000
+                    """</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">remediation_plan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""再発防止策"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'immediate_fixes'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'パッチ適用とシステム更新'</span><span class="p">,</span>
+                <span class="s">'アクセス制御の強化'</span><span class="p">,</span>
+                <span class="s">'多要素認証の管理者必須化'</span><span class="p">,</span>
+                <span class="s">'監査ログの強化'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'medium_term'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'ゼロトラストアーキテクチャへの移行'</span><span class="p">,</span>
+                <span class="s">'AIベースの異常検知導入'</span><span class="p">,</span>
+                <span class="s">'ペネトレーションテストの頻度増加'</span><span class="p">,</span>
+                <span class="s">'インシデント対応訓練の強化'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'long_term'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'キャンセラブルバイオメトリクスへの完全移行'</span><span class="p">,</span>
+                <span class="s">'分散型生体認証システムの検討'</span><span class="p">,</span>
+                <span class="s">'ブロックチェーンベースの監査証跡'</span><span class="p">,</span>
+                <span class="s">'量子耐性暗号への準備'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'organizational_changes'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'CISOの権限強化'</span><span class="p">,</span>
+                <span class="s">'セキュリティ予算の30%増加'</span><span class="p">,</span>
+                <span class="s">'専門セキュリティチームの設立'</span><span class="p">,</span>
+                <span class="s">'全従業員への年次セキュリティ訓練'</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="チャレンジ問題次世代認証の提案">チャレンジ問題：次世代認証の提案</h2>
+
+<h3 id="5年後の認証システム構想">5年後の認証システム構想</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">NextGenerationAuthentication</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">year_2029_vision</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'core_principles'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'パスワードレス'</span><span class="p">,</span>
+                <span class="s">'継続的認証'</span><span class="p">,</span>
+                <span class="s">'プライバシー保護'</span><span class="p">,</span>
+                <span class="s">'量子耐性'</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">proposed_architecture</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'authentication_methods'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'primary'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Distributed Behavioral Biometrics'</span><span class="p">,</span>
+                    <span class="s">'description'</span><span class="p">:</span> <span class="s">'複数の行動特性を組み合わせた継続的認証'</span><span class="p">,</span>
+                    <span class="s">'components'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'キーストロークダイナミクス'</span><span class="p">,</span>
+                        <span class="s">'マウス/タッチパターン'</span><span class="p">,</span>
+                        <span class="s">'歩行認証'</span><span class="p">,</span>
+                        <span class="s">'アプリ使用パターン'</span>
+                    <span class="p">],</span>
+                    <span class="s">'privacy'</span><span class="p">:</span> <span class="s">'エッジコンピューティングで処理、中央に生データ送信なし'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'secondary'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Quantum-Safe Cryptographic Tokens'</span><span class="p">,</span>
+                    <span class="s">'description'</span><span class="p">:</span> <span class="s">'量子コンピュータ耐性のある暗号トークン'</span><span class="p">,</span>
+                    <span class="s">'algorithms'</span><span class="p">:</span> <span class="p">[</span><span class="s">'CRYSTALS-Dilithium'</span><span class="p">,</span> <span class="s">'FALCON'</span><span class="p">,</span> <span class="s">'SPHINCS+'</span><span class="p">],</span>
+                    <span class="s">'implementation'</span><span class="p">:</span> <span class="s">'Hardware Security Module (HSM) ベース'</span>
+                <span class="p">},</span>
+                
+                <span class="s">'fallback'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">'name'</span><span class="p">:</span> <span class="s">'Decentralized Identity Verification'</span><span class="p">,</span>
+                    <span class="s">'description'</span><span class="p">:</span> <span class="s">'ブロックチェーンベースの分散型身元確認'</span><span class="p">,</span>
+                    <span class="s">'features'</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s">'自己主権型アイデンティティ'</span><span class="p">,</span>
+                        <span class="s">'Verifiable Credentials'</span><span class="p">,</span>
+                        <span class="s">'ゼロ知識証明'</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            
+            <span class="s">'continuous_authentication'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'risk_scoring'</span><span class="p">:</span> <span class="s">"""
+                def calculate_trust_score(user_behavior):
+                    # リアルタイムリスクスコアリング
+                    factors = {
+                        'typing_pattern': analyze_keystroke_dynamics(),
+                        'location_consistency': check_location_anomalies(),
+                        'device_trust': verify_device_integrity(),
+                        'network_security': assess_network_risk(),
+                        'time_pattern': analyze_access_patterns()
+                    }
+                    
+                    # 機械学習モデルによる総合評価
+                    trust_score = ml_model.predict(factors)
+                    
+                    # 動的な認証要求
+                    if trust_score &lt; 0.7:
+                        require_additional_verification()
+                    
+                    return trust_score
+                """</span><span class="p">,</span>
+                
+                <span class="s">'adaptive_security'</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s">'低リスク操作: 継続的バックグラウンド認証のみ'</span><span class="p">,</span>
+                    <span class="s">'中リスク操作: 追加の生体認証要求'</span><span class="p">,</span>
+                    <span class="s">'高リスク操作: 複数要素での明示的認証'</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+            
+            <span class="s">'privacy_enhancements'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'homomorphic_authentication'</span><span class="p">:</span> 
+                    <span class="s">'暗号化したまま認証処理を実行'</span><span class="p">,</span>
+                <span class="s">'differential_privacy'</span><span class="p">:</span> 
+                    <span class="s">'個人を特定できない形でのパターン学習'</span><span class="p">,</span>
+                <span class="s">'federated_learning'</span><span class="p">:</span> 
+                    <span class="s">'デバイス上でのモデル学習、プライバシー保護'</span><span class="p">,</span>
+                <span class="s">'secure_multi_party_computation'</span><span class="p">:</span> 
+                    <span class="s">'複数組織間での認証情報共有なしの検証'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'implementation_roadmap'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'2025'</span><span class="p">:</span> <span class="s">'パスワードレス認証の部分導入'</span><span class="p">,</span>
+                <span class="s">'2026'</span><span class="p">:</span> <span class="s">'行動的生体認証のパイロット'</span><span class="p">,</span>
+                <span class="s">'2027'</span><span class="p">:</span> <span class="s">'量子耐性暗号への移行開始'</span><span class="p">,</span>
+                <span class="s">'2028'</span><span class="p">:</span> <span class="s">'継続的認証の本格導入'</span><span class="p">,</span>
+                <span class="s">'2029'</span><span class="p">:</span> <span class="s">'完全な次世代認証システム稼働'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">expected_benefits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'security'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'account_takeover'</span><span class="p">:</span> <span class="s">'99.99% 削減'</span><span class="p">,</span>
+                <span class="s">'phishing'</span><span class="p">:</span> <span class="s">'事実上無効化'</span><span class="p">,</span>
+                <span class="s">'credential_stuffing'</span><span class="p">:</span> <span class="s">'不可能に'</span><span class="p">,</span>
+                <span class="s">'quantum_resistance'</span><span class="p">:</span> <span class="s">'完全対応'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'user_experience'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'login_time'</span><span class="p">:</span> <span class="s">'0秒（継続的認証）'</span><span class="p">,</span>
+                <span class="s">'password_resets'</span><span class="p">:</span> <span class="s">'廃止'</span><span class="p">,</span>
+                <span class="s">'support_tickets'</span><span class="p">:</span> <span class="s">'90% 削減'</span><span class="p">,</span>
+                <span class="s">'user_satisfaction'</span><span class="p">:</span> <span class="s">'NPS 80+'</span>
+            <span class="p">},</span>
+            
+            <span class="s">'operational'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'it_costs'</span><span class="p">:</span> <span class="s">'50% 削減'</span><span class="p">,</span>
+                <span class="s">'compliance'</span><span class="p">:</span> <span class="s">'自動化'</span><span class="p">,</span>
+                <span class="s">'audit'</span><span class="p">:</span> <span class="s">'リアルタイム'</span><span class="p">,</span>
+                <span class="s">'scalability'</span><span class="p">:</span> <span class="s">'無限'</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">implementation_challenges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'technical'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'既存システムとの統合'</span><span class="p">,</span>
+                <span class="s">'パフォーマンスの最適化'</span><span class="p">,</span>
+                <span class="s">'標準化の欠如'</span><span class="p">,</span>
+                <span class="s">'エッジデバイスの計算能力'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'organizational'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'文化的変革の必要性'</span><span class="p">,</span>
+                <span class="s">'初期投資の正当化'</span><span class="p">,</span>
+                <span class="s">'スキルギャップ'</span><span class="p">,</span>
+                <span class="s">'レガシーシステムの移行'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'regulatory'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'生体情報保護法の進化'</span><span class="p">,</span>
+                <span class="s">'国際的な規制の調和'</span><span class="p">,</span>
+                <span class="s">'プライバシー要件の厳格化'</span><span class="p">,</span>
+                <span class="s">'説明責任の確保'</span>
+            <span class="p">],</span>
+            
+            <span class="s">'mitigation_strategies'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'段階的な移行計画'</span><span class="p">,</span>
+                <span class="s">'パイロットプログラムでの検証'</span><span class="p">,</span>
+                <span class="s">'業界標準への積極的な貢献'</span><span class="p">,</span>
+                <span class="s">'継続的な教育とトレーニング'</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="まとめ">まとめ</h3>
+
+<p>これらの演習問題を通じて、以下の実践的なスキルが身につきます。具体的には次のとおりです。</p>
+
+<ol>
+  <li><strong>セキュアな実装能力</strong> - bcryptを使った安全なパスワード管理</li>
+  <li><strong>技術評価スキル</strong> - MFAソリューションの比較分析</li>
+  <li><strong>システム設計力</strong> - 企業向け生体認証システムの設計</li>
+  <li><strong>プロジェクト管理</strong> - MFA導入の段階的展開</li>
+  <li><strong>インシデント対応</strong> - セキュリティ侵害への体系的対応</li>
+  <li><strong>将来予測能力</strong> - 次世代技術の理解と適用</li>
+</ol>
+
+<p>これらの知識と経験は、実際の認証システムの設計・実装・運用において直接活用できます。</p>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/appendices/appendix-e-01/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録E-1: 第1章演習問題解答</span>
+      </a>
+    
+
+    <a href="/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/appendices/appendix-e-03/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録E-3: 第3章演習問題解答</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-e-02/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

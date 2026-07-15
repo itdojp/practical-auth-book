@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>第1章 認証認可の全体像 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="第1章 認証認可の全体像">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/chapters/chapter-01-overview/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="第1章 認証認可の全体像">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-01-overview/" class="toc-link active" aria-current="page">
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="第1章-認証認可の全体像">第1章 認証認可の全体像</h1>
+
+<h2 id="なぜこの章が重要か">なぜこの章が重要か</h2>
+
+<p>システム開発において、認証認可は避けて通れない基本機能です。しかし、多くの開発者が「とりあえず動けばいい」という実装に陥り、後になってセキュリティインシデントや大規模な改修に直面します。この章では、認証認可がなぜ必要なのか、どのような価値を提供するのかを理解し、本書全体の学習の道筋を明確にします。</p>
+
+<blockquote>
+  <p><strong>この章で学ぶこと</strong></p>
+  <ul>
+    <li>認証・認可がビジネスリスクとどのように結びついているかを、具体的な事例を通じて理解する</li>
+    <li>認証／認可／アイデンティティ／セッション／トークンといった基本用語の違いを、自分の言葉で説明できるようになる</li>
+    <li>認証技術の歴史的な流れを踏まえ、なぜ現在のベストプラクティスがその形になっているのかの概要を把握する</li>
+  </ul>
+</blockquote>
+
+<h2 id="11-なぜ認証認可が必要か---ビジネスリスクとセキュリティの観点">1.1 なぜ認証認可が必要か - ビジネスリスクとセキュリティの観点</h2>
+
+<h3 id="111-ビジネスにおける認証認可の価値">1.1.1 ビジネスにおける認証認可の価値</h3>
+
+<p>認証認可システムは、単なる「ログイン機能」ではありません。それは組織の資産を守り、ビジネスを成長させるための基盤です。</p>
+
+<p><strong>例（架空）：ECサイトでの事故シナリオ</strong></p>
+
+<p>注: 以下は説明のための架空の例です。</p>
+
+<p>ある中規模のECサイトで発生した事故を考えてみましょう。このサイトは「簡単な会員機能」として、メールアドレスとパスワードのみの認証を実装していました。</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>被害の概要：
+- 不正アクセスによる個人情報流出：数万〜十万件規模（架空の例）
+- 直接的な損害賠償：数千万円〜数億円規模
+- ブランド価値の毀損：定量化が難しい
+- 復旧にかかった期間：数週間〜数ヶ月
+- 失った顧客の信頼：1年以上を要する場合がある
+</code></pre></div></div>
+
+<p>この事故の根本原因は以下でした：</p>
+
+<ol>
+  <li><strong>脆弱なパスワードポリシー</strong>：最小文字数のみの制限</li>
+  <li><strong>多要素認証の欠如</strong>：パスワードのみの単一要素認証</li>
+  <li><strong>不適切なセッション管理</strong>：セッション固定攻撃への脆弱性</li>
+  <li><strong>認可の不備</strong>：一般ユーザーが管理機能にアクセス可能</li>
+</ol>
+
+<h3 id="112-認証認可が解決する4つの根本的な問題">1.1.2 認証認可が解決する4つの根本的な問題</h3>
+
+<figure id="figure-auth-fundamental-problems">
+  <img src="/assets/images/diagrams/chapter01/auth-fundamental-problems.svg" alt="認証認可が解決する根本的な問題" />
+</figure>
+
+<h4 id="1-アイデンティティの問題あなたは誰">1. アイデンティティの問題：「あなたは誰？」</h4>
+
+<p>デジタル世界では、相手の顔が見えません。認証は、デジタル世界における「身分証明書」の役割を果たします。</p>
+
+<p><strong>現実世界の例え</strong>：</p>
+<ul>
+  <li>銀行の窓口では、通帳と印鑑で本人確認</li>
+  <li>デジタル世界では、ID/パスワードや生体認証で本人確認</li>
+</ul>
+
+<h4 id="2-権限の問題何ができる">2. 権限の問題：「何ができる？」</h4>
+
+<p>組織には様々な役割があり、それぞれに適切な権限があります。認可は、この権限管理をシステム化します。</p>
+
+<p><strong>組織における権限の例</strong>：</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>一般社員：
+- 自分のデータの閲覧・編集
+- 共有リソースの閲覧
+
+マネージャー：
+- チームメンバーのデータ閲覧
+- 承認権限
+
+管理者：
+- システム設定の変更
+- 全データへのアクセス
+</code></pre></div></div>
+
+<h4 id="3-責任追跡の問題誰が何をした">3. 責任追跡の問題：「誰が何をした？」</h4>
+
+<p>コンプライアンスや内部統制の観点から、「誰が、いつ、何をしたか」を記録することは必須です。</p>
+
+<p><strong>監査ログの重要性</strong>：</p>
+<ul>
+  <li>不正の抑止力</li>
+  <li>インシデント発生時の原因究明</li>
+  <li>法的要求への対応</li>
+</ul>
+
+<h4 id="4-利便性の問題毎回認証は面倒">4. 利便性の問題：「毎回認証は面倒」</h4>
+
+<p>セキュリティと利便性は常にトレードオフの関係にあります。適切な認証認可システムは、このバランスを最適化します。</p>
+
+<p><strong>利便性向上の施策</strong>：</p>
+<ul>
+  <li>シングルサインオン（SSO）</li>
+  <li>リメンバーミー機能</li>
+  <li>生体認証の活用</li>
+</ul>
+
+<h3 id="113-認証認可への投資対効果">1.1.3 認証認可への投資対効果</h3>
+
+<p>認証認可システムへの投資は、以下のような明確なROIをもたらします：</p>
+
+<p><strong>コスト削減効果</strong>：</p>
+<ol>
+  <li><strong>セキュリティインシデントの予防</strong>
+    <ul>
+      <li>データ漏洩は賠償・対応コストが大きくなり得ます（規模・法令・契約により変動）。</li>
+      <li>適切な認証・認可により、典型的な侵入経路（例: パスワードリスト攻撃）のリスクを下げられます。</li>
+    </ul>
+  </li>
+  <li><strong>運用コストの削減</strong>
+    <ul>
+      <li>パスワードリセット/本人確認の問い合わせ対応は運用負荷になります。</li>
+      <li>セルフサービス化（例: メール/アプリによる再設定）で一次対応の負荷を下げられます。</li>
+    </ul>
+  </li>
+  <li><strong>コンプライアンス対応</strong>
+    <ul>
+      <li>例: GDPRでは、違反内容や事業規模などの条件により、全世界年間売上高の4%または2,000万ユーロのいずれか高い方を上限とする行政制裁金が科され得ます。</li>
+      <li>多くの法令・規制・契約において、適切な認証・認可は重要な要件と位置付けられています（具体的な要件は法域・業界・契約内容に依存します）。</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>ビジネス価値の向上</strong>：</p>
+<ol>
+  <li><strong>顧客満足度の向上</strong>
+    <ul>
+      <li>SSOにより、ログインの手間を減らし、ユーザー体験を改善できます。</li>
+      <li>生体認証等により、パスワード忘れによる離脱を減らせます。</li>
+    </ul>
+  </li>
+  <li><strong>新規ビジネスの実現</strong>
+    <ul>
+      <li>B2B連携における信頼性の確保</li>
+      <li>APIエコノミーへの参加</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="12-基本用語と概念の整理---混同されやすい用語の明確な区別">1.2 基本用語と概念の整理 - 混同されやすい用語の明確な区別</h2>
+
+<h3 id="121-認証authenticationと認可authorizationの違い">1.2.1 認証（Authentication）と認可（Authorization）の違い</h3>
+
+<p>多くの開発者が混同するこの2つの概念を、明確に区別しましょう。</p>
+
+<figure id="figure-auth-authz-sequence">
+  <img src="/assets/images/diagrams/chapter01/auth-authz-sequence.svg" alt="認証と認可のシーケンス図" />
+</figure>
+
+<h4 id="認証authentication--authn">認証（Authentication）- “AuthN”</h4>
+
+<p><strong>定義</strong>：利用者が主張する身元（アイデンティティ）が正しいことを確認するプロセス</p>
+
+<p><strong>日常での例え</strong>：</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>空港のセキュリティチェック
+1. パスポートの提示（身元の主張）
+2. 顔写真との照合（認証）
+3. 本人であることの確認完了
+</code></pre></div></div>
+
+<p><strong>システムでの実装例</strong>：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="s">"""ユーザーの身元を確認する"""</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">get_user_by_username</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">verify_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">user</span>  <span class="c1"># 認証成功
+</span>    <span class="k">return</span> <span class="bp">None</span>  <span class="c1"># 認証失敗
+</span></code></pre></div></div>
+
+<h4 id="認可authorization--authz">認可（Authorization）- “AuthZ”</h4>
+
+<p><strong>定義</strong>：認証されたユーザーが、特定のリソースや操作に対してアクセス権限を持っているかを判定するプロセス</p>
+
+<p><strong>日常での例え</strong>：</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ホテルのカードキー
+1. フロントで本人確認（認証済み）
+2. 部屋番号に応じたカードキー発行（権限付与）
+3. 自分の部屋のみ開錠可能（認可）
+</code></pre></div></div>
+
+<p><strong>システムでの実装例</strong>：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">authorize</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">resource</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="s">"""ユーザーのアクセス権限を確認する"""</span>
+    <span class="n">permissions</span> <span class="o">=</span> <span class="n">get_user_permissions</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">has_permission</span><span class="p">(</span><span class="n">permissions</span><span class="p">,</span> <span class="n">resource</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="122-その他の重要な用語">1.2.2 その他の重要な用語</h3>
+
+<h4 id="アイデンティティidentity">アイデンティティ（Identity）</h4>
+
+<p><strong>定義</strong>：システム内でエンティティを一意に識別する属性の集合</p>
+
+<p><strong>構成要素</strong>：</p>
+<ul>
+  <li>識別子（ID、メールアドレスなど）</li>
+  <li>属性（名前、所属、役職など）</li>
+  <li>クレデンシャル（パスワード、証明書など）</li>
+</ul>
+
+<h4 id="プリンシパルprincipal">プリンシパル（Principal）</h4>
+
+<p><strong>定義</strong>：認証されたエンティティを表す概念。ユーザー、サービス、デバイスなどを含む</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Javaでの例</span>
+<span class="nc">Principal</span> <span class="n">principal</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">getUserPrincipal</span><span class="o">();</span>
+<span class="nc">String</span> <span class="n">username</span> <span class="o">=</span> <span class="n">principal</span><span class="o">.</span><span class="na">getName</span><span class="o">();</span>
+</code></pre></div></div>
+
+<h4 id="セッションsession">セッション（Session）</h4>
+
+<p><strong>定義</strong>：認証後の一連のインタラクションを管理する仕組み</p>
+
+<p><strong>重要な属性</strong>：</p>
+<ul>
+  <li>セッションID：一意の識別子</li>
+  <li>有効期限：セキュリティのため必須</li>
+  <li>関連データ：ユーザー情報、権限など</li>
+</ul>
+
+<h4 id="トークンtoken">トークン（Token）</h4>
+
+<p><strong>定義</strong>：認証・認可の情報を含む、検証可能なデータ構造</p>
+
+<p><strong>種類</strong>：</p>
+<ol>
+  <li><strong>参照トークン（Opaque Token）</strong>
+    <ul>
+      <li>ランダムな文字列</li>
+      <li>サーバー側で意味を解決</li>
+    </ul>
+  </li>
+  <li><strong>自己完結型トークン（Self-contained Token）</strong>
+    <ul>
+      <li>JWT（JSON Web Token）が代表例</li>
+      <li>トークン自体に情報を含む</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="123-混同を避けるための実践的なガイドライン">1.2.3 混同を避けるための実践的なガイドライン</h3>
+
+<p><strong>チェックリスト形式での理解</strong>：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>□ ログイン処理 → 認証（Authentication）
+□ 「このボタンを押せるか」の判定 → 認可（Authorization）
+□ 「誰であるか」の情報 → アイデンティティ（Identity）
+□ 「ログイン中の人」を表す → プリンシパル（Principal）
+□ ログイン状態の管理 → セッション（Session）
+□ 認証情報の持ち運び → トークン（Token）
+</code></pre></div></div>
+
+<h2 id="13-歴史的経緯と現在のトレンド---技術選択の判断基準">1.3 歴史的経緯と現在のトレンド - 技術選択の判断基準</h2>
+
+<h3 id="131-認証技術の進化">1.3.1 認証技術の進化</h3>
+
+<p>認証技術の歴史を理解することで、なぜ現在の技術が生まれたのか、次に何が来るのかが見えてきます。</p>
+
+<figure id="figure-authentication-evolution-timeline">
+  <img src="/assets/images/diagrams/chapter01/authentication-evolution-timeline.svg" alt="認証技術の歴史的進化" />
+</figure>
+
+<h4 id="第1世代パスワードのみの時代1960年代">第1世代：パスワードのみの時代（1960年代～）</h4>
+
+<p><strong>背景</strong>：メインフレーム時代、限られた人だけがコンピュータを使用</p>
+
+<p><strong>問題点</strong>：</p>
+<ul>
+  <li>平文保存によるリスク</li>
+  <li>総当たり攻撃への脆弱性</li>
+  <li>パスワードの使い回し</li>
+</ul>
+
+<h4 id="第2世代暗号化とハッシュ化1970年代">第2世代：暗号化とハッシュ化（1970年代～）</h4>
+
+<p><strong>技術革新</strong>：</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>平文パスワード → MD5 → SHA-1 → bcrypt → Argon2
+</code></pre></div></div>
+
+<p><strong>学んだ教訓</strong>：</p>
+<ul>
+  <li>可逆暗号化では不十分</li>
+  <li>ソルトの重要性</li>
+  <li>計算量的安全性の必要性</li>
+</ul>
+
+<h4 id="第3世代多要素認証の登場2000年代">第3世代：多要素認証の登場（2000年代～）</h4>
+
+<p><strong>きっかけ</strong>：大規模な情報漏洩事件の頻発</p>
+
+<p><strong>実装方式の進化</strong>：</p>
+<ol>
+  <li>ハードウェアトークン（RSA SecurID）</li>
+  <li>SMS認証</li>
+  <li>TOTP/HOTP（Google Authenticator）</li>
+  <li>プッシュ通知認証</li>
+</ol>
+
+<h4 id="第4世代生体認証の普及2010年代">第4世代：生体認証の普及（2010年代～）</h4>
+
+<p><strong>技術の民主化</strong>：</p>
+<ul>
+  <li>スマートフォンへの指紋センサー搭載</li>
+  <li>顔認証（Face ID）の登場</li>
+  <li>行動的生体認証の研究</li>
+</ul>
+
+<h4 id="第5世代パスワードレスへの移行2020年代">第5世代：パスワードレスへの移行（2020年代～）</h4>
+
+<p><strong>FIDO2/WebAuthnの登場</strong>：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// パスワードレス認証の例</span>
+<span class="nb">navigator</span><span class="p">.</span><span class="nx">credentials</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span>
+    <span class="na">publicKey</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">challenge</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Uint8Array</span><span class="p">(</span><span class="mi">32</span><span class="p">),</span>
+        <span class="na">rp</span><span class="p">:</span> <span class="p">{</span> <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Example Corp</span><span class="dl">"</span> <span class="p">},</span>
+        <span class="na">user</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">id</span><span class="p">:</span> <span class="k">new</span> <span class="nx">TextEncoder</span><span class="p">().</span><span class="nx">encode</span><span class="p">(</span><span class="dl">"</span><span class="s2">user@example.com</span><span class="dl">"</span><span class="p">),</span>
+            <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">user@example.com</span><span class="dl">"</span><span class="p">,</span>
+            <span class="na">displayName</span><span class="p">:</span> <span class="dl">"</span><span class="s2">User Name</span><span class="dl">"</span>
+        <span class="p">},</span>
+        <span class="na">pubKeyCredParams</span><span class="p">:</span> <span class="p">[{</span><span class="na">alg</span><span class="p">:</span> <span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="na">type</span><span class="p">:</span> <span class="dl">"</span><span class="s2">public-key</span><span class="dl">"</span><span class="p">}],</span>
+        <span class="na">authenticatorSelection</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">authenticatorAttachment</span><span class="p">:</span> <span class="dl">"</span><span class="s2">platform</span><span class="dl">"</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<h3 id="132-認可モデルの進化">1.3.2 認可モデルの進化</h3>
+
+<figure id="figure-authorization-model-evolution">
+  <img src="/assets/images/diagrams/chapter01/authorization-model-evolution.svg" alt="認可モデルの進化" />
+</figure>
+
+<h4 id="aclaccess-control-list">ACL（Access Control List）</h4>
+
+<p><strong>時代</strong>：1970年代～
+<strong>特徴</strong>：リソース中心の単純なモデル</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>file.txt:
+  - user1: read, write
+  - user2: read
+  - user3: no access
+</code></pre></div></div>
+
+<h4 id="rbacrole-based-access-control">RBAC（Role-Based Access Control）</h4>
+
+<p><strong>時代</strong>：1990年代～
+<strong>特徴</strong>：役割による権限管理</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User → Role → Permission
+John → Editor → [create_post, edit_post, delete_post]
+Jane → Viewer → [view_post]
+</code></pre></div></div>
+
+<h4 id="abacattribute-based-access-control">ABAC（Attribute-Based Access Control）</h4>
+
+<p><strong>時代</strong>：2000年代～
+<strong>特徴</strong>：柔軟な属性ベース制御</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if (user.department == "HR" &amp;&amp;
+    resource.type == "employee_data" &amp;&amp;
+    time.hour &gt;= 9 &amp;&amp; time.hour &lt;= 18) {
+    allow_access()
+}
+</code></pre></div></div>
+
+<h4 id="pbacpolicy-based-access-control">PBAC（Policy-Based Access Control）</h4>
+
+<p><strong>時代</strong>：2010年代～
+<strong>特徴</strong>：宣言的なポリシー記述</p>
+<div class="language-rego highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Open Policy Agent (OPA)の例</span>
+<span class="n">allow</span> <span class="p">{</span>
+    <span class="n">input</span><span class="p">.</span><span class="n">method</span> <span class="o">=</span> <span class="s2">"GET"</span>
+    <span class="n">input</span><span class="p">.</span><span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"api"</span><span class="p">,</span> <span class="s2">"users"</span><span class="p">,</span> <span class="n">user_id</span><span class="p">]</span>
+    <span class="n">input</span><span class="p">.</span><span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">user_id</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="133-現在のトレンドと選択基準">1.3.3 現在のトレンドと選択基準</h3>
+
+<h4 id="1-zero-trust-architecture">1. Zero Trust Architecture</h4>
+
+<p><strong>原則</strong>：「決して信頼せず、常に検証する」</p>
+
+<p><strong>実装のポイント</strong>：</p>
+<ul>
+  <li>すべてのアクセスを検証</li>
+  <li>最小権限の徹底</li>
+  <li>継続的な監視</li>
+</ul>
+
+<h4 id="2-decentralized-identity">2. Decentralized Identity</h4>
+
+<p><strong>概念</strong>：ユーザーが自身のアイデンティティを管理</p>
+
+<p><strong>技術要素</strong>：</p>
+<ul>
+  <li>ブロックチェーン</li>
+  <li>自己主権型アイデンティティ</li>
+  <li>Verifiable Credentials</li>
+</ul>
+
+<h4 id="3-adaptive-authentication">3. Adaptive Authentication</h4>
+
+<p><strong>特徴</strong>：リスクに応じた動的な認証強度</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">calculate_risk_score</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">is_new_device</span><span class="p">(</span><span class="n">request</span><span class="p">):</span> <span class="n">score</span> <span class="o">+=</span> <span class="mi">30</span>
+    <span class="k">if</span> <span class="n">is_unusual_location</span><span class="p">(</span><span class="n">request</span><span class="p">):</span> <span class="n">score</span> <span class="o">+=</span> <span class="mi">40</span>
+    <span class="k">if</span> <span class="n">is_unusual_time</span><span class="p">(</span><span class="n">request</span><span class="p">):</span> <span class="n">score</span> <span class="o">+=</span> <span class="mi">20</span>
+    <span class="k">return</span> <span class="n">score</span>
+
+<span class="k">def</span> <span class="nf">determine_auth_method</span><span class="p">(</span><span class="n">risk_score</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">risk_score</span> <span class="o">&lt;</span> <span class="mi">30</span><span class="p">:</span> <span class="k">return</span> <span class="s">"password_only"</span>
+    <span class="k">elif</span> <span class="n">risk_score</span> <span class="o">&lt;</span> <span class="mi">70</span><span class="p">:</span> <span class="k">return</span> <span class="s">"password_and_otp"</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="s">"password_and_biometric"</span>
+</code></pre></div></div>
+
+<h3 id="134-技術選択のフレームワーク">1.3.4 技術選択のフレームワーク</h3>
+
+<figure id="figure-technology-selection-framework">
+  <img src="/assets/images/diagrams/chapter01/technology-selection-framework.svg" alt="技術選択フレームワーク" />
+</figure>
+
+<p>適切な技術を選択するための判断基準：</p>
+
+<p><strong>1. セキュリティ要件</strong></p>
+<ul>
+  <li>扱うデータの機密性</li>
+  <li>規制要件（PCI-DSS、HIPAA等）</li>
+  <li>脅威モデル</li>
+</ul>
+
+<p><strong>2. ユーザビリティ要件</strong></p>
+<ul>
+  <li>ターゲットユーザーの技術リテラシー</li>
+  <li>利用頻度</li>
+  <li>デバイスの種類</li>
+</ul>
+
+<p><strong>3. 技術的制約</strong></p>
+<ul>
+  <li>既存システムとの統合</li>
+  <li>パフォーマンス要件</li>
+  <li>開発・運用コスト</li>
+</ul>
+
+<p><strong>4. 将来性</strong></p>
+<ul>
+  <li>標準化の状況</li>
+  <li>コミュニティの活発さ</li>
+  <li>ベンダーロックインのリスク</li>
+</ul>
+
+<h2 id="14-本書の構成と学習の進め方---効果的な学習パス">1.4 本書の構成と学習の進め方 - 効果的な学習パス</h2>
+
+<h3 id="141-本書の全体構成">1.4.1 本書の全体構成</h3>
+
+<p>本書は4部構成で、基礎から実践まで段階的に学習できるよう設計されています。</p>
+
+<p><strong>学習の流れ</strong>：</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>第I部：基礎概念編
+  ↓ 基本的な理解
+第II部：プロトコルと標準編
+  ↓ 技術の詳細
+第III部：システム設計編
+  ↓ 実装スキル
+第IV部：運用・発展編
+  ↓ 実践力
+</code></pre></div></div>
+
+<h3 id="142-読者のレベル別学習パス">1.4.2 読者のレベル別学習パス</h3>
+
+<h4 id="初級者向けパス開発経験12年">初級者向けパス（開発経験1〜2年）</h4>
+
+<p><strong>推奨学習順序</strong>：</p>
+<ol>
+  <li>第1〜3章：基礎概念をしっかり理解</li>
+  <li>第4〜5章：Webの基本的な認証を学習</li>
+  <li>第8章：簡単なシステム設計</li>
+  <li>各章の演習問題を必ず実施</li>
+</ol>
+
+<p><strong>学習のポイント</strong>：</p>
+<ul>
+  <li>コードを実際に動かして理解</li>
+  <li>用語の定義を正確に覚える</li>
+  <li>セキュリティの基本原則を身につける</li>
+</ul>
+
+<h4 id="中級者向けパス開発経験35年">中級者向けパス（開発経験3〜5年）</h4>
+
+<p><strong>推奨学習順序</strong>：</p>
+<ol>
+  <li>第1章：全体像の確認（流し読み可）</li>
+  <li>第4〜7章：プロトコルの詳細理解</li>
+  <li>第9〜10章：実践的な設計パターン</li>
+  <li>第11〜12章：運用面の考慮事項</li>
+</ol>
+
+<p><strong>学習のポイント</strong>：</p>
+<ul>
+  <li>複数の技術の比較と選択基準</li>
+  <li>パフォーマンスとセキュリティのバランス</li>
+  <li>実際のプロダクトへの適用</li>
+</ul>
+
+<h4 id="上級者向けパスアーキテクト志向">上級者向けパス（アーキテクト志向）</h4>
+
+<p><strong>推奨学習順序</strong>：</p>
+<ol>
+  <li>第3章：認可モデルの深い理解</li>
+  <li>第9章：マイクロサービス環境</li>
+  <li>第11〜13章：高度なトピック</li>
+  <li>全章の設計演習に挑戦</li>
+</ol>
+
+<p><strong>学習のポイント</strong>：</p>
+<ul>
+  <li>アーキテクチャレベルの設計</li>
+  <li>組織全体のID管理戦略</li>
+  <li>最新技術動向の把握</li>
+</ul>
+
+<h3 id="143-効果的な学習のためのtips">1.4.3 効果的な学習のためのTips</h3>
+
+<h4 id="1-手を動かす学習">1. 手を動かす学習</h4>
+
+<p><strong>環境構築</strong>：</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 本書のサンプルコード環境</span>
+git clone https://github.com/[organization]/practical-auth-book
+<span class="nb">cd </span>practical-auth-book
+docker compose up <span class="nt">-d</span>
+</code></pre></div></div>
+
+<p><strong>段階的な実装</strong>：</p>
+<ol>
+  <li>まず動くものを作る</li>
+  <li>セキュリティを強化</li>
+  <li>パフォーマンスを最適化</li>
+</ol>
+
+<h4 id="2-実際の脆弱性を体験">2. 実際の脆弱性を体験</h4>
+
+<p><strong>安全な環境での実験</strong>：</p>
+<ul>
+  <li>SQLインジェクション</li>
+  <li>セッション固定攻撃</li>
+  <li>JWTの改ざん</li>
+</ul>
+
+<p>これにより、「なぜその対策が必要か」を実感できます。</p>
+
+<h4 id="3-コミュニティでの学習">3. コミュニティでの学習</h4>
+
+<p><strong>推奨する活動</strong>：</p>
+<ul>
+  <li>本書の読書会の開催</li>
+  <li>実装したコードのレビュー</li>
+  <li>疑問点の議論</li>
+</ul>
+
+<h3 id="144-各章で学べること">1.4.4 各章で学べること</h3>
+
+<p><strong>第I部：基礎概念編</strong></p>
+<ul>
+  <li>認証認可の本質的な理解</li>
+  <li>セキュリティの基本原則</li>
+  <li>実装の第一歩</li>
+</ul>
+
+<p><strong>第II部：プロトコルと標準編</strong></p>
+<ul>
+  <li>業界標準プロトコルの仕組み</li>
+  <li>正しい実装方法</li>
+  <li>よくある間違いとその対策</li>
+</ul>
+
+<p><strong>第III部：システム設計編</strong></p>
+<ul>
+  <li>実践的な設計スキル</li>
+  <li>スケーラブルなアーキテクチャ</li>
+  <li>テスト戦略</li>
+</ul>
+
+<p><strong>第IV部：運用・発展編</strong></p>
+<ul>
+  <li>本番環境での考慮事項</li>
+  <li>最新技術トレンド</li>
+  <li>将来への準備</li>
+</ul>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>この章では、認証認可がビジネスにもたらす価値、基本的な用語と概念、技術の歴史と現在のトレンド、そして本書の効果的な活用方法を学びました。</p>
+
+<p><strong>重要なポイント</strong>：</p>
+<ol>
+  <li>認証認可は単なる機能ではなく、ビジネスを守り成長させる基盤</li>
+  <li>認証（誰であるか）と認可（何ができるか）は明確に区別する</li>
+  <li>技術は常に進化しており、適切な選択が重要</li>
+  <li>本書は段階的に学習できるよう設計されている</li>
+</ol>
+
+<p>次章では、認証の基礎について、より詳細に学んでいきます。パスワード認証の仕組みから始まり、なぜ多要素認証が必要なのか、生体認証にはどのような課題があるのかを理解していきましょう。</p>
+
+<h2 id="演習問題">演習問題</h2>
+
+<h3 id="問題1認証と認可の区別">問題1：認証と認可の区別</h3>
+<p>以下のシナリオが「認証」と「認可」のどちらに該当するか答えなさい。</p>
+
+<ol>
+  <li>ユーザーがメールアドレスとパスワードを入力してログインする</li>
+  <li>管理者ページにアクセスしようとしたが、権限不足でエラーになった</li>
+  <li>指紋センサーで本人確認を行う</li>
+  <li>一般ユーザーが他のユーザーの個人情報を閲覧できないようにする</li>
+  <li>ワンタイムパスワードを入力する</li>
+</ol>
+
+<h3 id="問題2セキュリティインシデントの分析">問題2：セキュリティインシデントの分析</h3>
+<p>ある企業で以下のセキュリティインシデントが発生しました。それぞれの根本原因と対策を述べなさい。</p>
+
+<p><strong>インシデント内容</strong>：</p>
+<ul>
+  <li>退職した従業員のアカウントで、3ヶ月後にシステムへの不正アクセスが発生</li>
+  <li>機密データがダウンロードされた形跡あり</li>
+  <li>ログを確認すると、正規のID/パスワードでログインされていた</li>
+</ul>
+
+<h3 id="問題3技術選択の判断">問題3：技術選択の判断</h3>
+<p>以下の要件に対して、適切な認証方式を選択し、その理由を説明しなさい。</p>
+
+<p><strong>シナリオA</strong>：社内業務システム</p>
+<ul>
+  <li>ユーザー数：500名</li>
+  <li>アクセス頻度：1日複数回</li>
+  <li>扱うデータ：人事・給与情報</li>
+  <li>予算：中程度</li>
+</ul>
+
+<p><strong>シナリオB</strong>：一般消費者向けECサイト</p>
+<ul>
+  <li>ユーザー数：100万人</li>
+  <li>アクセス頻度：月1-2回</li>
+  <li>扱うデータ：購入履歴、クレジットカード情報</li>
+  <li>予算：限定的</li>
+</ul>
+
+<h3 id="問題4実装計画の作成">問題4：実装計画の作成</h3>
+<p>小規模なWebアプリケーション（ユーザー数1000人程度）に認証機能を実装する計画を立てなさい。以下の観点を含めること：</p>
+
+<ol>
+  <li>採用する認証方式とその理由</li>
+  <li>実装の優先順位</li>
+  <li>セキュリティ上の考慮事項</li>
+  <li>将来の拡張性</li>
+</ol>
+
+<h3 id="問題5用語の説明">問題5：用語の説明</h3>
+<p>以下の用語を、技術に詳しくない経営層に説明するつもりで、日常的な例えを用いて説明しなさい。</p>
+
+<ol>
+  <li>シングルサインオン（SSO）</li>
+  <li>多要素認証（MFA）</li>
+  <li>セッション管理</li>
+  <li>トークンベース認証</li>
+</ol>
+
+<h3 id="チャレンジ問題脅威モデリング">チャレンジ問題：脅威モデリング</h3>
+<p>あなたが開発している以下のシステムに対して、認証認可の観点から脅威モデリングを実施しなさい。</p>
+
+<p><strong>システム概要</strong>：</p>
+<ul>
+  <li>医療機関向け患者情報管理システム</li>
+  <li>医師、看護師、事務員、患者本人がアクセス</li>
+  <li>診療記録、検査結果、処方箋情報を管理</li>
+  <li>外部の薬局システムとも連携</li>
+</ul>
+
+<p><strong>検討すべき項目</strong>：</p>
+<ol>
+  <li>想定される脅威（最低5つ）</li>
+  <li>各脅威の影響度と発生可能性</li>
+  <li>対策案</li>
+  <li>残存リスクの評価</li>
+</ol>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/introduction/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">はじめに</span>
+      </a>
+    
+
+    <a href="/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/chapters/chapter-02-authentication/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">第2章：認証システムの基礎</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/chapters/chapter-01-overview/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

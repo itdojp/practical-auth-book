@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録E-1: 第1章演習問題解答 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録E-1: 第1章演習問題解答">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/appendices/appendix-e-01/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録E-1: 第1章演習問題解答">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-01/" class="toc-link active" aria-current="page">
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録e-1-第1章演習問題解答">付録E-1: 第1章演習問題解答</h1>
+
+<h2 id="問題1認証と認可の区別">問題1：認証と認可の区別</h2>
+
+<h3 id="解答">解答</h3>
+
+<ol>
+  <li><strong>認証</strong> - メールアドレスとパスワードによる本人確認</li>
+  <li><strong>認可</strong> - アクセス権限の判定</li>
+  <li><strong>認証</strong> - 生体情報による本人確認</li>
+  <li><strong>認可</strong> - リソースへのアクセス制御</li>
+  <li><strong>認証</strong> - 追加の本人確認手段（多要素認証の一部）</li>
+</ol>
+
+<h3 id="解説">解説</h3>
+
+<p>認証と認可の見分け方：</p>
+<ul>
+  <li>「誰であるか」を確認 → <strong>認証</strong></li>
+  <li>「何ができるか」を判定 → <strong>認可</strong></li>
+</ul>
+
+<p>覚え方のコツ：</p>
+<ul>
+  <li>Authen<strong>N</strong> = ideNtity（身元確認）</li>
+  <li>Authori<strong>Z</strong>ation = 権限（permiZZion）</li>
+</ul>
+
+<h2 id="問題2セキュリティインシデントの分析">問題2：セキュリティインシデントの分析</h2>
+
+<h3 id="解答-1">解答</h3>
+
+<p><strong>根本原因：</strong></p>
+
+<ol>
+  <li><strong>アカウント管理プロセスの不備</strong>
+    <ul>
+      <li>退職時のアカウント無効化が実施されていない</li>
+      <li>定期的なアカウント棚卸しの欠如</li>
+    </ul>
+  </li>
+  <li><strong>認証方式の脆弱性</strong>
+    <ul>
+      <li>パスワードのみの単一要素認証</li>
+      <li>パスワード変更ポリシーの不在</li>
+    </ul>
+  </li>
+  <li><strong>監査・監視の不足</strong>
+    <ul>
+      <li>異常なアクセスパターンの検知機能なし</li>
+      <li>アクセスログの定期レビュー未実施</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>対策：</strong></p>
+
+<ol>
+  <li><strong>即時対応</strong>
+```text
+    <ul>
+      <li>該当アカウントの即時無効化</li>
+      <li>全従業員のパスワード強制変更</li>
+      <li>アクセスログの詳細調査
+```</li>
+    </ul>
+  </li>
+  <li><strong>プロセス改善</strong>
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>退職時チェックリスト：
+□ ADアカウントの無効化
+□ メールアカウントの停止
+□ VPNアクセスの削除
+□ 物理的なアクセスカードの回収
+□ 各システムの権限削除
+</code></pre></div>    </div>
+  </li>
+  <li><strong>技術的対策</strong>
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># アカウント自動無効化の実装例
+</span><span class="k">def</span> <span class="nf">check_employee_status</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">get_all_users</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">user</span><span class="p">.</span><span class="n">employment_status</span> <span class="o">==</span> <span class="s">"terminated"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">days_since_termination</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">disable_account</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                <span class="n">log_action</span><span class="p">(</span><span class="sa">f</span><span class="s">"Account disabled: </span><span class="si">{</span><span class="n">user</span><span class="p">.</span><span class="nb">id</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+  <li><strong>継続的な改善</strong>
+    <ul>
+      <li>四半期ごとのアカウント棚卸し</li>
+      <li>多要素認証の導入</li>
+      <li>SIEM（Security Information and Event Management）の導入</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="問題3技術選択の判断">問題3：技術選択の判断</h2>
+
+<h3 id="シナリオa社内業務システム">シナリオA：社内業務システム</h3>
+
+<p><strong>推奨する認証方式：</strong></p>
+<ul>
+  <li><strong>基本認証</strong>：Active Directory連携によるSSO</li>
+  <li><strong>追加認証</strong>：スマートフォンアプリによるMFA（TOTP）</li>
+</ul>
+
+<p><strong>理由：</strong></p>
+<ol>
+  <li><strong>利便性</strong>：1日複数回アクセスするため、SSOで認証回数を削減</li>
+  <li><strong>セキュリティ</strong>：人事・給与情報は機密性が高いため、MFA必須</li>
+  <li><strong>コスト効率</strong>：既存のAD基盤を活用、TOTPは無料で実装可能</li>
+  <li><strong>管理性</strong>：500名規模なら、AD中心の管理が最適</li>
+</ol>
+
+<p><strong>実装例：</strong></p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 認証フロー設定</span>
+<span class="na">authentication</span><span class="pi">:</span>
+  <span class="na">primary</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">active_directory"</span>
+    <span class="na">server</span><span class="pi">:</span> <span class="s2">"</span><span class="s">ldap://ad.company.local"</span>
+  <span class="na">mfa</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">totp"</span>
+    <span class="na">required_for</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">/hr/*"</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">/payroll/*"</span>
+    <span class="na">grace_period</span><span class="pi">:</span> <span class="s2">"</span><span class="s">8_hours"</span>
+</code></pre></div></div>
+
+<h3 id="シナリオb一般消費者向けecサイト">シナリオB：一般消費者向けECサイト</h3>
+
+<p><strong>推奨する認証方式：</strong></p>
+<ul>
+  <li><strong>基本認証</strong>：メールアドレス + パスワード</li>
+  <li><strong>オプション</strong>：ソーシャルログイン（Google、Facebook）</li>
+  <li><strong>リスクベース認証</strong>：異常検知時のみ追加認証</li>
+</ul>
+
+<p><strong>理由：</strong></p>
+<ol>
+  <li><strong>利便性最優先</strong>：月1-2回の利用では、複雑な認証は離脱要因</li>
+  <li><strong>段階的セキュリティ</strong>：通常は簡単に、決済時は厳格に</li>
+  <li><strong>コスト配慮</strong>：100万ユーザーでのMFA必須はコスト高</li>
+  <li><strong>転換率</strong>：ソーシャルログインで新規登録のハードルを下げる</li>
+</ol>
+
+<p><strong>実装例：</strong></p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// リスクベース認証の実装</span>
+<span class="k">async</span> <span class="kd">function</span> <span class="nx">assessRisk</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">user</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">riskFactors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="na">newDevice</span><span class="p">:</span> <span class="k">await</span> <span class="nx">isNewDevice</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">user</span><span class="p">),</span>
+        <span class="na">unusualLocation</span><span class="p">:</span> <span class="k">await</span> <span class="nx">isUnusualLocation</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">user</span><span class="p">),</span>
+        <span class="na">highValueTransaction</span><span class="p">:</span> <span class="nx">request</span><span class="p">.</span><span class="nx">amount</span> <span class="o">&gt;</span> <span class="mi">50000</span><span class="p">,</span>
+        <span class="na">rapidRequests</span><span class="p">:</span> <span class="k">await</span> <span class="nx">checkVelocity</span><span class="p">(</span><span class="nx">user</span><span class="p">)</span>
+    <span class="p">};</span>
+    
+    <span class="kd">const</span> <span class="nx">riskScore</span> <span class="o">=</span> <span class="nx">calculateScore</span><span class="p">(</span><span class="nx">riskFactors</span><span class="p">);</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="nx">riskScore</span> <span class="o">&gt;</span> <span class="mi">70</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">{</span> <span class="na">action</span><span class="p">:</span> <span class="dl">"</span><span class="s2">require_2fa</span><span class="dl">"</span> <span class="p">};</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">riskScore</span> <span class="o">&gt;</span> <span class="mi">40</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">{</span> <span class="na">action</span><span class="p">:</span> <span class="dl">"</span><span class="s2">require_captcha</span><span class="dl">"</span> <span class="p">};</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span> <span class="na">action</span><span class="p">:</span> <span class="dl">"</span><span class="s2">allow</span><span class="dl">"</span> <span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="問題4実装計画の作成">問題4：実装計画の作成</h2>
+
+<h3 id="実装計画">実装計画</h3>
+
+<h4 id="phase-1基本認証2週間">Phase 1：基本認証（2週間）</h4>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Week 1-2:
+- ユーザー登録機能
+- パスワードハッシュ化（bcrypt）
+- ログイン/ログアウト
+- セッション管理
+</code></pre></div></div>
+
+<h4 id="phase-2セキュリティ強化2週間">Phase 2：セキュリティ強化（2週間）</h4>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Week 3-4:
+- パスワードポリシー実装
+- アカウントロックアウト機能
+- HTTPS必須化
+- CSRF対策
+</code></pre></div></div>
+
+<h4 id="phase-3利便性向上1週間">Phase 3：利便性向上（1週間）</h4>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Week 5:
+- パスワードリセット機能
+- Remember Me機能
+- ログイン履歴表示
+</code></pre></div></div>
+
+<h4 id="phase-4高度な機能2週間">Phase 4：高度な機能（2週間）</h4>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Week 6-7:
+- MFA導入（TOTP）
+- OAuth2.0連携準備
+- 管理者向け機能
+</code></pre></div></div>
+
+<h3 id="セキュリティ考慮事項">セキュリティ考慮事項</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># セキュリティ設定の例
+</span><span class="n">SECURITY_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># パスワードポリシー
+</span>    <span class="s">"password"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">"min_length"</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+        <span class="s">"require_uppercase"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">"require_lowercase"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">"require_numbers"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">"require_special"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">"history_count"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># 過去5回のパスワードは再利用不可
+</span>        <span class="s">"max_age_days"</span><span class="p">:</span> <span class="mi">90</span>
+    <span class="p">},</span>
+    
+    <span class="c1"># セッション設定
+</span>    <span class="s">"session"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">"timeout_minutes"</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="s">"absolute_timeout_hours"</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s">"secure_cookie"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">"http_only"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">"same_site"</span><span class="p">:</span> <span class="s">"Strict"</span>
+    <span class="p">},</span>
+    
+    <span class="c1"># ロックアウト設定
+</span>    <span class="s">"lockout"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">"max_attempts"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s">"lockout_duration_minutes"</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="s">"reset_window_minutes"</span><span class="p">:</span> <span class="mi">15</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="将来の拡張性">将来の拡張性</h3>
+
+<ol>
+  <li><strong>データベース設計</strong>：
+    <div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- 拡張可能な認証情報テーブル</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">auth_methods</span> <span class="p">(</span>
+ <span class="n">user_id</span> <span class="nb">INT</span><span class="p">,</span>
+ <span class="n">method_type</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span>  <span class="c1">-- 'password', 'totp', 'webauthn'</span>
+ <span class="n">method_data</span> <span class="n">JSON</span><span class="p">,</span>
+ <span class="n">created_at</span> <span class="nb">TIMESTAMP</span><span class="p">,</span>
+ <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">method_type</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div>    </div>
+  </li>
+  <li><strong>APIの設計</strong>：
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST   /api/auth/register
+POST   /api/auth/login
+POST   /api/auth/logout
+POST   /api/auth/refresh
+GET    /api/auth/methods     # 利用可能な認証方式
+POST   /api/auth/mfa/setup   # MFA設定
+DELETE /api/auth/mfa         # MFA解除
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="問題5用語の説明">問題5：用語の説明</h2>
+
+<h3 id="シングルサインオンsso">シングルサインオン（SSO）</h3>
+
+<p><strong>経営層向け説明：</strong>
+「SSOは、会社の建物に入る際の『統合IDカード』のようなものです。1枚のカードで、正門、各フロア、会議室、すべてにアクセスできるように、1回のログインで複数のシステムが使えるようになります。従業員の生産性が向上し、パスワード忘れによるヘルプデスク対応も削減できます。」</p>
+
+<h3 id="多要素認証mfa">多要素認証（MFA）</h3>
+
+<p><strong>経営層向け説明：</strong>
+「銀行のATMをイメージしてください。キャッシュカード（持ち物）と暗証番号（知識）の2つが必要ですね。MFAも同じで、パスワードに加えて、スマートフォンに送られるコードなど、複数の要素で本人確認をします。これにより、パスワードが漏れても、不正アクセスを防げます。」</p>
+
+<h3 id="セッション管理">セッション管理</h3>
+
+<p><strong>経営層向け説明：</strong>
+「ホテルのチェックインに例えられます。一度フロントで本人確認をしたら、滞在中は部屋の鍵だけで出入りできますね。Webシステムも同じで、最初にログインしたら、その『滞在期間』中は再度パスワードを入力せずに作業できます。ただし、安全のため一定時間で『チェックアウト』させる仕組みも必要です。」</p>
+
+<h3 id="トークンベース認証">トークンベース認証</h3>
+
+<p><strong>経営層向け説明：</strong>
+「遊園地の『1日パスポート』のようなものです。入場時に本人確認をして発行されたパスポートを見せれば、各アトラクションで再度身分証明する必要はありません。デジタルの世界でも、最初の認証後に発行される『デジタルパスポート』（トークン）を使って、効率的にサービスを利用できます。」</p>
+
+<h2 id="チャレンジ問題脅威モデリング">チャレンジ問題：脅威モデリング</h2>
+
+<h3 id="想定される脅威">想定される脅威</h3>
+
+<ol>
+  <li><strong>内部不正アクセス</strong>
+    <ul>
+      <li><strong>脅威</strong>：医療従事者による権限外の患者情報閲覧</li>
+      <li><strong>影響度</strong>：高（プライバシー侵害、信頼失墜）</li>
+      <li><strong>発生可能性</strong>：中</li>
+      <li><strong>対策</strong>：
+```
+        <ul>
+          <li>職種別の厳格なRBAC実装</li>
+          <li>アクセスログの全件記録</li>
+          <li>異常アクセスのリアルタイム検知
+```</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>認証情報の窃取</strong>
+    <ul>
+      <li><strong>脅威</strong>：フィッシングによるID/パスワード詐取</li>
+      <li><strong>影響度</strong>：高（なりすましによる情報漏洩）</li>
+      <li><strong>発生可能性</strong>：高</li>
+      <li><strong>対策</strong>：
+```
+        <ul>
+          <li>医療従事者向けMFA必須化</li>
+          <li>フィッシング対策訓練</li>
+          <li>異常ログインの検知とアラート
+```</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>患者による他患者情報へのアクセス</strong>
+    <ul>
+      <li><strong>脅威</strong>：URLパラメータ改ざん等による他者情報閲覧</li>
+      <li><strong>影響度</strong>：高（個人情報漏洩）</li>
+      <li><strong>発生可能性</strong>：中</li>
+      <li><strong>対策</strong>：
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># オブジェクトレベルの認可チェック
+</span><span class="k">def</span> <span class="nf">get_patient_record</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">patient_id</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">.</span><span class="n">role</span> <span class="o">==</span> <span class="s">"patient"</span> <span class="ow">and</span> <span class="n">user</span><span class="p">.</span><span class="n">patient_id</span> <span class="o">!=</span> <span class="n">patient_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AuthorizationError</span><span class="p">(</span><span class="s">"Access denied"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fetch_record</span><span class="p">(</span><span class="n">patient_id</span><span class="p">)</span>
+</code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>外部連携における情報漏洩</strong>
+    <ul>
+      <li><strong>脅威</strong>：薬局システムとの通信経路での情報窃取</li>
+      <li><strong>影響度</strong>：高（処方箋情報の漏洩）</li>
+      <li><strong>発生可能性</strong>：低</li>
+      <li><strong>対策</strong>：
+```
+        <ul>
+          <li>API間のmTLS実装</li>
+          <li>JWTによる情報の最小化</li>
+          <li>監査ログの相互保存
+```</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>長期間の不正アクセス</strong>
+    <ul>
+      <li><strong>脅威</strong>：退職者アカウントの放置による継続的アクセス</li>
+      <li><strong>影響度</strong>：高（長期的な情報収集）</li>
+      <li><strong>発生可能性</strong>：中</li>
+      <li><strong>対策</strong>：
+```
+        <ul>
+          <li>HRシステムとの自動連携</li>
+          <li>定期的なアクセス権限の棚卸し</li>
+          <li>最終ログイン日時によるアカウント自動無効化
+```</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="リスク評価マトリクス">リスク評価マトリクス</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>影響度
+  高│ [1,2,3] │ [4,5]  │        │
+  中│         │        │        │
+  低│         │        │   [4]  │
+    └─────────┴────────┴────────┘
+      低        中        高
+                発生可能性
+</code></pre></div></div>
+
+<h3 id="残存リスクの評価">残存リスクの評価</h3>
+
+<p>すべての対策を実施しても、以下のリスクが残存：</p>
+
+<ol>
+  <li><strong>ソーシャルエンジニアリング</strong>：技術的対策では完全に防げない</li>
+  <li><strong>ゼロデイ攻撃</strong>：未知の脆弱性は対策不可能</li>
+  <li><strong>内部共謀</strong>：複数人による組織的な不正</li>
+</ol>
+
+<p>これらに対しては、継続的な教育、監視強化、インシデント対応体制の整備が必要。</p>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/appendices/appendix-d-references/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録D: 参考資料</span>
+      </a>
+    
+
+    <a href="/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/appendices/appendix-e-02/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録E-2: 第2章演習問題解答</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-e-01/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/assets/js/theme.js"></script>
+    <script defer src="/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>
