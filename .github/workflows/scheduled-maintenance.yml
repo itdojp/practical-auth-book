@@ -2,7 +2,6 @@ name: Scheduled Maintenance
 
 on:
   schedule:
-    # Run every Monday at 9:00 AM UTC
     - cron: '0 9 * * 1'
   workflow_dispatch:
 
@@ -14,78 +13,105 @@ permissions:
   issues: write
 
 jobs:
-  check-dependencies:
+  check:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v6
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Check for outdated dependencies
-      run: |
-        {
-          echo "## Dependency Check"
-          echo ""
-          echo "### Outdated Packages:"
-          echo '```'
-          npm outdated || true
-          echo '```'
-        } >> "$GITHUB_STEP_SUMMARY"
-        
-    - name: Security audit
-      run: |
-        {
-          echo "### Security Audit:"
-          echo '```'
-          npm audit --omit=dev || true
-          echo '```'
-        } >> "$GITHUB_STEP_SUMMARY"
-        
-    - name: Check broken external links
-      continue-on-error: true
-      run: |
-        # Install link checker
-        npm install -g linkinator
-        
-        # Build the book first
-        npm ci
-        npm run build
-        
-        # Check external links (limited to avoid rate limits)
-        {
-          echo "### External Link Check:"
-          echo '```'
-          linkinator docs --recurse --skip "localhost|127.0.0.1" --timeout 30000 || true
-          echo '```'
-        } >> "$GITHUB_STEP_SUMMARY"
-        
-    - name: Template update check
-      run: |
-        version="$(node -p 'require("./package.json").version')"
-        {
-          echo "### Template Version:"
-          echo "Current version: $version"
-          echo ""
-          echo "Check for updates at: https://github.com/itdojp/book-publishing-template2/releases"
-        } >> "$GITHUB_STEP_SUMMARY"
-        
-    - name: Create issue if problems found
-      if: failure()
-      uses: actions/github-script@v9
-      with:
-        script: |
-          const title = `Scheduled Maintenance Check - ${new Date().toISOString().split('T')[0]}`;
-          const body = `## Automated Maintenance Check\n\nThe scheduled maintenance check has found some issues that may need attention.\n\nPlease review the [workflow run](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}) for details.\n\n---\n_This issue was automatically created by the scheduled maintenance workflow._`;
-          
-          await github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: title,
-            body: body,
-            labels: ['maintenance', 'automated']
-          });
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies and build canonical site
+        id: build
+        shell: bash
+        run: |
+          set -o pipefail
+          npm ci --omit=optional 2>&1 | tee build.log
+          npm run build 2>&1 | tee -a build.log
+
+      - name: Check outdated dependencies
+        id: outdated
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npm outdated > outdated.log 2>&1
+          rc=$?
+          cat outdated.log >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" -eq 0 ]; then
+            echo 'found=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'found=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Security audit
+        id: audit
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npm audit --omit=dev > audit.log 2>&1
+          rc=$?
+          cat audit.log >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" -eq 0 ]; then
+            echo 'found=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'found=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check external links
+        id: links
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npm install --global linkinator
+          linkinator _site --recurse --skip 'localhost|127.0.0.1' --timeout 30000 > links.log 2>&1
+          rc=$?
+          cat links.log >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" -eq 0 ]; then
+            echo 'found=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'found=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update maintenance issue
+        if: always() && (steps.outdated.outputs.found == 'true' || steps.audit.outputs.found == 'true' || steps.links.outputs.found == 'true' || steps.build.outcome == 'failure')
+        uses: actions/github-script@v9
+        env:
+          OUTDATED: ${{ steps.outdated.outputs.found || 'false' }}
+          AUDIT: ${{ steps.audit.outputs.found || 'false' }}
+          LINKS: ${{ steps.links.outputs.found || 'false' }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        with:
+          script: |
+            const title = `Scheduled Maintenance Check - ${new Date().toISOString().split('T')[0]}`;
+            const marker = '<!-- scheduled-maintenance -->';
+            const body = `${marker}
+            ## Automated Maintenance Check
+
+            | Check | Result |
+            | --- | --- |
+            | Install/build infrastructure | ${process.env.BUILD_OUTCOME} |
+            | Outdated dependencies | ${process.env.OUTDATED} |
+            | Production audit findings | ${process.env.AUDIT} |
+            | External link findings | ${process.env.LINKS} |
+
+            Detection findings and command infrastructure failures are reported separately in the [workflow run](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}).
+            ${marker}`;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'maintenance,automated', per_page: 100
+            });
+            const existing = issues.find(issue => issue.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.update({owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body, title});
+            } else {
+              await github.rest.issues.create({owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['maintenance', 'automated']});
+            }
+
+      - name: Fail on infrastructure error
+        if: steps.build.outcome == 'failure'
+        run: exit 1
