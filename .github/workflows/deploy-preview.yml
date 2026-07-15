@@ -53,10 +53,10 @@ jobs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        # The build copies the root config into docs, so update the source first.
+        # The canonical Jekyll source is docs/, so update only its CI working copy.
         repo_name="${GITHUB_REPOSITORY#*/}"
         preview_baseurl="/${repo_name}/pr-preview/pr-${PR_NUMBER}"
-        sed -i "s|^baseurl:.*|baseurl: \"${preview_baseurl}\"|" _config.yml
+        sed -i "s|^baseurl:.*|baseurl: \"${preview_baseurl}\"|" docs/_config.yml
 
         npm run build
 
@@ -68,7 +68,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
-        folder: ./docs/
+        folder: ./_site/
         target-folder: pr-preview/pr-${{ github.event.pull_request.number }}
         clean: true
         force: false
