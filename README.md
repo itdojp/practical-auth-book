@@ -7,6 +7,9 @@
 - 環境構築と `runnable minimum`: [`docs/appendices/appendix-0-environment-setup/`](docs/appendices/appendix-0-environment-setup/)
 - シリーズ: [it-engineer-knowledge-architecture](https://github.com/itdojp/it-engineer-knowledge-architecture)
 
+PR previewは、現在のGitHub Pages設定（`main:/docs`）と別の`gh-pages`配下へ配置され、
+読者向けURLの成功を保証できないため廃止しています。公開確認はmainのPages URLを使用してください。
+
 ## ローカル品質ゲート
 
 公開前に、書籍メタデータと公開ナビゲーションの整合性を確認します。
