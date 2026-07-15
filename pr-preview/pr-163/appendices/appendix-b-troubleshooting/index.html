@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録B: トラブルシューティング - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-163/assets/css/main.css">
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-163/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/practical-auth-book/pr-preview/pr-163/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/practical-auth-book/pr-preview/pr-163/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録B: トラブルシューティング">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/practical-auth-book/pr-preview/pr-163/appendices/appendix-b-troubleshooting/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録B: トラブルシューティング">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/practical-auth-book/pr-preview/pr-163/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/practical-auth-book/pr-preview/pr-163/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-b-troubleshooting/" class="toc-link active" aria-current="page">
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録b-トラブルシューティング">付録B: トラブルシューティング</h1>
+
+<h2 id="b1-認証が失敗する場合">B.1 認証が失敗する場合</h2>
+
+<h3 id="b11-パスワード認証の問題">B.1.1 パスワード認証の問題</h3>
+
+<h4 id="症状正しいパスワードでもログインできない">症状：正しいパスワードでもログインできない</h4>
+
+<p><strong>確認ポイント</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># デバッグコード例
+</span><span class="k">def</span> <span class="nf">debug_password_auth</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"1. ユーザー検索: </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">find_by_username</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"   → ユーザーが見つかりません"</span><span class="p">)</span>
+        <span class="k">return</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"2. アカウント状態: active=</span><span class="si">{</span><span class="n">user</span><span class="p">.</span><span class="n">is_active</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">.</span><span class="n">is_active</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"   → アカウントが無効化されています"</span><span class="p">)</span>
+        <span class="k">return</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"3. パスワードハッシュ形式: </span><span class="si">{</span><span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">[</span><span class="si">:</span><span class="mi">20</span><span class="p">]</span><span class="si">}</span><span class="s">..."</span><span class="p">)</span>
+    
+    <span class="c1"># ハッシュアルゴリズムの確認
+</span>    <span class="k">if</span> <span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">"$2b$"</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"   → bcrypt形式"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">"$argon2"</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"   → Argon2形式"</span><span class="p">)</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"4. パスワード検証実行"</span><span class="p">)</span>
+    <span class="n">is_valid</span> <span class="o">=</span> <span class="n">verify_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"   → 結果: </span><span class="si">{</span><span class="n">is_valid</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>よくある原因と対策</strong>：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>原因</th>
+      <th>対策</th>
+      <th>確認方法</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>文字エンコーディング不一致</td>
+      <td>UTF-8統一</td>
+      <td><code class="language-plaintext highlighter-rouge">password.encode('utf-8')</code></td>
+    </tr>
+    <tr>
+      <td>ハッシュアルゴリズム不一致</td>
+      <td>移行処理実装</td>
+      <td>ハッシュプレフィックス確認</td>
+    </tr>
+    <tr>
+      <td>空白文字の扱い</td>
+      <td>trim()処理統一</td>
+      <td>前後空白の有無確認</td>
+    </tr>
+    <tr>
+      <td>大文字小文字の扱い</td>
+      <td>仕様明確化</td>
+      <td>ポリシー文書化</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="症状パスワードリセットが機能しない">症状：パスワードリセットが機能しない</h4>
+
+<p><strong>チェックリスト</strong>：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">email_configuration</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">SMTPサーバー接続確認</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">送信元メールアドレスのSPF/DKIM設定</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">メールテンプレートの変数展開</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">リンクの有効期限設定</span>
+
+<span class="na">token_generation</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">トークンの一意性</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">適切な有効期限（推奨：1〜2時間）</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">使用済みトークンの無効化</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">タイムゾーンの扱い</span>
+
+<span class="na">security_checks</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">レート制限の実装</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">同一ユーザーの複数リクエスト制御</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">トークンの暗号学的安全性</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">HTTPSでのみ送信</span>
+</code></pre></div></div>
+
+<h3 id="b12-多要素認証の問題">B.1.2 多要素認証の問題</h3>
+
+<h4 id="症状totp認証で時刻ずれエラー">症状：TOTP認証で時刻ずれエラー</h4>
+
+<p><strong>診断スクリプト</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pyotp</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="k">def</span> <span class="nf">diagnose_totp_issue</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">user_input_code</span><span class="p">):</span>
+    <span class="s">"""TOTP問題の診断"""</span>
+    <span class="n">totp</span> <span class="o">=</span> <span class="n">pyotp</span><span class="p">.</span><span class="n">TOTP</span><span class="p">(</span><span class="n">secret</span><span class="p">)</span>
+    
+    <span class="c1"># 現在時刻での正しいコード
+</span>    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">correct_code</span> <span class="o">=</span> <span class="n">totp</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"サーバー時刻: </span><span class="si">{</span><span class="n">datetime</span><span class="p">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="p">.</span><span class="n">utc</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"正しいコード: </span><span class="si">{</span><span class="n">correct_code</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"入力コード: </span><span class="si">{</span><span class="n">user_input_code</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="c1"># 時間窓での検証
+</span>    <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>  <span class="c1"># ±90秒
+</span>        <span class="n">time_at_offset</span> <span class="o">=</span> <span class="n">current_time</span> <span class="o">+</span> <span class="p">(</span><span class="n">offset</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">code_at_offset</span> <span class="o">=</span> <span class="n">totp</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">time_at_offset</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">code_at_offset</span> <span class="o">==</span> <span class="n">user_input_code</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"✓ コードは</span><span class="si">{</span><span class="n">offset</span> <span class="o">*</span> <span class="mi">30</span><span class="si">}</span><span class="s">秒のずれで一致"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    
+    <span class="k">print</span><span class="p">(</span><span class="s">"✗ 時間窓内で一致するコードなし"</span><span class="p">)</span>
+    
+    <span class="c1"># よくある問題の確認
+</span>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">user_input_code</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"! コードの桁数が正しくありません"</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user_input_code</span><span class="p">.</span><span class="n">isdigit</span><span class="p">():</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"! コードに数字以外が含まれています"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div>
+
+<p><strong>対策実装</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">FlexibleTOTPVerifier</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">future_window</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="s">"""
+        window: 過去方向の許容ステップ数
+        future_window: 未来方向の許容ステップ数
+        """</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">future_window</span> <span class="o">=</span> <span class="n">future_window</span>
+    
+    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">for_time</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="s">"""柔軟なTOTP検証"""</span>
+        <span class="k">if</span> <span class="n">for_time</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">for_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="c1"># pyotpのverifyメソッドを使用（時間窓対応）
+</span>        <span class="n">totp</span> <span class="o">=</span> <span class="n">pyotp</span><span class="p">.</span><span class="n">TOTP</span><span class="p">(</span><span class="n">secret</span><span class="p">)</span>
+        
+        <span class="c1"># 通常の検証
+</span>        <span class="k">if</span> <span class="n">totp</span><span class="p">.</span><span class="n">verify</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">for_time</span><span class="p">,</span> <span class="n">valid_window</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">window</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">0</span>
+        
+        <span class="c1"># 未来方向の検証（クライアント時刻が進んでいる場合）
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">future_window</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">future_window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">future_time</span> <span class="o">=</span> <span class="n">for_time</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">totp</span><span class="p">.</span><span class="n">verify</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">future_time</span><span class="p">,</span> <span class="n">valid_window</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">30</span>
+        
+        <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
+</code></pre></div></div>
+
+<h3 id="b13-webauthnfido2の問題">B.1.3 WebAuthn/FIDO2の問題</h3>
+
+<h4 id="症状ブラウザが認証器を認識しない">症状：ブラウザが認証器を認識しない</h4>
+
+<p><strong>ブラウザ互換性チェック</strong>：</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">async</span> <span class="kd">function</span> <span class="nx">checkWebAuthnSupport</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">report</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="na">supported</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="na">create</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="na">get</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="na">platformAuthenticator</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="na">conditionalMediation</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="na">userVerifying</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">};</span>
+    
+    <span class="c1">// 基本的なサポート</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">PublicKeyCredential</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">report</span><span class="p">.</span><span class="nx">supported</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        
+        <span class="c1">// create/getの確認</span>
+        <span class="nx">report</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nb">navigator</span><span class="p">.</span><span class="nx">credentials</span><span class="p">.</span><span class="nx">create</span> <span class="o">===</span> <span class="dl">'</span><span class="s1">function</span><span class="dl">'</span><span class="p">;</span>
+        <span class="nx">report</span><span class="p">.</span><span class="kd">get</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nb">navigator</span><span class="p">.</span><span class="nx">credentials</span><span class="p">.</span><span class="kd">get</span> <span class="o">===</span> <span class="dl">'</span><span class="s1">function</span><span class="dl">'</span><span class="p">;</span>
+        
+        <span class="c1">// プラットフォーム認証器</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">PublicKeyCredential</span><span class="p">.</span><span class="nx">isUserVerifyingPlatformAuthenticatorAvailable</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">report</span><span class="p">.</span><span class="nx">platformAuthenticator</span> <span class="o">=</span> 
+                <span class="k">await</span> <span class="nx">PublicKeyCredential</span><span class="p">.</span><span class="nx">isUserVerifyingPlatformAuthenticatorAvailable</span><span class="p">();</span>
+        <span class="p">}</span>
+        
+        <span class="c1">// Conditional Mediation (パスキー自動入力)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">PublicKeyCredential</span><span class="p">.</span><span class="nx">isConditionalMediationAvailable</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">report</span><span class="p">.</span><span class="nx">conditionalMediation</span> <span class="o">=</span> 
+                <span class="k">await</span> <span class="nx">PublicKeyCredential</span><span class="p">.</span><span class="nx">isConditionalMediationAvailable</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    
+    <span class="nx">console</span><span class="p">.</span><span class="nx">table</span><span class="p">(</span><span class="nx">report</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nx">report</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// HTTPS確認</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">location</span><span class="p">.</span><span class="nx">protocol</span> <span class="o">!==</span> <span class="dl">'</span><span class="s1">https:</span><span class="dl">'</span> <span class="o">&amp;&amp;</span> <span class="nx">location</span><span class="p">.</span><span class="nx">hostname</span> <span class="o">!==</span> <span class="dl">'</span><span class="s1">localhost</span><span class="dl">'</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="dl">'</span><span class="s1">WebAuthnはHTTPS環境でのみ動作します</span><span class="dl">'</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>一般的なエラーと対処法</strong>：</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">WebAuthnErrorHandler</span> <span class="p">{</span>
+    <span class="nx">handleError</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">errorMap</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="dl">'</span><span class="s1">NotAllowedError</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">ユーザーが認証をキャンセルしました</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">action</span><span class="p">:</span> <span class="dl">'</span><span class="s1">retry</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">userMessage</span><span class="p">:</span> <span class="dl">'</span><span class="s1">もう一度お試しください</span><span class="dl">'</span>
+            <span class="p">},</span>
+            <span class="dl">'</span><span class="s1">InvalidStateError</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">認証器がすでに登録されています</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">action</span><span class="p">:</span> <span class="dl">'</span><span class="s1">use_existing</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">userMessage</span><span class="p">:</span> <span class="dl">'</span><span class="s1">この認証器は登録済みです</span><span class="dl">'</span>
+            <span class="p">},</span>
+            <span class="dl">'</span><span class="s1">NotSupportedError</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">この認証器タイプはサポートされていません</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">action</span><span class="p">:</span> <span class="dl">'</span><span class="s1">fallback</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">userMessage</span><span class="p">:</span> <span class="dl">'</span><span class="s1">別の認証方法をお試しください</span><span class="dl">'</span>
+            <span class="p">},</span>
+            <span class="dl">'</span><span class="s1">SecurityError</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">セキュリティ要件を満たしていません</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">action</span><span class="p">:</span> <span class="dl">'</span><span class="s1">check_https</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">userMessage</span><span class="p">:</span> <span class="dl">'</span><span class="s1">HTTPS接続を確認してください</span><span class="dl">'</span>
+            <span class="p">},</span>
+            <span class="dl">'</span><span class="s1">AbortError</span><span class="dl">'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">操作がタイムアウトしました</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">action</span><span class="p">:</span> <span class="dl">'</span><span class="s1">retry</span><span class="dl">'</span><span class="p">,</span>
+                <span class="na">userMessage</span><span class="p">:</span> <span class="dl">'</span><span class="s1">時間内に認証を完了してください</span><span class="dl">'</span>
+            <span class="p">}</span>
+        <span class="p">};</span>
+        
+        <span class="kd">const</span> <span class="nx">errorInfo</span> <span class="o">=</span> <span class="nx">errorMap</span><span class="p">[</span><span class="nx">error</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">||</span> <span class="p">{</span>
+            <span class="na">message</span><span class="p">:</span> <span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">,</span>
+            <span class="na">action</span><span class="p">:</span> <span class="dl">'</span><span class="s1">contact_support</span><span class="dl">'</span><span class="p">,</span>
+            <span class="na">userMessage</span><span class="p">:</span> <span class="dl">'</span><span class="s1">エラーが発生しました</span><span class="dl">'</span>
+        <span class="p">};</span>
+        
+        <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">`WebAuthn Error: </span><span class="p">${</span><span class="nx">error</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="s2">`</span><span class="p">,</span> <span class="nx">error</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">errorInfo</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="b2-セッション管理の問題">B.2 セッション管理の問題</h2>
+
+<h3 id="b21-セッションが維持されない">B.2.1 セッションが維持されない</h3>
+
+<h4 id="症状ログイン直後にセッションが切れる">症状：ログイン直後にセッションが切れる</h4>
+
+<p><strong>診断手順</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">diagnose_session_issue</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+    <span class="s">"""セッション問題の診断"""</span>
+    <span class="n">issues</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># 1. Cookieの設定確認
+</span>    <span class="n">set_cookie_header</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'Set-Cookie'</span><span class="p">,</span> <span class="s">''</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s">'SameSite=None'</span> <span class="ow">in</span> <span class="n">set_cookie_header</span> <span class="ow">and</span> <span class="s">'Secure'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">set_cookie_header</span><span class="p">:</span>
+        <span class="n">issues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"SameSite=NoneにはSecure属性が必須"</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s">'HttpOnly'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">set_cookie_header</span><span class="p">:</span>
+        <span class="n">issues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"HttpOnly属性が設定されていません（XSS脆弱性）"</span><span class="p">)</span>
+    
+    <span class="c1"># 2. ドメイン設定の確認
+</span>    <span class="n">cookie_domain</span> <span class="o">=</span> <span class="n">extract_domain_from_cookie</span><span class="p">(</span><span class="n">set_cookie_header</span><span class="p">)</span>
+    <span class="n">request_host</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'Host'</span><span class="p">,</span> <span class="s">''</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">cookie_domain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">request_host</span><span class="p">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cookie_domain</span><span class="p">):</span>
+        <span class="n">issues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s">"Cookieドメイン(</span><span class="si">{</span><span class="n">cookie_domain</span><span class="si">}</span><span class="s">)とリクエストホスト(</span><span class="si">{</span><span class="n">request_host</span><span class="si">}</span><span class="s">)が不一致"</span><span class="p">)</span>
+    
+    <span class="c1"># 3. パス設定の確認
+</span>    <span class="n">cookie_path</span> <span class="o">=</span> <span class="n">extract_path_from_cookie</span><span class="p">(</span><span class="n">set_cookie_header</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cookie_path</span> <span class="o">!=</span> <span class="s">'/'</span><span class="p">:</span>
+        <span class="n">issues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s">"Cookieパスが制限されています: </span><span class="si">{</span><span class="n">cookie_path</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+    
+    <span class="c1"># 4. プロキシ設定の確認
+</span>    <span class="n">x_forwarded_proto</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'X-Forwarded-Proto'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x_forwarded_proto</span> <span class="o">==</span> <span class="s">'http'</span> <span class="ow">and</span> <span class="s">'Secure'</span> <span class="ow">in</span> <span class="n">set_cookie_header</span><span class="p">:</span>
+        <span class="n">issues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="s">"プロキシ背後でHTTP通信しているがSecure Cookieを設定"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">issues</span>
+</code></pre></div></div>
+
+<p><strong>Cookieトラブルシューティング表</strong>：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>問題</th>
+      <th>原因</th>
+      <th>解決策</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Safari/iOSで動作しない</td>
+      <td>SameSite=None未設定</td>
+      <td>明示的に設定 + Secure必須</td>
+    </tr>
+    <tr>
+      <td>サブドメイン間で共有されない</td>
+      <td>Domain属性なし</td>
+      <td><code class="language-plaintext highlighter-rouge">.example.com</code>形式で設定</td>
+    </tr>
+    <tr>
+      <td>APIコールで送信されない</td>
+      <td>CORS設定不備</td>
+      <td><code class="language-plaintext highlighter-rouge">credentials: 'include'</code></td>
+    </tr>
+    <tr>
+      <td>開発環境で動作しない</td>
+      <td>Secure属性</td>
+      <td>localhost例外処理追加</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="b22-分散環境でのセッション不整合">B.2.2 分散環境でのセッション不整合</h3>
+
+<h4 id="症状ロードバランサー配下でログイン状態が安定しない">症状：ロードバランサー配下でログイン状態が安定しない</h4>
+
+<p><strong>セッションストレージ診断</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">SessionStorageDiagnostics</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redis_clients</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">redis_clients</span> <span class="o">=</span> <span class="n">redis_clients</span>  <span class="c1"># 複数のRedisノード
+</span>    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">check_session_replication</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="s">"""セッションレプリケーションの確認"""</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">for</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">client</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">redis_clients</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># セッションデータの取得
+</span>                <span class="n">session_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s">"session:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">session_data</span><span class="p">:</span>
+                    <span class="n">results</span><span class="p">[</span><span class="n">node_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s">'exists'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                        <span class="s">'size'</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">session_data</span><span class="p">),</span>
+                        <span class="s">'ttl'</span><span class="p">:</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">ttl</span><span class="p">(</span><span class="sa">f</span><span class="s">"session:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+                    <span class="p">}</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">results</span><span class="p">[</span><span class="n">node_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">'exists'</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+                    
+            <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">results</span><span class="p">[</span><span class="n">node_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">'error'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+        
+        <span class="c1"># 整合性チェック
+</span>        <span class="n">unique_sessions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="n">r</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'size'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">.</span><span class="n">values</span><span class="p">()</span> 
+            <span class="k">if</span> <span class="n">r</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'exists'</span><span class="p">)</span>
+        <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_sessions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">"警告: ノード間でセッションデータのサイズが異なります"</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">results</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">test_session_persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""セッション永続性テスト"""</span>
+        <span class="n">test_session_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"test_</span><span class="si">{</span><span class="n">uuid</span><span class="p">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s">"</span>
+        <span class="n">test_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">"user"</span><span class="p">:</span> <span class="s">"test"</span><span class="p">,</span> <span class="s">"timestamp"</span><span class="p">:</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()}</span>
+        
+        <span class="c1"># 書き込みテスト
+</span>        <span class="n">write_results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">client</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">redis_clients</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">setex</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s">"session:</span><span class="si">{</span><span class="n">test_session_id</span><span class="si">}</span><span class="s">"</span><span class="p">,</span>
+                    <span class="mi">300</span><span class="p">,</span>  <span class="c1"># 5分
+</span>                    <span class="n">json</span><span class="p">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">write_results</span><span class="p">[</span><span class="n">node_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">'success'</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">'latency'</span><span class="p">:</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+                <span class="p">}</span>
+            <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">write_results</span><span class="p">[</span><span class="n">node_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">'success'</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="s">'error'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="p">}</span>
+        
+        <span class="c1"># レプリケーション待機
+</span>        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        
+        <span class="c1"># 読み取りテスト
+</span>        <span class="n">read_results</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">check_session_replication</span><span class="p">(</span><span class="n">test_session_id</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'write_results'</span><span class="p">:</span> <span class="n">write_results</span><span class="p">,</span>
+            <span class="s">'read_results'</span><span class="p">:</span> <span class="n">read_results</span><span class="p">,</span>
+            <span class="s">'replication_ok'</span><span class="p">:</span> <span class="nb">all</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'exists'</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">read_results</span><span class="p">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="b3-パフォーマンス問題">B.3 パフォーマンス問題</h2>
+
+<h3 id="b31-認証処理が遅い">B.3.1 認証処理が遅い</h3>
+
+<h4 id="症状ログインに数秒かかる">症状：ログインに数秒かかる</h4>
+
+<p><strong>パフォーマンスプロファイリング</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">cProfile</span>
+<span class="kn">import</span> <span class="nn">pstats</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="k">class</span> <span class="nc">AuthPerformanceProfiler</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">profile_authentication</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="s">"""認証処理のプロファイリング"""</span>
+        <span class="n">pr</span> <span class="o">=</span> <span class="n">cProfile</span><span class="p">.</span><span class="n">Profile</span><span class="p">()</span>
+        <span class="n">pr</span><span class="p">.</span><span class="n">enable</span><span class="p">()</span>
+        
+        <span class="c1"># 認証処理の実行
+</span>        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">authenticate_user</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">pr</span><span class="p">.</span><span class="n">disable</span><span class="p">()</span>
+        
+        <span class="c1"># 結果の解析
+</span>        <span class="n">s</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="n">pstats</span><span class="p">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">s</span><span class="p">).</span><span class="n">sort_stats</span><span class="p">(</span><span class="s">'cumulative'</span><span class="p">)</span>
+        <span class="n">ps</span><span class="p">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>  <span class="c1"># 上位20個の関数
+</span>        
+        <span class="c1"># ボトルネックの特定
+</span>        <span class="n">profile_data</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">getvalue</span><span class="p">()</span>
+        
+        <span class="c1"># パスワードハッシュ処理の時間
+</span>        <span class="n">bcrypt_time</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_extract_time</span><span class="p">(</span><span class="n">profile_data</span><span class="p">,</span> <span class="s">'bcrypt'</span><span class="p">)</span>
+        <span class="n">db_time</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_extract_time</span><span class="p">(</span><span class="n">profile_data</span><span class="p">,</span> <span class="s">'database'</span><span class="p">)</span>
+        
+        <span class="n">recommendations</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">if</span> <span class="n">bcrypt_time</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'issue'</span><span class="p">:</span> <span class="s">'bcryptコストファクターが高すぎる'</span><span class="p">,</span>
+                <span class="s">'current'</span><span class="p">:</span> <span class="n">bcrypt_time</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'コストファクターを12に調整'</span>
+            <span class="p">})</span>
+        
+        <span class="k">if</span> <span class="n">db_time</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'issue'</span><span class="p">:</span> <span class="s">'データベースクエリが遅い'</span><span class="p">,</span>
+                <span class="s">'current'</span><span class="p">:</span> <span class="n">db_time</span><span class="p">,</span>
+                <span class="s">'recommendation'</span><span class="p">:</span> <span class="s">'インデックスの追加、コネクションプーリング'</span>
+            <span class="p">})</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'total_time'</span><span class="p">:</span> <span class="n">pr</span><span class="p">.</span><span class="n">total_tt</span><span class="p">,</span>
+            <span class="s">'profile'</span><span class="p">:</span> <span class="n">profile_data</span><span class="p">,</span>
+            <span class="s">'recommendations'</span><span class="p">:</span> <span class="n">recommendations</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>最適化チェックリスト</strong>：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">database_optimization</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ユーザーテーブルのインデックス</span>
+    <span class="s">- username/emailカラム</span>
+    <span class="s">- 複合インデックスの検討</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">N+1クエリの解消</span>
+    <span class="s">- 権限情報の事前読み込み</span>
+    <span class="s">- JOINまたはバッチ取得</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">コネクションプーリング</span>
+    <span class="s">- 適切なプールサイズ</span>
+    <span class="s">- コネクション再利用</span>
+
+<span class="na">caching_strategy</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ユーザー情報のキャッシュ</span>
+    <span class="s">- TTL</span><span class="err">:</span> <span class="s">5〜10分</span>
+    <span class="s">- 更新時の無効化</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">権限情報のキャッシュ</span>
+    <span class="s">- TTL</span><span class="err">:</span> <span class="s">1時間</span>
+    <span class="s">- 役割変更時の無効化</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">セッションストアの最適化</span>
+    <span class="s">- Redisパイプライニング</span>
+    <span class="s">- バッチ操作</span>
+
+<span class="na">hash_optimization</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">適切なコストファクター</span>
+    <span class="s">- bcrypt</span><span class="err">:</span> <span class="s">10-12</span>
+    <span class="s">- argon2</span><span class="err">:</span> <span class="s">メモリとCPUのバランス</span>
+  <span class="pi">-</span> <span class="pi">[</span> <span class="pi">]</span> <span class="s">ハッシュ処理の非同期化</span>
+    <span class="s">- ワーカースレッド使用</span>
+    <span class="s">- イベントループのブロッキング回避</span>
+</code></pre></div></div>
+
+<h3 id="b32-大量ログイン時の障害">B.3.2 大量ログイン時の障害</h3>
+
+<h4 id="症状朝のラッシュ時にシステムダウン">症状：朝のラッシュ時にシステムダウン</h4>
+
+<p><strong>負荷シミュレーション</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">aiohttp</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="k">class</span> <span class="nc">LoadTestSimulator</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">total_users</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">total_users</span> <span class="o">=</span> <span class="n">total_users</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">simulate_morning_rush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""朝のログインラッシュをシミュレート"""</span>
+        <span class="c1"># 7:00-9:00の2時間で、ピークは8:00
+</span>        <span class="k">async</span> <span class="k">def</span> <span class="nf">user_login</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">delay</span><span class="p">):</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+            
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">base_url</span><span class="si">}</span><span class="s">/auth/login"</span><span class="p">,</span>
+                        <span class="n">json</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s">"username"</span><span class="p">:</span> <span class="sa">f</span><span class="s">"user</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s">"</span><span class="p">,</span>
+                            <span class="s">"password"</span><span class="p">:</span> <span class="s">"password"</span>
+                        <span class="p">},</span>
+                        <span class="n">timeout</span><span class="o">=</span><span class="n">aiohttp</span><span class="p">.</span><span class="n">ClientTimeout</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+                    <span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+                        
+                        <span class="bp">self</span><span class="p">.</span><span class="n">results</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                            <span class="s">'user_id'</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+                            <span class="s">'status'</span><span class="p">:</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span><span class="p">,</span>
+                            <span class="s">'response_time'</span><span class="p">:</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span>
+                            <span class="s">'timestamp'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">now</span><span class="p">()</span>
+                        <span class="p">})</span>
+                        
+                <span class="k">except</span> <span class="n">asyncio</span><span class="p">.</span><span class="nb">TimeoutError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">results</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s">'user_id'</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+                        <span class="s">'status'</span><span class="p">:</span> <span class="s">'timeout'</span><span class="p">,</span>
+                        <span class="s">'response_time'</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+                        <span class="s">'timestamp'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">now</span><span class="p">()</span>
+                    <span class="p">})</span>
+                <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">results</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s">'user_id'</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+                        <span class="s">'status'</span><span class="p">:</span> <span class="s">'error'</span><span class="p">,</span>
+                        <span class="s">'error'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                        <span class="s">'timestamp'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">now</span><span class="p">()</span>
+                    <span class="p">})</span>
+        
+        <span class="c1"># 正規分布でログイン時刻を分散
+</span>        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">total_users</span><span class="p">):</span>
+            <span class="c1"># 平均60分（8:00）、標準偏差20分
+</span>            <span class="n">delay</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+            <span class="n">tasks</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">user_login</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
+        
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+        <span class="n">total_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        
+        <span class="c1"># 結果の分析
+</span>        <span class="n">successful</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'status'</span><span class="p">)</span> <span class="o">==</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="n">failed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">results</span><span class="p">)</span> <span class="o">-</span> <span class="n">successful</span>
+        <span class="n">avg_response</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">mean</span><span class="p">([</span>
+            <span class="n">r</span><span class="p">[</span><span class="s">'response_time'</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">results</span> 
+            <span class="k">if</span> <span class="n">r</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'status'</span><span class="p">)</span> <span class="o">==</span> <span class="mi">200</span>
+        <span class="p">])</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'total_users'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">total_users</span><span class="p">,</span>
+            <span class="s">'successful_logins'</span><span class="p">:</span> <span class="n">successful</span><span class="p">,</span>
+            <span class="s">'failed_logins'</span><span class="p">:</span> <span class="n">failed</span><span class="p">,</span>
+            <span class="s">'success_rate'</span><span class="p">:</span> <span class="n">successful</span> <span class="o">/</span> <span class="bp">self</span><span class="p">.</span><span class="n">total_users</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s">'average_response_time'</span><span class="p">:</span> <span class="n">avg_response</span><span class="p">,</span>
+            <span class="s">'total_test_time'</span><span class="p">:</span> <span class="n">total_time</span><span class="p">,</span>
+            <span class="s">'requests_per_second'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">total_users</span> <span class="o">/</span> <span class="n">total_time</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>スケーリング対策</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">AutoScalingStrategy</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">metrics_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">scaling_decisions</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">def</span> <span class="nf">analyze_and_recommend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_metrics</span><span class="p">):</span>
+        <span class="s">"""メトリクスに基づくスケーリング推奨"""</span>
+        <span class="n">recommendations</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># CPU使用率ベース
+</span>        <span class="k">if</span> <span class="n">current_metrics</span><span class="p">[</span><span class="s">'cpu_usage'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">80</span><span class="p">:</span>
+            <span class="n">recommendations</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'scale_out'</span><span class="p">,</span>
+                <span class="s">'reason'</span><span class="p">:</span> <span class="s">'CPU使用率が80%を超過'</span><span class="p">,</span>
+                <span class="s">'action'</span><span class="p">:</span> <span class="s">'インスタンスを2台追加'</span><span class="p">,</span>
+                <span class="s">'priority'</span><span class="p">:</span> <span class="s">'high'</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># レスポンスタイムベース
+</span>        <span class="k">if</span> <span class="n">current_metrics</span><span class="p">[</span><span class="s">'p95_response_time'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>  <span class="c1"># 1秒
+</span>            <span class="n">recommendations</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'optimize'</span><span class="p">,</span>
+                <span class="s">'reason'</span><span class="p">:</span> <span class="s">'レスポンスタイムが遅い'</span><span class="p">,</span>
+                <span class="s">'action'</span><span class="p">:</span> <span class="s">'キャッシュ層の追加'</span><span class="p">,</span>
+                <span class="s">'priority'</span><span class="p">:</span> <span class="s">'medium'</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># エラー率ベース
+</span>        <span class="k">if</span> <span class="n">current_metrics</span><span class="p">[</span><span class="s">'error_rate'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>  <span class="c1"># 1%
+</span>            <span class="n">recommendations</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'investigate'</span><span class="p">,</span>
+                <span class="s">'reason'</span><span class="p">:</span> <span class="s">'エラー率が高い'</span><span class="p">,</span>
+                <span class="s">'action'</span><span class="p">:</span> <span class="s">'ログ分析とデバッグ'</span><span class="p">,</span>
+                <span class="s">'priority'</span><span class="p">:</span> <span class="s">'high'</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># 予測的スケーリング
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_predict_traffic_spike</span><span class="p">(</span><span class="n">current_metrics</span><span class="p">[</span><span class="s">'timestamp'</span><span class="p">]):</span>
+            <span class="n">recommendations</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'pre_scale'</span><span class="p">,</span>
+                <span class="s">'reason'</span><span class="p">:</span> <span class="s">'過去のパターンから負荷増大を予測'</span><span class="p">,</span>
+                <span class="s">'action'</span><span class="p">:</span> <span class="s">'30分前にインスタンス追加'</span><span class="p">,</span>
+                <span class="s">'priority'</span><span class="p">:</span> <span class="s">'medium'</span>
+            <span class="p">})</span>
+        
+        <span class="k">return</span> <span class="n">recommendations</span>
+</code></pre></div></div>
+
+<h2 id="b4-セキュリティインシデント対応">B.4 セキュリティインシデント対応</h2>
+
+<h3 id="b41-不正アクセスの検知と対応">B.4.1 不正アクセスの検知と対応</h3>
+
+<h4 id="症状異常なログイン試行の増加">症状：異常なログイン試行の増加</h4>
+
+<p><strong>リアルタイム検知システム</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">SecurityIncidentDetector</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">thresholds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'failed_login_rate'</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>  <span class="c1"># 5分間で10回
+</span>            <span class="s">'geo_velocity'</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>     <span class="c1"># km/h
+</span>            <span class="s">'concurrent_sessions'</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># 同時セッション数
+</span>            <span class="s">'unusual_hour_login'</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1"># 深夜帯
+</span>        <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">analyze_login_attempt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="s">"""ログイン試行の分析"""</span>
+        <span class="n">user_id</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s">'user_id'</span><span class="p">]</span>
+        
+        <span class="c1"># 1. ブルートフォース検知
+</span>        <span class="n">recent_failures</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_recent_failures</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recent_failures</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="p">.</span><span class="n">thresholds</span><span class="p">[</span><span class="s">'failed_login_rate'</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s">'risk_level'</span><span class="p">:</span> <span class="s">'critical'</span><span class="p">,</span>
+                <span class="s">'threat_type'</span><span class="p">:</span> <span class="s">'brute_force'</span><span class="p">,</span>
+                <span class="s">'action'</span><span class="p">:</span> <span class="s">'block_and_notify'</span><span class="p">,</span>
+                <span class="s">'details'</span><span class="p">:</span> <span class="sa">f</span><span class="s">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">recent_failures</span><span class="p">)</span><span class="si">}</span><span class="s">回の失敗'</span>
+            <span class="p">}</span>
+        
+        <span class="c1"># 2. 地理的異常検知
+</span>        <span class="n">last_location</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_last_login_location</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">last_location</span><span class="p">:</span>
+            <span class="n">velocity</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">calculate_velocity</span><span class="p">(</span>
+                <span class="n">last_location</span><span class="p">,</span> 
+                <span class="n">event</span><span class="p">[</span><span class="s">'location'</span><span class="p">],</span>
+                <span class="n">event</span><span class="p">[</span><span class="s">'timestamp'</span><span class="p">]</span> <span class="o">-</span> <span class="n">last_location</span><span class="p">[</span><span class="s">'timestamp'</span><span class="p">]</span>
+            <span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">velocity</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">thresholds</span><span class="p">[</span><span class="s">'geo_velocity'</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s">'risk_level'</span><span class="p">:</span> <span class="s">'high'</span><span class="p">,</span>
+                    <span class="s">'threat_type'</span><span class="p">:</span> <span class="s">'impossible_travel'</span><span class="p">,</span>
+                    <span class="s">'action'</span><span class="p">:</span> <span class="s">'require_2fa'</span><span class="p">,</span>
+                    <span class="s">'details'</span><span class="p">:</span> <span class="sa">f</span><span class="s">'移動速度: </span><span class="si">{</span><span class="n">velocity</span><span class="si">}</span><span class="s">km/h'</span>
+                <span class="p">}</span>
+        
+        <span class="c1"># 3. 同時セッション検知
+</span>        <span class="n">active_sessions</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_active_sessions</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_sessions</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="p">.</span><span class="n">thresholds</span><span class="p">[</span><span class="s">'concurrent_sessions'</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s">'risk_level'</span><span class="p">:</span> <span class="s">'medium'</span><span class="p">,</span>
+                <span class="s">'threat_type'</span><span class="p">:</span> <span class="s">'concurrent_sessions'</span><span class="p">,</span>
+                <span class="s">'action'</span><span class="p">:</span> <span class="s">'notify_user'</span><span class="p">,</span>
+                <span class="s">'details'</span><span class="p">:</span> <span class="sa">f</span><span class="s">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">active_sessions</span><span class="p">)</span><span class="si">}</span><span class="s">個の同時セッション'</span>
+            <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="p">{</span><span class="s">'risk_level'</span><span class="p">:</span> <span class="s">'low'</span><span class="p">,</span> <span class="s">'action'</span><span class="p">:</span> <span class="s">'allow'</span><span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>インシデント対応プレイブック</strong>：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">incident_response_playbook</span><span class="pi">:</span>
+  <span class="na">brute_force_attack</span><span class="pi">:</span>
+    <span class="na">detection</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">threshold</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10</span><span class="nv"> </span><span class="s">failed</span><span class="nv"> </span><span class="s">attempts</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">5</span><span class="nv"> </span><span class="s">minutes"</span>
+      <span class="pi">-</span> <span class="na">pattern</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Sequential</span><span class="nv"> </span><span class="s">username</span><span class="nv"> </span><span class="s">attempts"</span>
+    
+    <span class="na">immediate_actions</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">block_ip_address</span><span class="pi">:</span>
+          <span class="na">duration</span><span class="pi">:</span> <span class="s2">"</span><span class="s">24</span><span class="nv"> </span><span class="s">hours"</span>
+          <span class="na">scope</span><span class="pi">:</span> <span class="s2">"</span><span class="s">application_level"</span>
+      <span class="pi">-</span> <span class="na">enable_captcha</span><span class="pi">:</span>
+          <span class="na">affected_ips</span><span class="pi">:</span> <span class="s2">"</span><span class="s">attacking_ip_range"</span>
+      <span class="pi">-</span> <span class="na">notify_security_team</span><span class="pi">:</span>
+          <span class="na">priority</span><span class="pi">:</span> <span class="s2">"</span><span class="s">high"</span>
+          <span class="na">channels</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">slack"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">pagerduty"</span><span class="pi">]</span>
+    
+    <span class="na">investigation</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">check_logs</span><span class="pi">:</span>
+          <span class="na">timeframe</span><span class="pi">:</span> <span class="s2">"</span><span class="s">last_24_hours"</span>
+          <span class="na">focus</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">source_ips"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">user_agents"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">attempted_usernames"</span><span class="pi">]</span>
+      <span class="pi">-</span> <span class="na">analyze_pattern</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">credential_stuffing"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">dictionary_attack"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">targeted"</span><span class="pi">]</span>
+    
+    <span class="na">mitigation</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">implement_rate_limiting</span><span class="pi">:</span>
+          <span class="na">limit</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3</span><span class="nv"> </span><span class="s">attempts</span><span class="nv"> </span><span class="s">per</span><span class="nv"> </span><span class="s">5</span><span class="nv"> </span><span class="s">minutes"</span>
+      <span class="pi">-</span> <span class="na">enforce_account_lockout</span><span class="pi">:</span>
+          <span class="na">threshold</span><span class="pi">:</span> <span class="s2">"</span><span class="s">5</span><span class="nv"> </span><span class="s">failed</span><span class="nv"> </span><span class="s">attempts"</span>
+          <span class="na">duration</span><span class="pi">:</span> <span class="s2">"</span><span class="s">30</span><span class="nv"> </span><span class="s">minutes"</span>
+      <span class="pi">-</span> <span class="na">consider_ip_reputation</span><span class="pi">:</span>
+          <span class="na">service</span><span class="pi">:</span> <span class="s2">"</span><span class="s">abuseipdb"</span>
+          
+  <span class="na">account_takeover</span><span class="pi">:</span>
+    <span class="na">detection</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">indicators</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">unusual_location"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">new_device"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">suspicious_activity"</span><span class="pi">]</span>
+    
+    <span class="na">immediate_actions</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">suspend_account</span><span class="pi">:</span>
+          <span class="na">grace_period</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0"</span>
+      <span class="pi">-</span> <span class="na">invalidate_all_sessions</span><span class="pi">:</span>
+          <span class="na">except</span><span class="pi">:</span> <span class="s2">"</span><span class="s">verified_devices"</span>
+      <span class="pi">-</span> <span class="na">force_password_reset</span><span class="pi">:</span>
+          <span class="na">method</span><span class="pi">:</span> <span class="s2">"</span><span class="s">secure_email_link"</span>
+      
+    <span class="na">user_communication</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">send_notification</span><span class="pi">:</span>
+          <span class="na">channels</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">email"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">sms"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">push"</span><span class="pi">]</span>
+          <span class="na">template</span><span class="pi">:</span> <span class="s2">"</span><span class="s">security_alert"</span>
+      <span class="pi">-</span> <span class="na">provide_instructions</span><span class="pi">:</span>
+          <span class="na">content</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">verify_recent_activity"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">secure_account"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">contact_support"</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<h3 id="b42-データ漏洩の痕跡">B.4.2 データ漏洩の痕跡</h3>
+
+<h4 id="症状異常なデータアクセスパターン">症状：異常なデータアクセスパターン</h4>
+
+<p><strong>フォレンジック分析ツール</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">AuthForensicsAnalyzer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_sources</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log_sources</span> <span class="o">=</span> <span class="n">log_sources</span>
+        
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">analyze_user_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">timeframe</span><span class="p">):</span>
+        <span class="s">"""ユーザーアクティビティの詳細分析"""</span>
+        
+        <span class="c1"># すべてのログソースから情報収集
+</span>        <span class="n">auth_logs</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">log_sources</span><span class="p">[</span><span class="s">'auth'</span><span class="p">].</span><span class="n">query</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">timeframe</span><span class="p">)</span>
+        <span class="n">access_logs</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">log_sources</span><span class="p">[</span><span class="s">'access'</span><span class="p">].</span><span class="n">query</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">timeframe</span><span class="p">)</span>
+        <span class="n">audit_logs</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">log_sources</span><span class="p">[</span><span class="s">'audit'</span><span class="p">].</span><span class="n">query</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">timeframe</span><span class="p">)</span>
+        
+        <span class="c1"># タイムライン構築
+</span>        <span class="n">timeline</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">build_timeline</span><span class="p">(</span><span class="n">auth_logs</span><span class="p">,</span> <span class="n">access_logs</span><span class="p">,</span> <span class="n">audit_logs</span><span class="p">)</span>
+        
+        <span class="c1"># 異常パターンの検出
+</span>        <span class="n">anomalies</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># 1. 大量データアクセス
+</span>        <span class="n">data_access_volume</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">calculate_data_access_volume</span><span class="p">(</span><span class="n">access_logs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_access_volume</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_user_baseline</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">anomalies</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'excessive_data_access'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'high'</span><span class="p">,</span>
+                <span class="s">'volume'</span><span class="p">:</span> <span class="n">data_access_volume</span><span class="p">,</span>
+                <span class="s">'timeframe'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">identify_peak_period</span><span class="p">(</span><span class="n">access_logs</span><span class="p">)</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># 2. 異常なアクセスパターン
+</span>        <span class="n">access_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">analyze_access_pattern</span><span class="p">(</span><span class="n">access_logs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">access_pattern</span><span class="p">[</span><span class="s">'is_automated'</span><span class="p">]:</span>
+            <span class="n">anomalies</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'automated_access'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'critical'</span><span class="p">,</span>
+                <span class="s">'indicators'</span><span class="p">:</span> <span class="n">access_pattern</span><span class="p">[</span><span class="s">'indicators'</span><span class="p">],</span>
+                <span class="s">'confidence'</span><span class="p">:</span> <span class="n">access_pattern</span><span class="p">[</span><span class="s">'confidence'</span><span class="p">]</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># 3. 権限昇格の痕跡
+</span>        <span class="n">privilege_changes</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">detect_privilege_escalation</span><span class="p">(</span><span class="n">audit_logs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">privilege_changes</span><span class="p">:</span>
+            <span class="n">anomalies</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">'type'</span><span class="p">:</span> <span class="s">'privilege_escalation'</span><span class="p">,</span>
+                <span class="s">'severity'</span><span class="p">:</span> <span class="s">'critical'</span><span class="p">,</span>
+                <span class="s">'changes'</span><span class="p">:</span> <span class="n">privilege_changes</span>
+            <span class="p">})</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'user_id'</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="s">'timeframe'</span><span class="p">:</span> <span class="n">timeframe</span><span class="p">,</span>
+            <span class="s">'timeline'</span><span class="p">:</span> <span class="n">timeline</span><span class="p">,</span>
+            <span class="s">'anomalies'</span><span class="p">:</span> <span class="n">anomalies</span><span class="p">,</span>
+            <span class="s">'risk_score'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">calculate_risk_score</span><span class="p">(</span><span class="n">anomalies</span><span class="p">),</span>
+            <span class="s">'recommendations'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_recommendations</span><span class="p">(</span><span class="n">anomalies</span><span class="p">)</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">generate_forensics_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">analysis_results</span><span class="p">):</span>
+        <span class="s">"""フォレンジックレポートの生成"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'executive_summary'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">create_executive_summary</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">),</span>
+            <span class="s">'technical_details'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">'timeline'</span><span class="p">:</span> <span class="n">analysis_results</span><span class="p">[</span><span class="s">'timeline'</span><span class="p">],</span>
+                <span class="s">'anomalies'</span><span class="p">:</span> <span class="n">analysis_results</span><span class="p">[</span><span class="s">'anomalies'</span><span class="p">],</span>
+                <span class="s">'evidence'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">collect_evidence</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">)</span>
+            <span class="p">},</span>
+            <span class="s">'impact_assessment'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">assess_impact</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">),</span>
+            <span class="s">'remediation_steps'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">recommend_remediation</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">),</span>
+            <span class="s">'legal_considerations'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">identify_legal_requirements</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">)</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="b5-一般的なエラーメッセージと対処法">B.5 一般的なエラーメッセージと対処法</h2>
+
+<h3 id="b51-エラーメッセージ対応表">B.5.1 エラーメッセージ対応表</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>エラーメッセージ</th>
+      <th>考えられる原因</th>
+      <th>対処法</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>“Invalid CSRF token”</td>
+      <td>セッション切れ、Cookie無効</td>
+      <td>ページリロード、Cookie設定確認</td>
+    </tr>
+    <tr>
+      <td>“Token signature verification failed”</td>
+      <td>秘密鍵不一致、改ざん</td>
+      <td>鍵設定確認、トークン再発行</td>
+    </tr>
+    <tr>
+      <td>“Rate limit exceeded”</td>
+      <td>短時間の多数リクエスト</td>
+      <td>レート制限値の調整、分散処理</td>
+    </tr>
+    <tr>
+      <td>“Session expired”</td>
+      <td>タイムアウト、Redis接続断</td>
+      <td>セッション延長、Redis監視</td>
+    </tr>
+    <tr>
+      <td>“Invalid state parameter”</td>
+      <td>OAuth state不一致</td>
+      <td>セッション設定、CSRF対策確認</td>
+    </tr>
+    <tr>
+      <td>“Authenticator not found”</td>
+      <td>WebAuthn登録なし</td>
+      <td>登録フロー案内、フォールバック</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="b52-デバッグ用ユーティリティ">B.5.2 デバッグ用ユーティリティ</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">AuthDebugger</span><span class="p">:</span>
+    <span class="s">"""認証デバッグ用ユーティリティ"""</span>
+    
+    <span class="o">@</span><span class="nb">staticmethod</span>
+    <span class="k">def</span> <span class="nf">decode_jwt_unsafe</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+        <span class="s">"""JWTをデコード（検証なし、デバッグ用のみ）"""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">token</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">'.'</span><span class="p">)</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">'=='</span><span class="p">))</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="n">base64</span><span class="p">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">'=='</span><span class="p">))</span>
+            
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s">'header'</span><span class="p">:</span> <span class="n">header</span><span class="p">,</span>
+                <span class="s">'payload'</span><span class="p">:</span> <span class="n">payload</span><span class="p">,</span>
+                <span class="s">'signature'</span><span class="p">:</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s">'expires_at'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">payload</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'exp'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                <span class="s">'issued_at'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">payload</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'iat'</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s">'error'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+    
+    <span class="o">@</span><span class="nb">staticmethod</span>
+    <span class="k">def</span> <span class="nf">test_password_encoding</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+        <span class="s">"""パスワードエンコーディングのテスト"""</span>
+        <span class="n">encodings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'utf-8'</span><span class="p">:</span> <span class="n">password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">),</span>
+            <span class="s">'latin-1'</span><span class="p">:</span> <span class="n">password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'latin-1'</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">'ignore'</span><span class="p">),</span>
+            <span class="s">'ascii'</span><span class="p">:</span> <span class="n">password</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'ascii'</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">'ignore'</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">encoded</span> <span class="ow">in</span> <span class="n">encodings</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">encoding</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">'bytes'</span><span class="p">:</span> <span class="n">encoded</span><span class="p">,</span>
+                <span class="s">'hex'</span><span class="p">:</span> <span class="n">encoded</span><span class="p">.</span><span class="nb">hex</span><span class="p">(),</span>
+                <span class="s">'length'</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+            <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">results</span>
+    
+    <span class="o">@</span><span class="nb">staticmethod</span>
+    <span class="k">def</span> <span class="nf">verify_system_time</span><span class="p">():</span>
+        <span class="s">"""システム時刻の確認"""</span>
+        <span class="kn">import</span> <span class="nn">ntplib</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ntp_client</span> <span class="o">=</span> <span class="n">ntplib</span><span class="p">.</span><span class="n">NTPClient</span><span class="p">()</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">ntp_client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s">'pool.ntp.org'</span><span class="p">)</span>
+            
+            <span class="n">local_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">ntp_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="n">tx_time</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">local_time</span> <span class="o">-</span> <span class="n">ntp_time</span>
+            
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s">'local_time'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">local_time</span><span class="p">),</span>
+                <span class="s">'ntp_time'</span><span class="p">:</span> <span class="n">datetime</span><span class="p">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">ntp_time</span><span class="p">),</span>
+                <span class="s">'difference_seconds'</span><span class="p">:</span> <span class="n">diff</span><span class="p">,</span>
+                <span class="s">'synchronized'</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span>
+            <span class="p">}</span>
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s">'error'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+</code></pre></div></div>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-a-libraries/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録A: ライブラリとツール</span>
+      </a>
+    
+
+    <a href="/practical-auth-book/pr-preview/pr-163/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-c-glossary/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録C: 用語集</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-b-troubleshooting/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/practical-auth-book/pr-preview/pr-163/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-163/assets/js/theme.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-163/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

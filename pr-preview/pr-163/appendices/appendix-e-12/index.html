@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>付録E-12: 第12章演習問題解答 - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-163/assets/css/main.css">
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-163/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/practical-auth-book/pr-preview/pr-163/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/practical-auth-book/pr-preview/pr-163/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="付録E-12: 第12章演習問題解答">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-12/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="付録E-12: 第12章演習問題解答">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/practical-auth-book/pr-preview/pr-163/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/practical-auth-book/pr-preview/pr-163/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/introduction/" class="toc-link " >
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-12/" class="toc-link active" aria-current="page">
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="付録e-12-第12章演習問題解答">付録E-12: 第12章演習問題解答</h1>
+
+<h2 id="問題1ボトルネック分析">問題1：ボトルネック分析</h2>
+
+<h3 id="解答">解答</h3>
+
+<p><strong>分析結果</strong>：</p>
+
+<ol>
+  <li><strong>異常な処理時間</strong>：
+    <ul>
+      <li>Permission loading (230ms) - 最大のボトルネック</li>
+      <li>User query (120ms) - 過度に遅い</li>
+      <li>Session creation (85ms) - 改善余地あり</li>
+    </ul>
+  </li>
+  <li><strong>セキュリティ上の問題</strong>：
+    <ul>
+      <li>MD5ハッシュ (15ms) - 脆弱で高速すぎる</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>改善策</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">OptimizedAuthService</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="c1"># 1. コネクションプーリングの活用
+</span>        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">db_pool</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="c1"># 2. 効率的なクエリ（JOINで1回のクエリに）
+</span>            <span class="n">user_with_permissions</span> <span class="o">=</span> <span class="k">await</span> <span class="n">conn</span><span class="p">.</span><span class="n">fetchone</span><span class="p">(</span><span class="s">"""
+                SELECT u.*, array_agg(p.permission) as permissions
+                FROM users u
+                LEFT JOIN user_permissions up ON u.id = up.user_id
+                LEFT JOIN permissions p ON up.permission_id = p.id
+                WHERE u.username = $1
+                GROUP BY u.id
+            """</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+            
+        <span class="c1"># 3. bcryptへの移行（セキュリティ強化）
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">verify_password_async</span><span class="p">(</span>
+            <span class="n">password</span><span class="p">,</span> <span class="n">user_with_permissions</span><span class="p">[</span><span class="s">'password_hash'</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">AuthenticationError</span><span class="p">()</span>
+        
+        <span class="c1"># 4. 非同期セッション作成
+</span>        <span class="n">session_task</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">create_session_async</span><span class="p">(</span><span class="n">user_with_permissions</span><span class="p">)</span>
+        
+        <span class="c1"># 5. 権限情報はすでに取得済み
+</span>        <span class="n">permissions</span> <span class="o">=</span> <span class="n">user_with_permissions</span><span class="p">[</span><span class="s">'permissions'</span><span class="p">]</span>
+        
+        <span class="n">session</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session_task</span>
+        
+        <span class="k">return</span> <span class="n">session</span><span class="p">,</span> <span class="n">permissions</span>
+</code></pre></div></div>
+
+<p><strong>期待される改善</strong>：</p>
+<ul>
+  <li>Total: 495ms → 150ms以下</li>
+  <li>並列処理により、全体的な処理時間を削減</li>
+  <li>セキュリティの向上（MD5→bcrypt）</li>
+</ul>
+
+<h2 id="問題2キャッシュ戦略の設計">問題2：キャッシュ戦略の設計</h2>
+
+<h3 id="解答-1">解答</h3>
+
+<p><strong>キャッシュアーキテクチャ</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CacheStrategy</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># L1: ローカルメモリキャッシュ
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">l1_config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'user_basic'</span><span class="p">:</span> <span class="p">{</span><span class="s">'ttl'</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span> <span class="s">'max_size'</span><span class="p">:</span> <span class="mi">10000</span><span class="p">},</span>
+            <span class="s">'session'</span><span class="p">:</span> <span class="p">{</span><span class="s">'ttl'</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="s">'max_size'</span><span class="p">:</span> <span class="mi">50000</span><span class="p">}</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># L2: Redis クラスター
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">l2_config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">'user_permissions'</span><span class="p">:</span> <span class="p">{</span><span class="s">'ttl'</span><span class="p">:</span> <span class="mi">3600</span><span class="p">},</span>  <span class="c1"># 1時間
+</span>            <span class="s">'user_profile'</span><span class="p">:</span> <span class="p">{</span><span class="s">'ttl'</span><span class="p">:</span> <span class="mi">1800</span><span class="p">},</span>      <span class="c1"># 30分
+</span>            <span class="s">'session_data'</span><span class="p">:</span> <span class="p">{</span><span class="s">'ttl'</span><span class="p">:</span> <span class="mi">1800</span><span class="p">},</span>      <span class="c1"># 30分
+</span>            <span class="s">'role_definitions'</span><span class="p">:</span> <span class="p">{</span><span class="s">'ttl'</span><span class="p">:</span> <span class="mi">86400</span><span class="p">}</span>   <span class="c1"># 24時間
+</span>        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">get_cache_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_type</span><span class="p">,</span> <span class="n">identifier</span><span class="p">):</span>
+        <span class="s">"""キャッシュキーの生成"""</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_cache_version</span><span class="p">(</span><span class="n">data_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s">"</span><span class="si">{</span><span class="n">data_type</span><span class="si">}</span><span class="s">:v</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s">:</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s">"</span>
+    
+    <span class="k">def</span> <span class="nf">invalidation_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""キャッシュ無効化戦略"""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'user_update'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'user_basic:*'</span><span class="p">,</span>
+                <span class="s">'user_permissions:*'</span><span class="p">,</span>
+                <span class="s">'user_profile:*'</span>
+            <span class="p">],</span>
+            <span class="s">'permission_change'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'user_permissions:*'</span><span class="p">,</span>
+                <span class="s">'role_definitions:*'</span>
+            <span class="p">],</span>
+            <span class="s">'session_logout'</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">'session:*'</span><span class="p">,</span>
+                <span class="s">'session_data:*'</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>実装設計</strong>：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Redis Cluster構成</span>
+<span class="na">redis_cluster</span><span class="pi">:</span>
+  <span class="na">nodes</span><span class="pi">:</span> <span class="m">6</span>  <span class="c1"># 3マスター、3スレーブ</span>
+  <span class="na">replication_factor</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">eviction_policy</span><span class="pi">:</span> <span class="s">allkeys-lru</span>
+  <span class="na">maxmemory</span><span class="pi">:</span> <span class="s">8gb</span>
+  
+<span class="c1"># キャッシュウォーミング戦略</span>
+<span class="na">cache_warming</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">target</span><span class="pi">:</span> <span class="s">active_users</span>
+    <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">*/15</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>  <span class="c1"># 15分ごと</span>
+    <span class="na">query</span><span class="pi">:</span> <span class="pi">|</span>
+      <span class="s">SELECT u.id, u.username, array_agg(p.permission) as permissions</span>
+      <span class="s">FROM users u</span>
+      <span class="s">JOIN user_permissions up ON u.id = up.user_id</span>
+      <span class="s">JOIN permissions p ON up.permission_id = p.id</span>
+      <span class="s">WHERE u.last_login &gt; NOW() - INTERVAL '1 hour'</span>
+      <span class="s">GROUP BY u.id</span>
+</code></pre></div></div>
+
+<h2 id="問題3負荷試験シナリオ">問題3：負荷試験シナリオ</h2>
+
+<h3 id="解答-2">解答</h3>
+
+<p><strong>テストシナリオ</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># シナリオ1: 通常ログインパターン
+</span><span class="k">class</span> <span class="nc">NormalLoginScenario</span><span class="p">:</span>
+    <span class="s">"""朝の出社時を想定したログインラッシュ"""</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">'duration'</span><span class="p">:</span> <span class="s">'30m'</span><span class="p">,</span>
+        <span class="s">'users'</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="s">'ramp_up'</span><span class="p">:</span> <span class="s">'5m'</span><span class="p">,</span>
+        <span class="s">'pattern'</span><span class="p">:</span> <span class="s">'gradual'</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+        <span class="c1"># 1. ログイン
+</span>        <span class="n">token</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        
+        <span class="c1"># 2. プロフィール取得（認証必要）
+</span>        <span class="n">profile</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_profile</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        
+        <span class="c1"># 3. 作業（トークン更新含む）
+</span>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">)):</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">do_work</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+        
+        <span class="c1"># 4. ログアウト
+</span>        <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">logout</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+<span class="c1"># シナリオ2: トークンリフレッシュ集中
+</span><span class="k">class</span> <span class="nc">TokenRefreshScenario</span><span class="p">:</span>
+    <span class="s">"""トークン有効期限付近での更新集中"""</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">'duration'</span><span class="p">:</span> <span class="s">'15m'</span><span class="p">,</span>
+        <span class="s">'users'</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+        <span class="s">'token_lifetime'</span><span class="p">:</span> <span class="s">'5m'</span><span class="p">,</span>
+        <span class="s">'refresh_window'</span><span class="p">:</span> <span class="s">'30s'</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">)</span>
+        
+        <span class="c1"># トークン有効期限まで待機
+</span>        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">270</span><span class="p">)</span>  <span class="c1"># 4.5分
+</span>        
+        <span class="c1"># 同時リフレッシュ
+</span>        <span class="n">new_token</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">refresh_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+<span class="c1"># シナリオ3: 異常系混在
+</span><span class="k">class</span> <span class="nc">MixedErrorScenario</span><span class="p">:</span>
+    <span class="s">"""正常系と異常系の混在"""</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">'duration'</span><span class="p">:</span> <span class="s">'20m'</span><span class="p">,</span>
+        <span class="s">'users'</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
+        <span class="s">'error_rate'</span><span class="p">:</span> <span class="mf">0.3</span>
+    <span class="p">}</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.3</span><span class="p">:</span>
+            <span class="c1"># 異常系：間違ったパスワード
+</span>            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="s">"wrong_password"</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">AuthenticationError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 正常系
+</span>            <span class="n">token</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">get_profile</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>測定メトリクス</strong>：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">metrics</span><span class="pi">:</span>
+  <span class="na">performance</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">response_time_p50</span>
+    <span class="pi">-</span> <span class="s">response_time_p95</span>
+    <span class="pi">-</span> <span class="s">response_time_p99</span>
+    <span class="pi">-</span> <span class="s">requests_per_second</span>
+    <span class="pi">-</span> <span class="s">concurrent_users</span>
+    
+  <span class="na">reliability</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">error_rate</span>
+    <span class="pi">-</span> <span class="s">timeout_rate</span>
+    <span class="pi">-</span> <span class="s">success_rate_by_endpoint</span>
+    
+  <span class="na">resource</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">cpu_usage_api</span>
+    <span class="pi">-</span> <span class="s">memory_usage_api</span>
+    <span class="pi">-</span> <span class="s">db_connections_active</span>
+    <span class="pi">-</span> <span class="s">db_query_time</span>
+    <span class="pi">-</span> <span class="s">cache_hit_rate</span>
+    
+  <span class="na">business</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">login_success_rate</span>
+    <span class="pi">-</span> <span class="s">average_session_duration</span>
+    <span class="pi">-</span> <span class="s">token_refresh_success_rate</span>
+
+<span class="na">performance_criteria</span><span class="pi">:</span>
+  <span class="na">response_time_p95</span><span class="pi">:</span> <span class="s">&lt; 500ms</span>
+  <span class="na">response_time_p99</span><span class="pi">:</span> <span class="s">&lt; 1000ms</span>
+  <span class="na">error_rate</span><span class="pi">:</span> <span class="s">&lt; 0.1%</span>
+  <span class="na">cpu_usage</span><span class="pi">:</span> <span class="s">&lt; 80%</span>
+  <span class="na">cache_hit_rate</span><span class="pi">:</span> <span class="pi">&gt;</span> <span class="err">90%</span>
+</code></pre></div></div>
+
+<h2 id="問題4モニタリング実装">問題4：モニタリング実装</h2>
+
+<h3 id="解答-3">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">prometheus_client</span> <span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">Histogram</span><span class="p">,</span> <span class="n">Gauge</span>
+<span class="kn">from</span> <span class="nn">opentelemetry</span> <span class="kn">import</span> <span class="n">trace</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="c1"># メトリクス定義
+</span><span class="n">auth_requests</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span>
+    <span class="s">'auth_requests_total'</span><span class="p">,</span> 
+    <span class="s">'Total authentication requests'</span><span class="p">,</span>
+    <span class="p">[</span><span class="s">'status'</span><span class="p">,</span> <span class="s">'error_type'</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">auth_duration</span> <span class="o">=</span> <span class="n">Histogram</span><span class="p">(</span>
+    <span class="s">'auth_duration_seconds'</span><span class="p">,</span>
+    <span class="s">'Authentication request duration'</span><span class="p">,</span>
+    <span class="p">[</span><span class="s">'operation'</span><span class="p">],</span>
+    <span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">active_sessions</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span>
+    <span class="s">'active_sessions'</span><span class="p">,</span>
+    <span class="s">'Number of active sessions'</span>
+<span class="p">)</span>
+
+<span class="n">cache_operations</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span>
+    <span class="s">'cache_operations_total'</span><span class="p">,</span>
+    <span class="s">'Cache operations'</span><span class="p">,</span>
+    <span class="p">[</span><span class="s">'operation'</span><span class="p">,</span> <span class="s">'result'</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># トレーサー設定
+</span><span class="n">tracer</span> <span class="o">=</span> <span class="n">trace</span><span class="p">.</span><span class="n">get_tracer</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="c1"># デコレーターヘルパー
+</span><span class="k">def</span> <span class="nf">monitor_operation</span><span class="p">(</span><span class="n">operation_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="o">@</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">tracer</span><span class="p">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="n">operation_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">span</span><span class="p">:</span>
+                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="n">auth_duration</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="n">operation_name</span><span class="p">).</span><span class="n">observe</span><span class="p">(</span>
+                        <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="n">result</span>
+                <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">span</span><span class="p">.</span><span class="n">record_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="n">span</span><span class="p">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">trace</span><span class="p">.</span><span class="n">Status</span><span class="p">(</span><span class="n">trace</span><span class="p">.</span><span class="n">StatusCode</span><span class="p">.</span><span class="n">ERROR</span><span class="p">))</span>
+                    <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">wrapper</span>
+    <span class="k">return</span> <span class="n">decorator</span>
+
+<span class="k">class</span> <span class="nc">MonitoredAuthenticationService</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">DatabaseConnection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">RedisCache</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="p">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">tracer</span><span class="p">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="s">"authenticate"</span><span class="p">)</span> <span class="k">as</span> <span class="n">span</span><span class="p">:</span>
+            <span class="n">span</span><span class="p">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s">"user.username"</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># ユーザー取得（キャッシュチェック付き）
+</span>                <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_get_user_with_cache</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+                
+                <span class="c1"># パスワード検証
+</span>                <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_verify_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password_hash</span><span class="p">):</span>
+                    <span class="n">auth_requests</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+                        <span class="n">status</span><span class="o">=</span><span class="s">'failure'</span><span class="p">,</span>
+                        <span class="n">error_type</span><span class="o">=</span><span class="s">'invalid_password'</span>
+                    <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="n">InvalidPasswordError</span><span class="p">()</span>
+                
+                <span class="c1"># セッション作成
+</span>                <span class="n">session</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">_create_session</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                
+                <span class="c1"># 成功メトリクス
+</span>                <span class="n">auth_requests</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+                    <span class="n">status</span><span class="o">=</span><span class="s">'success'</span><span class="p">,</span>
+                    <span class="n">error_type</span><span class="o">=</span><span class="s">'none'</span>
+                <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+                
+                <span class="n">auth_duration</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s">'authenticate'</span><span class="p">).</span><span class="n">observe</span><span class="p">(</span>
+                    <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+                <span class="p">)</span>
+                
+                <span class="bp">self</span><span class="p">.</span><span class="n">logger</span><span class="p">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s">"Authentication successful"</span><span class="p">,</span>
+                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s">'user_id'</span><span class="p">:</span> <span class="n">user</span><span class="p">.</span><span class="nb">id</span><span class="p">,</span>
+                        <span class="s">'duration'</span><span class="p">:</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span>
+                        <span class="s">'method'</span><span class="p">:</span> <span class="s">'password'</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+                
+                <span class="k">return</span> <span class="n">session</span>
+                
+            <span class="k">except</span> <span class="n">UserNotFoundError</span><span class="p">:</span>
+                <span class="n">auth_requests</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+                    <span class="n">status</span><span class="o">=</span><span class="s">'failure'</span><span class="p">,</span>
+                    <span class="n">error_type</span><span class="o">=</span><span class="s">'user_not_found'</span>
+                <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+                <span class="n">span</span><span class="p">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s">"error.type"</span><span class="p">,</span> <span class="s">"user_not_found"</span><span class="p">)</span>
+                <span class="k">raise</span>
+                
+            <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">auth_requests</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+                    <span class="n">status</span><span class="o">=</span><span class="s">'error'</span><span class="p">,</span>
+                    <span class="n">error_type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">).</span><span class="n">__name__</span>
+                <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+                <span class="n">span</span><span class="p">.</span><span class="n">record_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">logger</span><span class="p">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s">"Authentication error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">,</span>
+                    <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s">'username'</span><span class="p">:</span> <span class="n">username</span><span class="p">}</span>
+                <span class="p">)</span>
+                <span class="k">raise</span>
+    
+    <span class="o">@</span><span class="n">monitor_operation</span><span class="p">(</span><span class="s">"get_user"</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_user_with_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="c1"># キャッシュチェック
+</span>        <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"user:</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s">"</span>
+        <span class="n">cached_user</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">cache</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">cached_user</span><span class="p">:</span>
+            <span class="n">cache_operations</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+                <span class="n">operation</span><span class="o">=</span><span class="s">'get'</span><span class="p">,</span>
+                <span class="n">result</span><span class="o">=</span><span class="s">'hit'</span>
+            <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">cached_user</span>
+        
+        <span class="n">cache_operations</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+            <span class="n">operation</span><span class="o">=</span><span class="s">'get'</span><span class="p">,</span>
+            <span class="n">result</span><span class="o">=</span><span class="s">'miss'</span>
+        <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+        
+        <span class="c1"># DBから取得
+</span>        <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">db</span><span class="p">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UserNotFoundError</span><span class="p">()</span>
+        
+        <span class="c1"># キャッシュに保存
+</span>        <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">cache</span><span class="p">.</span><span class="nb">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+        <span class="n">cache_operations</span><span class="p">.</span><span class="n">labels</span><span class="p">(</span>
+            <span class="n">operation</span><span class="o">=</span><span class="s">'set'</span><span class="p">,</span>
+            <span class="n">result</span><span class="o">=</span><span class="s">'success'</span>
+        <span class="p">).</span><span class="n">inc</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="n">user</span>
+    
+    <span class="o">@</span><span class="n">monitor_operation</span><span class="p">(</span><span class="s">"verify_password"</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_verify_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">password_hash</span><span class="p">):</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">verify_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">password_hash</span><span class="p">)</span>
+    
+    <span class="o">@</span><span class="n">monitor_operation</span><span class="p">(</span><span class="s">"create_session"</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">create_session</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">cache</span><span class="p">.</span><span class="nb">set</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s">"session:</span><span class="si">{</span><span class="n">session</span><span class="p">.</span><span class="nb">id</span><span class="si">}</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">session</span><span class="p">,</span>
+            <span class="n">ttl</span><span class="o">=</span><span class="mi">1800</span>
+        <span class="p">)</span>
+        <span class="n">active_sessions</span><span class="p">.</span><span class="n">inc</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">session</span>
+</code></pre></div></div>
+
+<h2 id="問題5スケーラビリティ改善">問題5：スケーラビリティ改善</h2>
+
+<h3 id="解答-4">解答</h3>
+
+<p><strong>問題点</strong>：</p>
+<ol>
+  <li>単一障害点（SPOF）: 認証API、DB、Redisがすべて単一インスタンス</li>
+  <li>ボトルネック: 認証APIのCPU使用率80%は限界に近い</li>
+  <li>レスポンス時間: 800msは過度に遅い</li>
+  <li>将来の負荷（6倍）に対応不可能</li>
+</ol>
+
+<p><strong>改善アーキテクチャ</strong>：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 改善後のアーキテクチャ</span>
+<span class="na">architecture</span><span class="pi">:</span>
+  <span class="na">load_balancer</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Application</span><span class="nv"> </span><span class="s">Load</span><span class="nv"> </span><span class="s">Balancer"</span>
+    <span class="na">health_check</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/health"</span>
+    
+  <span class="na">web_tier</span><span class="pi">:</span>
+    <span class="na">instances</span><span class="pi">:</span> <span class="m">6</span>  <span class="c1"># 倍増</span>
+    <span class="na">auto_scaling</span><span class="pi">:</span>
+      <span class="na">min</span><span class="pi">:</span> <span class="m">6</span>
+      <span class="na">max</span><span class="pi">:</span> <span class="m">20</span>
+      <span class="na">target_cpu</span><span class="pi">:</span> <span class="s">60%</span>
+      
+  <span class="na">auth_api_tier</span><span class="pi">:</span>
+    <span class="na">instances</span><span class="pi">:</span> <span class="m">4</span>  <span class="c1"># 水平スケーリング</span>
+    <span class="na">deployment</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Blue-Green"</span>
+    <span class="na">auto_scaling</span><span class="pi">:</span>
+      <span class="na">min</span><span class="pi">:</span> <span class="m">4</span>
+      <span class="na">max</span><span class="pi">:</span> <span class="m">12</span>
+      <span class="na">target_cpu</span><span class="pi">:</span> <span class="s">50%</span>
+      
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">primary</span><span class="pi">:</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">PostgreSQL</span><span class="nv"> </span><span class="s">14"</span>
+      <span class="na">instance_type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">db.r6g.2xlarge"</span>
+    <span class="na">read_replicas</span><span class="pi">:</span> <span class="m">2</span>
+    <span class="na">connection_pooling</span><span class="pi">:</span>
+      <span class="na">pgbouncer</span><span class="pi">:</span>
+        <span class="na">pool_mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">transaction"</span>
+        <span class="na">max_connections</span><span class="pi">:</span> <span class="m">1000</span>
+        
+  <span class="na">cache</span><span class="pi">:</span>
+    <span class="na">redis_cluster</span><span class="pi">:</span>
+      <span class="na">nodes</span><span class="pi">:</span> <span class="m">6</span>  <span class="c1"># 3マスター、3レプリカ</span>
+      <span class="na">instance_type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">cache.r6g.large"</span>
+      
+  <span class="na">additional_components</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">api_gateway</span><span class="pi">:</span>  <span class="c1"># 認証の前段処理</span>
+        <span class="na">rate_limiting</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">caching</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="pi">-</span> <span class="na">cdn</span><span class="pi">:</span>  <span class="c1"># 静的コンテンツ配信</span>
+        <span class="na">provider</span><span class="pi">:</span> <span class="s2">"</span><span class="s">CloudFront"</span>
+</code></pre></div></div>
+
+<p><strong>実装の改善点</strong>：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ScalableAuthArchitecture</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># コネクションプール（読み書き分離）
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">db_write</span> <span class="o">=</span> <span class="n">create_pool</span><span class="p">(</span><span class="n">master_db_url</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">db_read</span> <span class="o">=</span> <span class="n">create_pool</span><span class="p">(</span><span class="n">replica_db_urls</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Redis Cluster
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">redis</span> <span class="o">=</span> <span class="n">RedisCluster</span><span class="p">(</span>
+            <span class="n">startup_nodes</span><span class="o">=</span><span class="n">redis_nodes</span><span class="p">,</span>
+            <span class="n">decode_responses</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">skip_full_coverage_check</span><span class="o">=</span><span class="bp">True</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># 非同期ワーカープール
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">worker_pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="c1"># 読み取り専用クエリはレプリカへ
+</span>        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">db_read</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="n">conn</span><span class="p">.</span><span class="n">fetchone</span><span class="p">(</span>
+                <span class="s">"SELECT * FROM users WHERE username = $1"</span><span class="p">,</span>
+                <span class="n">username</span>
+            <span class="p">)</span>
+        
+        <span class="c1"># CPU集約的な処理は別スレッドで
+</span>        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+        <span class="n">is_valid</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="p">.</span><span class="n">run_in_executor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">worker_pool</span><span class="p">,</span>
+            <span class="n">verify_password</span><span class="p">,</span>
+            <span class="n">password</span><span class="p">,</span>
+            <span class="n">user</span><span class="p">[</span><span class="s">'password_hash'</span><span class="p">]</span>
+        <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">is_valid</span><span class="p">:</span>
+            <span class="c1"># 書き込みはマスターへ
+</span>            <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">db_write</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">conn</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="s">"UPDATE users SET last_login = NOW() WHERE id = $1"</span><span class="p">,</span>
+                    <span class="n">user</span><span class="p">[</span><span class="s">'id'</span><span class="p">]</span>
+                <span class="p">)</span>
+            
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="p">.</span><span class="n">create_session</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="チャレンジ問題サーキットブレーカーの実装">チャレンジ問題：サーキットブレーカーの実装</h2>
+
+<h3 id="解答-5">解答</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="k">class</span> <span class="nc">CircuitState</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">CLOSED</span> <span class="o">=</span> <span class="s">"closed"</span>
+    <span class="n">OPEN</span> <span class="o">=</span> <span class="s">"open"</span>
+    <span class="n">HALF_OPEN</span> <span class="o">=</span> <span class="s">"half_open"</span>
+
+<span class="k">class</span> <span class="nc">CircuitBreakerMetrics</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">total_calls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">success_calls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">failed_calls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">rejected_calls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">state_changes</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">'total_calls'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">total_calls</span><span class="p">,</span>
+            <span class="s">'success_calls'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">success_calls</span><span class="p">,</span>
+            <span class="s">'failed_calls'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">failed_calls</span><span class="p">,</span>
+            <span class="s">'rejected_calls'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">rejected_calls</span><span class="p">,</span>
+            <span class="s">'success_rate'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">success_calls</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">total_calls</span><span class="p">),</span>
+            <span class="s">'state_changes'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">state_changes</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:]</span>  <span class="c1"># 最新10件
+</span>        <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">AdvancedCircuitBreaker</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">failure_rate_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                 <span class="n">window_size</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+                 <span class="n">half_open_requests</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">min_calls_in_window</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                 <span class="n">recovery_timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">failure_rate_threshold</span> <span class="o">=</span> <span class="n">failure_rate_threshold</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">window_size</span> <span class="o">=</span> <span class="n">window_size</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">half_open_requests</span> <span class="o">=</span> <span class="n">half_open_requests</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">min_calls_in_window</span> <span class="o">=</span> <span class="n">min_calls_in_window</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">recovery_timeout</span> <span class="o">=</span> <span class="n">recovery_timeout</span>
+        
+        <span class="c1"># 状態管理
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">CLOSED</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">state_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+        
+        <span class="c1"># 統計情報（時間窓）
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">calls</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>  <span class="c1"># (timestamp, success)のタプル
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">calls_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+        
+        <span class="c1"># 半開状態の管理
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">half_open_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">half_open_successes</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># 最後の状態変更時刻
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">last_state_change</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">last_failure_time</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="c1"># メトリクス
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">CircuitBreakerMetrics</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="p">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_clean_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""古いエントリを削除"""</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">cutoff_time</span> <span class="o">=</span> <span class="n">current_time</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">window_size</span>
+        
+        <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">calls_lock</span><span class="p">:</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="p">.</span><span class="n">calls</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cutoff_time</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">.</span><span class="n">popleft</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_calculate_failure_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""現在の失敗率を計算"""</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_clean_window</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">min_calls_in_window</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        
+        <span class="n">failures</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">success</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">calls</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">failures</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_should_attempt_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""リセット試行のタイミングチェック"""</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">OPEN</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">last_failure_time</span> <span class="ow">and</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">last_failure_time</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="p">.</span><span class="n">recovery_timeout</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_record_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">success</span><span class="p">):</span>
+        <span class="s">"""呼び出し結果を記録"""</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">calls_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">(),</span> <span class="n">success</span><span class="p">))</span>
+        
+        <span class="c1"># メトリクス更新
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">total_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">success_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">failed_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="k">def</span> <span class="nf">_change_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_state</span><span class="p">):</span>
+        <span class="s">"""状態変更とログ記録"""</span>
+        <span class="n">old_state</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">new_state</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">last_state_change</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">state_changes</span><span class="p">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s">'timestamp'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">last_state_change</span><span class="p">,</span>
+            <span class="s">'from'</span><span class="p">:</span> <span class="n">old_state</span><span class="p">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s">'to'</span><span class="p">:</span> <span class="n">new_state</span><span class="p">.</span><span class="n">value</span>
+        <span class="p">})</span>
+        
+        <span class="bp">self</span><span class="p">.</span><span class="n">logger</span><span class="p">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s">"Circuit breaker state changed: </span><span class="si">{</span><span class="n">old_state</span><span class="p">.</span><span class="n">value</span><span class="si">}</span><span class="s"> -&gt; </span><span class="si">{</span><span class="n">new_state</span><span class="p">.</span><span class="n">value</span><span class="si">}</span><span class="s">"</span>
+        <span class="p">)</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="s">"""サーキットブレーカー経由での関数呼び出し"""</span>
+        
+        <span class="c1"># 状態チェックと処理
+</span>        <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">state_lock</span><span class="p">:</span>
+            <span class="c1"># OPEN状態のチェック
+</span>            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">OPEN</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_should_attempt_reset</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">CircuitState</span><span class="p">.</span><span class="n">HALF_OPEN</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">half_open_count</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">half_open_successes</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">rejected_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">raise</span> <span class="nb">Exception</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s">"Circuit breaker is OPEN. "</span>
+                        <span class="sa">f</span><span class="s">"Retry after </span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">recovery_timeout</span><span class="si">}</span><span class="s">s"</span>
+                    <span class="p">)</span>
+            
+            <span class="c1"># HALF_OPEN状態のチェック
+</span>            <span class="k">elif</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">HALF_OPEN</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">half_open_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="p">.</span><span class="n">half_open_requests</span><span class="p">:</span>
+                    <span class="c1"># 評価フェーズ
+</span>                    <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">half_open_successes</span> <span class="o">==</span> <span class="bp">self</span><span class="p">.</span><span class="n">half_open_requests</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="p">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">CircuitState</span><span class="p">.</span><span class="n">CLOSED</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="p">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">CircuitState</span><span class="p">.</span><span class="n">OPEN</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="p">.</span><span class="n">last_failure_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">rejected_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">raise</span> <span class="nb">Exception</span><span class="p">(</span><span class="s">"Circuit breaker is OPEN after test"</span><span class="p">)</span>
+                
+                <span class="bp">self</span><span class="p">.</span><span class="n">half_open_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># 実際の関数呼び出し
+</span>        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># 非同期関数の場合
+</span>            <span class="k">if</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># 同期関数の場合は別スレッドで実行
+</span>                <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="p">.</span><span class="n">run_in_executor</span><span class="p">(</span>
+                    <span class="bp">None</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">)</span>
+            
+            <span class="c1"># 成功の記録
+</span>            <span class="bp">self</span><span class="p">.</span><span class="n">_record_call</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            
+            <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">state_lock</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">HALF_OPEN</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">half_open_successes</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+            <span class="k">return</span> <span class="n">result</span>
+            
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># 失敗の記録
+</span>            <span class="bp">self</span><span class="p">.</span><span class="n">_record_call</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">last_failure_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+            
+            <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">state_lock</span><span class="p">:</span>
+                <span class="c1"># CLOSED状態で失敗率チェック
+</span>                <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">CLOSED</span><span class="p">:</span>
+                    <span class="n">failure_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_calculate_failure_rate</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">failure_rate</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="p">.</span><span class="n">failure_rate_threshold</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="p">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">CircuitState</span><span class="p">.</span><span class="n">OPEN</span><span class="p">)</span>
+                
+                <span class="c1"># HALF_OPEN状態での失敗は即座にOPENへ
+</span>                <span class="k">elif</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">CircuitState</span><span class="p">.</span><span class="n">HALF_OPEN</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">CircuitState</span><span class="p">.</span><span class="n">OPEN</span><span class="p">)</span>
+            
+            <span class="k">raise</span> <span class="n">e</span>
+    
+    <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""メトリクスの取得"""</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_clean_window</span><span class="p">()</span>
+        
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">metrics</span><span class="p">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s">'current_state'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">state</span><span class="p">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s">'failure_rate'</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">_calculate_failure_rate</span><span class="p">(),</span>
+            <span class="s">'calls_in_window'</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">),</span>
+            <span class="s">'time_since_last_change'</span><span class="p">:</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">last_state_change</span>
+        <span class="p">})</span>
+        
+        <span class="k">return</span> <span class="n">metrics</span>
+    
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""手動リセット（テスト用）"""</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="p">.</span><span class="n">state_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">CircuitState</span><span class="p">.</span><span class="n">CLOSED</span><span class="p">)</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">calls</span><span class="p">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">half_open_count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">half_open_successes</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">last_failure_time</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c1"># 使用例とテスト
+</span><span class="k">async</span> <span class="k">def</span> <span class="nf">test_circuit_breaker</span><span class="p">():</span>
+    <span class="c1"># 失敗する関数
+</span>    <span class="n">call_count</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">flaky_service</span><span class="p">():</span>
+        <span class="k">nonlocal</span> <span class="n">call_count</span>
+        <span class="n">call_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">call_count</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>  <span class="c1"># 最初の6回は失敗
+</span>            <span class="k">raise</span> <span class="nb">Exception</span><span class="p">(</span><span class="s">"Service unavailable"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">"Success"</span>
+    
+    <span class="n">cb</span> <span class="o">=</span> <span class="n">AdvancedCircuitBreaker</span><span class="p">(</span>
+        <span class="n">failure_rate_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">window_size</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">half_open_requests</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">min_calls_in_window</span><span class="o">=</span><span class="mi">5</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># テスト実行
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cb</span><span class="p">.</span><span class="n">call</span><span class="p">(</span><span class="n">flaky_service</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Call </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s">: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Call </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s">: Failed - </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        
+        <span class="c1"># メトリクス表示
+</span>        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">metrics</span> <span class="o">=</span> <span class="n">cb</span><span class="p">.</span><span class="n">get_metrics</span><span class="p">()</span>
+            <span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">"Metrics: </span><span class="si">{</span><span class="n">metrics</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+        
+        <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>この実装の特徴：</p>
+<ol>
+  <li><strong>スレッドセーフ</strong>: Lockを使用した適切な同期</li>
+  <li><strong>効率的な統計計算</strong>: dequeを使用した時間窓管理</li>
+  <li><strong>段階的回復</strong>: 半開状態での慎重な回復プロセス</li>
+  <li><strong>包括的なメトリクス</strong>: 詳細な統計情報の提供</li>
+  <li><strong>非同期対応</strong>: async/awaitと同期関数の両方をサポート</li>
+</ol>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-11/" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">付録E-11: 第11章演習問題解答</span>
+      </a>
+    
+
+    <a href="/practical-auth-book/pr-preview/pr-163/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-13/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">付録E-13: 第13章演習問題解答</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/appendices/appendix-e-12/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/practical-auth-book/pr-preview/pr-163/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-163/assets/js/theme.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-163/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>

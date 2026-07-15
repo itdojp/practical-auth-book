@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta name="author" content="ITDO Inc.（株式会社アイティードゥ）">
+    
+    <title>はじめに - 実践 認証認可システム設計</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-163/assets/css/main.css">
+    <link rel="stylesheet" href="/practical-auth-book/pr-preview/pr-163/assets/css/syntax-highlighting.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/practical-auth-book/pr-preview/pr-163/assets/images/itdo_logo_48x48_blue.png">
+    <link rel="apple-touch-icon" sizes="48x48" href="/practical-auth-book/pr-preview/pr-163/assets/images/itdo_logo_48x48_blue.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="はじめに">
+    <meta property="og:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itdojp.github.io/practical-auth-book/pr-preview/pr-163/introduction/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="はじめに">
+    <meta name="twitter:description" content="認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書">
+    
+    <!-- Theme detection before paint (used by shared/assets/js/theme.js) -->
+    <script>
+        (function() {
+            try {
+                const k = 'book-theme';
+                let t = null;
+                try {
+                    t = localStorage.getItem(k);
+                    if (!t) {
+                        const legacy = localStorage.getItem('theme');
+                        if (legacy) {
+                            t = legacy;
+                            localStorage.setItem(k, t);
+                        }
+                    }
+                } catch (_) {}
+                if (!t) {
+                    const mq = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+                    t = mq && mq.matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (_) {}
+        })();
+    </script>
+</head>
+<body>
+    
+    
+    
+
+    <!-- CSS-only sidebar toggle (hidden checkbox for state management) -->
+    <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-toggle-checkbox" aria-hidden="true" tabindex="-1">
+    
+    <div class="book-layout">
+        <!-- Header -->
+        <header class="book-header">
+            <div class="header-left">
+                <label for="sidebar-toggle-checkbox" class="sidebar-toggle" aria-label="Toggle sidebar" role="button" tabindex="0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </label>
+                <a href="/practical-auth-book/pr-preview/pr-163/" class="header-title">
+                    <h1>実践 認証認可システム設計</h1>
+                </a>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="search" 
+                           placeholder="Search..." 
+                           class="search-input"
+                           id="search-input"
+                           autocomplete="off">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <a href="https://github.com/https:/practical-auth-book" class="github-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="book-sidebar" id="sidebar">
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <!-- Sidebar Navigation (data-driven) -->
+
+
+<div class="sidebar-content">
+    <div class="book-info">
+        <h2 class="book-title">実践 認証認可システム設計</h2>
+        
+        <p class="book-subtitle">認証・認可システムの設計と実装を体系的に学ぶ実践的な技術書</p>
+        
+    </div>
+
+    <div class="toc">
+        <h3 class="toc-title">目次</h3>
+
+        <div class="toc-section">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="/practical-auth-book/pr-preview/pr-163/" class="toc-link ">
+                        はじめに
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">導入</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/introduction/" class="toc-link active" aria-current="page">
+                            はじめに
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">本編</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-01-overview/" class="toc-link " >
+                            第1章：認証認可システム概要
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-02-authentication/" class="toc-link " >
+                            第2章：認証システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-03-authorization/" class="toc-link " >
+                            第3章：認可システムの基礎
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-04-session/" class="toc-link " >
+                            第4章：セッション管理
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-05-token-auth/" class="toc-link " >
+                            第5章：トークンベース認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-06-oauth2/" class="toc-link " >
+                            第6章：OAuth 2.0
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-07-oidc-saml/" class="toc-link " >
+                            第7章：OpenID Connect & SAML
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-08-auth-system-design/" class="toc-link " >
+                            第8章：認証システム設計
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-09-microservices-auth/" class="toc-link " >
+                            第9章：マイクロサービス認証
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-10-implementation-patterns/" class="toc-link " >
+                            第10章：実装パターン
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-11-security-threats/" class="toc-link " >
+                            第11章：セキュリティ脅威と対策
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-12-performance/" class="toc-link " >
+                            第12章：パフォーマンス最適化
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item toc-chapter">
+                        <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-13-future/" class="toc-link " >
+                            第13章：将来展望と新技術
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+
+            
+
+            
+            <div class="toc-section">
+                <h4 class="toc-section-title">付録</h4>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-0-environment-setup/" class="toc-link " >
+                            付録0: 環境構築と runnable minimum
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-a-libraries/" class="toc-link " >
+                            付録A: ライブラリとツール
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-b-troubleshooting/" class="toc-link " >
+                            付録B: トラブルシューティング
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-c-glossary/" class="toc-link " >
+                            付録C: 用語集
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-d-references/" class="toc-link " >
+                            付録D: 参考資料
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-01/" class="toc-link " >
+                            付録E-1: 第1章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-02/" class="toc-link " >
+                            付録E-2: 第2章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-03/" class="toc-link " >
+                            付録E-3: 第3章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-04/" class="toc-link " >
+                            付録E-4: 第4章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-05/" class="toc-link " >
+                            付録E-5: 第5章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-06/" class="toc-link " >
+                            付録E-6: 第6章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-07/" class="toc-link " >
+                            付録E-7: 第7章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-08/" class="toc-link " >
+                            付録E-8: 第8章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-09/" class="toc-link " >
+                            付録E-9: 第9章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-10/" class="toc-link " >
+                            付録E-10: 第10章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-11/" class="toc-link " >
+                            付録E-11: 第11章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-12/" class="toc-link " >
+                            付録E-12: 第12章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-e-13/" class="toc-link " >
+                            付録E-13: 第13章演習問題解答
+                        </a>
+                    </li>
+                    
+                    <li class="toc-item">
+                        <a href="/practical-auth-book/pr-preview/pr-163/appendices/figure-index/" class="toc-link " >
+                            付録：図表索引
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            
+        
+    </div>
+
+    <div class="sidebar-footer">
+        
+        
+
+        <div class="external-links">
+            
+            <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener" class="external-link">GitHub</a>
+            
+            
+        </div>
+    </div>
+</div>
+
+
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="book-main" id="main">
+            <div class="book-content">
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <h1 id="はじめに">はじめに</h1>
+
+<p>本書「実践 認証認可システム設計」は、認証・認可システムの基礎から実装、運用まで、体系的に学ぶことを目的としています。単なる技術の解説にとどまらず、「なぜその技術が必要なのか」「どのような問題を解決するのか」という観点から、深い理解を促進します。</p>
+
+<h2 id="想定読者">想定読者</h2>
+
+<p>本書は以下のような方々を対象としています。</p>
+
+<ul>
+  <li><strong>Webアプリケーション開発者</strong>（経験1〜3年）
+    <ul>
+      <li>認証・認可の基礎を体系的に学びたい方</li>
+      <li>セキュアな実装方法を知りたい方</li>
+    </ul>
+  </li>
+  <li><strong>システムアーキテクト志望者</strong>
+    <ul>
+      <li>認証基盤の設計について学びたい方</li>
+      <li>技術選択の判断基準を身につけたい方</li>
+    </ul>
+  </li>
+  <li><strong>セキュリティエンジニア初級者</strong>
+    <ul>
+      <li>認証・認可のセキュリティ面を深く理解したい方</li>
+      <li>脆弱性と対策について実践的に学びたい方</li>
+    </ul>
+  </li>
+  <li><strong>認証基盤の導入・運用担当者</strong>
+    <ul>
+      <li>既存システムへの導入を検討している方</li>
+      <li>運用時の課題と対策を知りたい方</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="前提知識">前提知識</h2>
+
+<p>本書を読むにあたって、以下の基礎知識があることを前提としています。</p>
+
+<ul>
+  <li>基本的なWeb技術（HTTP、Cookie、Session）</li>
+  <li>プログラミング経験（1つ以上の言語）</li>
+  <li>データベースの基礎知識</li>
+  <li>基本的なセキュリティ概念</li>
+</ul>
+
+<p>これらの知識がない場合でも、必要に応じて補足説明を加えていますので、意欲的な初学者の方でも読み進められる構成になっています。</p>
+
+<h2 id="本書の特徴">本書の特徴</h2>
+
+<h3 id="なぜから始まる深い理解">「なぜ」から始まる深い理解</h3>
+
+<p>各技術や概念について、その歴史的背景と必要性から解説します。問題解決のコンテキストを明確にすることで、技術選択の判断基準を身につけることができます。</p>
+
+<h3 id="段階的な実装アプローチ">段階的な実装アプローチ</h3>
+
+<p>最小構成から始めて徐々に機能を追加していく実装アプローチを採用しています。各段階での学習ポイントを明示し、失敗例（アンチパターン）からも学べる構成です。</p>
+
+<h3 id="実務直結の包括的内容">実務直結の包括的内容</h3>
+
+<p>インシデント例（架空を含む）と対策、パフォーマンスとセキュリティのトレードオフ、運用フェーズまでカバーする実践的な知識を提供します。</p>
+
+<h3 id="豊富なサンプルコードと演習問題">豊富なサンプルコードと演習問題</h3>
+
+<p>各章には実践的な演習問題を用意し、理解を深められるようにしています。また、GitHubで完全なサンプルコードを提供しており、すぐに試せる環境を整えています。</p>
+
+<h2 id="本書の構成">本書の構成</h2>
+
+<p>本書は大きく4つのパートで構成されています。</p>
+
+<p><strong>第 I 部: 基礎概念編（第1章〜第3章）</strong></p>
+<ul>
+  <li>認証・認可の全体像と基本概念を学習</li>
+</ul>
+
+<p><strong>第 II 部: プロトコルと標準編（第4章〜第7章）</strong></p>
+<ul>
+  <li>セッション管理、トークン認証、OAuth 2.0、OpenID Connectなどの標準技術を習得</li>
+</ul>
+
+<p><strong>第 III 部: 実装編（第8章〜第10章）</strong></p>
+<ul>
+  <li>実際のシステム設計と実装パターンを学習</li>
+</ul>
+
+<p><strong>第 IV 部: 応用編（第11章〜第13章）</strong></p>
+<ul>
+  <li>セキュリティ脅威への対策、パフォーマンス最適化、将来の展望</li>
+</ul>
+
+<p>各章には演習問題があり、付録として解答集も用意しています。</p>
+
+<h2 id="演習付録の使い方">演習・付録の使い方</h2>
+
+<ul>
+  <li>各章末の演習問題は、まず自力で解き、その後に対応する 付録 E-1〜E-13 の解答を確認すると理解を定着させやすい構成です。</li>
+  <li>実装章の検証に入る前に、<a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-0-environment-setup/">付録 0：環境構築と <code class="language-plaintext highlighter-rouge">runnable minimum</code></a> を確認し、本番値を使わないローカル検証条件と証跡テンプレートを準備してください。</li>
+  <li>実装や設定で詰まった場合は、<a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-b-troubleshooting/">付録B：トラブルシューティング</a> を先に確認してください。</li>
+  <li>用語や略語を確認したい場合は、<a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-c-glossary/">付録C：用語集</a> を辞書として併用すると読み進めやすくなります。</li>
+  <li>ライブラリ比較や追加調査を行う場合は、<a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-a-libraries/">付録A：参考ライブラリ・ツール</a> と <a href="/practical-auth-book/pr-preview/pr-163/appendices/appendix-d-references/">付録D：参考文献</a> を参照してください。</li>
+</ul>
+
+<h2 id="謝辞">謝辞</h2>
+
+<p>本書の執筆にあたり、多くの方々にご協力いただきました。技術レビューをしていただいた皆様、サンプルコードのテストに協力いただいた皆様、そして日頃から技術的な議論を交わしてくださるコミュニティの皆様に、心より感謝申し上げます。</p>
+
+<h2 id="フィードバック">フィードバック</h2>
+
+<p>本書の内容について、ご意見・ご感想がございましたら、GitHub リポジトリの Issue または著者のメールアドレスまでお寄せください。読者の皆様のフィードバックは、本書の改善に大いに役立ちます。</p>
+
+<figure id="figure-book-structure-mindmap">
+  <img src="/practical-auth-book/pr-preview/pr-163/assets/images/diagrams/introduction/book-structure-mindmap.svg" alt="書籍構造マインドマップ" />
+</figure>
+
+<figure id="figure-learning-roadmap">
+  <img src="/practical-auth-book/pr-preview/pr-163/assets/images/diagrams/introduction/learning-roadmap.svg" alt="学習ロードマップ" />
+</figure>
+
+<p>それでは、認証・認可システムの奥深い世界へ、一緒に踏み出しましょう。</p>
+
+<p>2024年7月<br />
+ITDO Inc.</p>
+
+                </article>
+
+                <!-- Navigation -->
+                
+                <nav class="page-navigation" aria-label="Page navigation">
+                    <!-- Canonical Page Navigation (Previous/Next) -->
+
+
+
+
+
+
+
+
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    
+      <span class="nav-disabled nav-prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+      </span>
+    
+
+    <a href="/practical-auth-book/pr-preview/pr-163/" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    <a href="/practical-auth-book/pr-preview/pr-163/chapters/chapter-01-overview/" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">第1章 認証認可の全体像</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    
+  </div>
+</nav>
+
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>
+
+
+                </nav>
+                
+
+                <!-- Edit on GitHub -->
+                
+                <div class="edit-page">
+                    <a href="https://github.com/https:/practical-auth-book/edit/main/introduction/index.md" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                        Edit this page on GitHub
+                    </a>
+                </div>
+                
+
+                <!-- Footer -->
+                <footer class="book-footer" role="contentinfo">
+                    <div class="book-footer-inner">
+                        <div class="book-footer-license">
+                            Content licensed under CC BY-NC-SA 4.0 (commercial use requires a separate agreement).
+                        </div>
+                        <div class="book-footer-links">
+                            
+                                <a href="https://github.com/https:/practical-auth-book" target="_blank" rel="noopener">GitHub</a>
+                            
+                            
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for mobile sidebar (CSS-only close trigger) -->
+    <label for="sidebar-toggle-checkbox" class="book-sidebar-overlay" id="sidebar-overlay" aria-label="Close sidebar"></label>
+
+    <!-- Lightweight code copy - no MutationObserver to prevent freeze -->
+    <script async src="/practical-auth-book/pr-preview/pr-163/assets/js/code-copy-lightweight.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-163/assets/js/theme.js"></script>
+    <script defer src="/practical-auth-book/pr-preview/pr-163/assets/js/search.js"></script>
+    <script>
+        // Reset sidebar checkbox on page load to prevent stuck open state
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            if (cb) cb.checked = false;
+        });
+    </script>
+
+    <script>
+        // Reset sidebar checkbox and ensure keyboard toggle works for label
+        document.addEventListener('DOMContentLoaded', function() {
+            var cb = document.getElementById('sidebar-toggle-checkbox');
+            var toggle = document.querySelector('.sidebar-toggle');
+            if (cb) cb.checked = false;
+            if (cb && toggle) {
+                var sync = function() {
+                    toggle.setAttribute('aria-expanded', cb.checked ? 'true' : 'false');
+                };
+                sync();
+                cb.addEventListener('change', sync);
+                toggle.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            }
+        });
+    </script>
+
+            <script>
+        // Auto-scroll active TOC into view when opening the drawer.
+        (function() {
+            function initTocAutoScroll() {
+                var cb = document.getElementById('sidebar-toggle-checkbox');
+                if (!cb) return;
+
+                function normalizePath(p) {
+                    var path = String(p || '').replace(/index\.html$/, '');
+                    // Remove trailing slashes for non-root paths so `/foo` and `/foo/` compare equal.
+                    if (path.length > 1) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    // Ensure we always return at least '/'.
+                    return path || '/';
+                }
+
+                function isMobileDrawer() {
+                    try {
+                        if (typeof window.matchMedia === 'function') {
+                            return window.matchMedia('(max-width: 1024px)').matches;
+                        }
+                    } catch (_) {
+                        // Ignore matchMedia failures and fall back to window.innerWidth.
+                    }
+                    return typeof window.innerWidth === 'number' ? window.innerWidth <= 1024 : true;
+                }
+
+                function findActiveTocLink() {
+                    var current = normalizePath(window.location.pathname);
+                    var actives = document.querySelectorAll('a.toc-link.active');
+                    if (!actives || actives.length === 0) return null;
+
+                    for (var i = 0; i < actives.length; i++) {
+                        var a = actives[i];
+                        if (!a || !a.href) continue;
+                        try {
+                            var pathname = normalizePath(new URL(a.href).pathname);
+                            if (pathname === current) return a;
+                        } catch (_) {
+                            // Intentionally ignore malformed URLs; fall back to the first active TOC entry.
+                        }
+                    }
+                    return actives[0];
+                }
+
+                function ensureActiveTocVisible() {
+                    // If the drawer is closed while we are scheduled, do nothing.
+                    if (!cb.checked) return;
+                    if (!isMobileDrawer()) return;
+
+                    var active = findActiveTocLink();
+                    if (!active) return;
+
+                    var sidebar = active.closest('.book-sidebar') || document.getElementById('sidebar');
+                    if (!sidebar) return;
+
+                    try {
+                        var linkRect = active.getBoundingClientRect();
+                        var sidebarRect = sidebar.getBoundingClientRect();
+
+                        // Derive scroll margin from sidebar padding so behavior follows CSS.
+                        // Fallback to 8px if padding is not available or not parsable.
+                        var marginTop = 8;
+                        var marginBottom = 8;
+                        try {
+                            if (window.getComputedStyle) {
+                                var cs = window.getComputedStyle(sidebar);
+                                if (cs) {
+                                    var pt = parseFloat(cs.paddingTop);
+                                    var pb = parseFloat(cs.paddingBottom);
+                                    if (!isNaN(pt)) marginTop = pt;
+                                    if (!isNaN(pb)) marginBottom = pb;
+                                }
+                            }
+                        } catch (_) {
+                            // Ignore style parsing issues; keep fallback margins.
+                        }
+
+                        var top = sidebarRect.top + marginTop;
+                        var bottom = sidebarRect.bottom - marginBottom;
+                        // Scroll when any part of the active link is outside the visible bounds.
+                        var outOfView = linkRect.top < top || linkRect.bottom > bottom;
+
+                        if (outOfView && typeof active.scrollIntoView === 'function') {
+                            try {
+                                active.scrollIntoView({ block: 'center', behavior: 'auto' });
+                            } catch (e) {
+                                // Fallback for browsers that do not support the options-object signature.
+                                active.scrollIntoView();
+                            }
+                        }
+                    } catch (_) {
+                        // Best-effort UX: ignore measurement errors.
+                    }
+                }
+
+                function scheduleEnsure() {
+                    // Next tick (no transition) and after a short delay (CSS transitions/focus side-effects).
+                    setTimeout(ensureActiveTocVisible, 0);
+                    setTimeout(ensureActiveTocVisible, 350);
+                }
+
+                cb.addEventListener('change', function() {
+                    if (!cb.checked) return;
+                    scheduleEnsure();
+                });
+
+                // If the drawer is already open (bfcache/restore), ensure once.
+                if (cb.checked) {
+                    scheduleEnsure();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTocAutoScroll);
+            } else {
+                initTocAutoScroll();
+            }
+        })();
+    </script>
+
+
+
+</body>
+</html>
