@@ -13,7 +13,7 @@
     "build:legacy": "node scripts/build-simple.js",
     "build:safe": "node scripts/build-with-conflict-detection.js",
     "build:full": "npm run build:safe",
-    "preview": "npm run build && npx http-server docs -p 8080 --silent",
+    "preview": "npm run build && npx http-server _site -p 8080 --silent",
     "clean-nav": "node scripts/navigation-cleaner.js",
     "deploy": "bash scripts/deploy.sh",
     "clean": "rm -rf public output temp",
