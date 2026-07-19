@@ -44,13 +44,15 @@ function read(root, relativePath) {
 }
 
 function removeFrontMatter(text) {
-  return text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
+  return text.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n)?/, '');
 }
 
 function canonicalBody(text) {
   return removeFrontMatter(text)
-    .replace(/^# .*\r?\n/, '')
     .replace(/\r\n/g, '\n')
+    .replace(/^(?:[ \t]*\n)+/, '')
+    .replace(/^# .*\n/, '')
+    .replace(/^(?:[ \t]*\n)+/, '')
     .trimEnd();
 }
 

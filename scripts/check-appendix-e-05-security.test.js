@@ -37,6 +37,16 @@ try {
   assert.deepEqual(validate(root), [], '同期済みのAppendix E-05は検査を通過する');
 
   copyFixture();
+  for (const relativePath of TARGETS.slice(1)) {
+    writeFixture(relativePath, readFixture(relativePath).replace(/---\r?\n# /, '---\n\n# '));
+  }
+  assert.deepEqual(
+    validate(root),
+    [],
+    'front matter直後の空行は本文同期ドリフトとして扱わない'
+  );
+
+  copyFixture();
   appendSynchronizedJavaScript(`
 const { randomBytes } = require('node:crypto');
 
