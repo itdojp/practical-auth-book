@@ -8,7 +8,7 @@
 
 2026-05-23時点では、OAuth 2.0 Security Best Current Practice は RFC 9700 として発行済みであり、OAuth 2.1 は IETF Internet-Draft（draft-ietf-oauth-v2-1）である。実装判断では「OAuth 2.1 準拠」と断定せず、RFC 9700 と利用中 IdP の仕様差分を確認する。
 
-- ブラウザを経由する認可フローでは Authorization Code + PKCE（`S256`）を標準とし、Implicit Grant と Resource Owner Password Credentials Grant は新規採用しない。
+- ブラウザを経由する認可フローでは Authorization Code + PKCE（`S256`）を標準とし、Implicit Grant と Resource Owner Password Credentials Grant（ROPC）は非推奨であり、新規採用しない。ROPCは既存システムの移行時に限る歴史的な参照として扱う。
 - redirect URI は事前登録値と完全一致させ、open redirector、ワイルドカード、環境差分による緩い照合を避ける。
 - `state`、PKCE、OIDC の `nonce`、RFC 9207 の `iss` を、CSRF、code injection、mix-up attack の防御としてどの組み合わせで使うか明示する。
 - 高リスク API では audience restriction、短寿命トークン、refresh token rotation、sender-constrained token（DPoP RFC 9449 や mTLS）、PAR（RFC 9126）の要否を検討する。
@@ -212,7 +212,7 @@ class OAuth2Evolution:
                     'authorization_code': 'Webアプリ向け',
                     'implicit': 'SPAア向け（現在は非推奨）',
                     'client_credentials': 'サーバー間通信',
-                    'resource_owner_password': 'レガシー対応'
+                    'resource_owner_password': '非推奨。新規採用しない。既存システム移行時に限る歴史的参照'
                 },
                 'benefit': '様々なユースケースに対応'
             },
@@ -269,10 +269,10 @@ class OAuth21SecurityEnhancements:
                 },
                 
                 'resource_owner_password': {
-                    'status': '廃止',
+                    'status': '非推奨（新規採用不可）',
                     'reason': 'パスワードの直接取り扱いは危険',
                     'alternative': 'Authorization Code or Device Flow',
-                    'exception': 'レガシーシステムの移行期間のみ'
+                    'exception': '既存システムからの移行時に限る歴史的な参照'
                 },
                 
                 'non_https_redirects': {
@@ -1075,7 +1075,9 @@ class AuthCodeInjectionAttack:
                 # PKCEペアの生成
                 code_verifier, code_challenge = self.generate_pkce_pair()
                 
-                # セッションに保存（後で使用）
+                # state と PKCE verifier は別々に browser session へ束縛する
+                state = secrets.token_urlsafe(32)
+                session['oauth_state'] = state
                 session['pkce_verifier'] = code_verifier
                 
                 params = {
@@ -1083,7 +1085,7 @@ class AuthCodeInjectionAttack:
                     'client_id': self.client_id,
                     'redirect_uri': redirect_uri,
                     'scope': ' '.join(scope),
-                    'state': secrets.token_urlsafe(32),
+                    'state': state,
                     # PKCE パラメータ
                     'code_challenge': code_challenge,
                     'code_challenge_method': 'S256'
@@ -1095,11 +1097,17 @@ class AuthCodeInjectionAttack:
             
             def exchange_code_with_pkce(self, 
                                        code: str,
-                                       redirect_uri: str) -> Dict:
-                """PKCE検証付きでコードをトークンに交換"""
-                
-                # セッションからverifierを取得
+                                       redirect_uri: str,
+                                       returned_state: Optional[str]) -> Dict:
+                """state と PKCE を検証してコードをトークンに交換"""
+                # state と verifier を token exchange より前に一回限りで消費する
+                expected_state = session.pop('oauth_state', None)
                 code_verifier = session.pop('pkce_verifier', None)
+                if not returned_state or not expected_state:
+                    raise SecurityError("Missing OAuth state")
+                if not secrets.compare_digest(returned_state, expected_state):
+                    raise SecurityError("Invalid OAuth state")
+
                 if not code_verifier:
                     raise SecurityError("PKCE verifier not found")
                 
@@ -1149,6 +1157,8 @@ class AuthCodeInjectionAttack:
         
         return PKCEClient
 ```
+
+> **state と PKCE の役割を分ける**: PKCE は認可コード横取りへの対策であり、`state` の CSRF および authorization response binding の代替ではない。認可開始時に生成した `state` を browser session に束縛し、callback では欠落・不一致を拒否したうえで token exchange より前に一回限りで消費する。
 
 ### 6.3.2 その他の主要な脆弱性と対策
 
