@@ -60,7 +60,7 @@ async function registerWebAuthn() {
                 userVerification: "required"
             },
             timeout: 60000,
-            attestation: "direct"
+            attestation: "none"
         }
     });
 
@@ -81,6 +81,23 @@ async function registerWebAuthn() {
 
     return verifyResponse.ok;
 }
+```
+
+#### Attestation の選択: 一般向け Passkey と管理対象 enterprise
+
+一般向けの Passkey 登録では、`attestation: "none"` を明示する。WebAuthn の `attestation` の既定値も `none` であり、認証器の暗号鍵によるユーザー認証そのものには attestation の取得は不要である。
+
+- **プライバシー**: `none` は、Relying Party が attestation statement や証明書チェーンを要求しない既定であり、認証器を個体識別する証明の収集を避ける。ただし登録データには AAGUID など認証器の型式に関係する情報が含まれ得るため、保存・利用・表示を必要最小限にする。
+- **互換性**: 一般向け登録を `direct` の検証に依存させない。認証器やクライアントが検証可能な証明を返せない場合でも、Passkey 登録の可否を不要に左右しない。
+- **運用**: `direct` を要求する場合は、信頼アンカー、証明書失効、メタデータ更新、拒否時の利用者支援を運用責任として設計する。`direct` は証明をそのまま受け取りたいという選好であり、それだけで管理対象端末であることを証明しない。
+
+**明示的な管理対象 enterprise 例外**: 資産管理済み端末だけを許可するなど、device evidence が認証ポリシーの要件である controlled deployment に限り、次のように `direct` を選択してサーバー側で trust path と端末ポリシーを検証する。一般向け登録へこの設定を流用しない。端末を一意に結び付ける enterprise attestation が必要な場合は、`attestation: "enterprise"` を使用できるクライアント・認証器・RP ID の管理設定が別途必要である。
+
+```javascript
+const managedDeviceRegistration = {
+    // ENTERPRISE_ATTESTATION_EXCEPTION: managed asset inventory requires device evidence.
+    attestation: "direct"
+};
 ```
 
 **サーバー側の実装**：
