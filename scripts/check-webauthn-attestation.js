@@ -50,10 +50,15 @@ function codeBlocks(markdown) {
 }
 
 function guidanceBlock(markdown) {
-  const start = markdown.indexOf(`### ${GUIDANCE_HEADING}`);
-  if (start < 0) return null;
-  const nextChapter = markdown.indexOf('\n## ', start + 1);
-  return markdown.slice(start, nextChapter < 0 ? undefined : nextChapter).trim();
+  const heading = new RegExp(`^(#{3,4}) ${GUIDANCE_HEADING}$`, 'm').exec(markdown);
+  if (!heading) return null;
+  const start = heading.index;
+  const headingLevel = heading[1].length;
+  const remainderStart = start + heading[0].length;
+  const remainder = markdown.slice(remainderStart);
+  const nextHeading = new RegExp(`^#{1,${headingLevel}}\\s+`, 'm').exec(remainder);
+  const end = nextHeading ? remainderStart + nextHeading.index : undefined;
+  return markdown.slice(start, end).trim();
 }
 
 function validateDocument(markdown, label, sampleAnchor) {
@@ -97,6 +102,8 @@ function runFixtureTests() {
   const sampleAnchor = 'navigator.credentials.create(';
   const valid = read(path.join(FIXTURE_DIR, 'valid.md'));
   assert.deepEqual(validateDocument(valid, 'valid fixture', sampleAnchor), [], 'the valid fixture must pass');
+  const levelFour = valid.replace(`### ${GUIDANCE_HEADING}`, `#### ${GUIDANCE_HEADING}`);
+  assert.deepEqual(validateDocument(levelFour, 'level-four heading fixture', sampleAnchor), [], 'a level-four guidance heading must pass');
 
   for (const fixture of [
     'basic-direct.md',
