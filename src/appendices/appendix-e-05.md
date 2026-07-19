@@ -217,6 +217,14 @@ def main():
 
 ### 解答
 
+SPAのブラウザコードが設定できるのは、APIリクエストに必要な認証情報やCSRF対策用の値です。`X-Frame-Options` と `X-Content-Type-Options` はリクエストヘッダーではなく、対象リソースを返すサーバーが各HTTPレスポンスに付けるレスポンスヘッダーです。特に `X-Frame-Options` は `meta http-equiv` で宣言してもユーザーエージェントに無視されます。ブラウザの `fetch` からこれらを送っても、HTML document のクリックジャッキング対策やレスポンスのMIMEスニッフィング対策にはなりません。
+
+Content Security Policy（CSP）は、サーバーが初回のHTML document responseの `Content-Security-Policy` レスポンスヘッダーで配信する方法が基本です。代替として静的な `<meta http-equiv="Content-Security-Policy" ...>` を使う場合も、`<head>` の可能な限り早い位置に置き、初期parse時に処理させる必要があります。metaより前に読み込まれたresourceには遡及して適用されず、parse後にJavaScriptでmetaの `content` を変更しても適用されません。また、`frame-ancestors` はmetaで配信したCSPでは無視されるため、フレーム埋め込み制御はレスポンスヘッダーのCSPまたは `X-Frame-Options` でサーバーから配信します。
+
+CSPの `nonce-source` を使う場合、nonceはサーバーがレスポンスごとに暗号学的に安全な乱数から一意に生成し、同じ値をレスポンスヘッダーと許可するinline scriptの `nonce` 属性へ埋め込みます。client JavaScriptがnonceを生成して、実行後にCSP metaを追加する実装ではこの責務や初期防御を満たせません。
+
+この責務分担は [RFC 7034](https://datatracker.ietf.org/doc/html/rfc7034) と [Content Security Policy Level 3](https://www.w3.org/TR/CSP3/) の配信・適用モデルに基づきます。
+
 ```javascript
 // SPAアプリケーション向けトークン保存戦略
 class SecureTokenStorage {
@@ -245,9 +253,6 @@ class SecureTokenStorage {
         
         // 3. 自動リフレッシュの設定
         this.setupAutoRefresh();
-        
-        // 4. XSS対策の追加レイヤー
-        this.setupSecurityHeaders();
     }
     
     // アクセストークンの取得（メモリのみ）
@@ -311,9 +316,7 @@ class SecureTokenStorage {
         const headers = {
             ...options.headers,
             'Authorization': `Bearer ${token}`,
-            'X-CSRF-Token': this.csrfToken,
-            'X-Content-Type-Options': 'nosniff',
-            'X-Frame-Options': 'DENY'
+            'X-CSRF-Token': this.csrfToken
         };
         
         // Content-Type の検証
@@ -329,9 +332,6 @@ class SecureTokenStorage {
                 credentials: 'include'
             });
             
-            // レスポンスヘッダーの検証
-            this.validateResponseHeaders(response);
-            
             // 401の場合は自動リトライ
             if (response.status === 401 && !options._retry) {
                 await this.refreshAccessToken();
@@ -344,23 +344,6 @@ class SecureTokenStorage {
             console.error('API request failed:', error);
             throw error;
         }
-    }
-    
-    // XSS対策：Content Security Policy の動的設定
-    setupSecurityHeaders() {
-        // メタタグでCSPを設定
-        const cspMeta = document.createElement('meta');
-        cspMeta.httpEquiv = 'Content-Security-Policy';
-        cspMeta.content = [
-            "default-src 'self'",
-            "script-src 'self' 'nonce-" + this.generateNonce() + "'",
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: https:",
-            "connect-src 'self'",
-            "frame-ancestors 'none'",
-            "form-action 'self'"
-        ].join('; ');
-        document.head.appendChild(cspMeta);
     }
     
     // トークン有効期限のチェック
@@ -389,32 +372,11 @@ class SecureTokenStorage {
         }, 60000);
     }
     
-    // レスポンスヘッダーの検証
-    validateResponseHeaders(response) {
-        const contentType = response.headers.get('content-type');
-        
-        // JSONレスポンスの検証
-        if (contentType && contentType.includes('application/json')) {
-            // XSS対策：JSONレスポンスの検証
-            const xContentType = response.headers.get('x-content-type-options');
-            if (xContentType !== 'nosniff') {
-                console.warn('Missing X-Content-Type-Options header');
-            }
-        }
-    }
-    
     // CSRFトークンの生成
     generateCSRFToken() {
         const array = new Uint8Array(32);
         crypto.getRandomValues(array);
         return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-    }
-    
-    // ナンスの生成（CSP用）
-    generateNonce() {
-        const array = new Uint8Array(16);
-        crypto.getRandomValues(array);
-        return btoa(String.fromCharCode(...array));
     }
     
     // 認証エラーの処理
