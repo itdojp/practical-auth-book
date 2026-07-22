@@ -3,9 +3,15 @@
 const fs = require('node:fs');
 const { spawnSync } = require('node:child_process');
 
+const sleepBuffer = new Int32Array(new SharedArrayBuffer(4));
 const sleep = (milliseconds) => {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+  Atomics.wait(sleepBuffer, 0, 0, milliseconds);
 };
+
+function combineDiagnostics(stderr, error) {
+  const parts = [stderr?.trimEnd(), error?.message].filter(Boolean);
+  return parts.length ? `${parts.join('\n')}\n` : '';
+}
 
 function runWithRetries(runAttempt, { maxAttempts = 3, wait = sleep } = {}) {
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
@@ -39,7 +45,7 @@ function runLinkinator(rootUrl, version, attempt) {
     encoding: 'utf8',
     maxBuffer: 32 * 1024 * 1024,
   });
-  const stderr = `${result.stderr || ''}${result.error ? `${result.error.message}\n` : ''}`;
+  const stderr = combineDiagnostics(result.stderr, result.error);
   const exitCode = Number.isInteger(result.status) ? result.status : 2;
   fs.writeFileSync(`links-attempt-${attempt}.json`, result.stdout || '');
   fs.writeFileSync(`links-attempt-${attempt}.stderr`, stderr);
@@ -70,4 +76,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { runWithRetries };
+module.exports = { combineDiagnostics, runWithRetries };

@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
-const { runWithRetries } = require('./run-public-link-check');
+const { combineDiagnostics, runWithRetries } = require('./run-public-link-check');
 const {
   classifyCommandOutput,
   classifyMaintenanceState,
@@ -97,5 +97,6 @@ const persistentLinkScan = runWithRetries(
 );
 assert.deepEqual(persistentLinkScan.attempts.map(({ exitCode }) => exitCode), [1, 1, 1]);
 assert.equal(persistentLinkScan.final.exitCode, 1);
+assert.equal(combineDiagnostics('command stderr\n', new Error('spawn failed')), 'command stderr\nspawn failed\n');
 
 console.log('scheduled maintenance contract tests passed (clean/finding/infrastructure/duplicate/recovery)');
