@@ -48,9 +48,19 @@ function classifyCommandOutput(mode, exitCode, payload) {
 
 function classifyMaintenanceState(input) {
   const infrastructure = [];
-  for (const key of ['install', 'validation', 'build', 'contract']) {
-    if (input[key] !== 'success') infrastructure.push(key);
-  }
+  if (input.install !== 'success') infrastructure.push('install');
+  if (
+    input.validation !== 'success' &&
+    !(input.validation === 'skipped' && input.install !== 'success')
+  ) infrastructure.push('validation');
+  if (
+    input.build !== 'success' &&
+    !(
+      input.build === 'skipped' &&
+      (input.install !== 'success' || input.validation !== 'success')
+    )
+  ) infrastructure.push('build');
+  if (input.contract !== 'success') infrastructure.push('contract');
 
   const findings = [];
   for (const key of ['outdated', 'audit', 'links']) {
@@ -84,7 +94,7 @@ function renderIssueBody(state, runUrl) {
 
 | Check | Result |
 | --- | --- |
-| Install/build infrastructure | ${state.infrastructureFailure ? 'failure' : 'success'} |
+| Workflow infrastructure | ${state.infrastructureFailure ? 'failure' : 'success'} |
 | Outdated dependencies | ${has('outdated')} |
 | Production audit findings | ${has('audit')} |
 | External link findings | ${has('links')} |

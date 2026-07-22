@@ -4,7 +4,10 @@ const fs = require('node:fs');
 const { classifyCommandOutput } = require('./maintenance-state');
 
 const [mode, exitCodeText, payloadPath, stderrPath, outputPath, summaryPath, resultPath] = process.argv.slice(2);
-if (!mode || !exitCodeText || !payloadPath || !outputPath || !summaryPath || !resultPath) {
+if (
+  process.argv.slice(2).length !== 7 ||
+  !mode || !exitCodeText || !payloadPath || !stderrPath || !outputPath || !summaryPath || !resultPath
+) {
   throw new Error('usage: classify-maintenance-command MODE EXIT JSON STDERR GITHUB_OUTPUT STEP_SUMMARY RESULT_JSON');
 }
 

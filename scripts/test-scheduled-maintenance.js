@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
 const {
   classifyCommandOutput,
   classifyMaintenanceState,
@@ -31,6 +33,17 @@ const buildFailure = classifyMaintenanceState({ ...base, build: 'failure' });
 assert.equal(buildFailure.infrastructureFailure, true);
 assert.deepEqual(buildFailure.infrastructure, ['build']);
 
+const installFailure = classifyMaintenanceState({
+  ...base,
+  install: 'failure',
+  validation: 'skipped',
+  build: 'skipped',
+});
+assert.deepEqual(installFailure.infrastructure, ['install']);
+
+const unexpectedBuildSkip = classifyMaintenanceState({ ...base, build: 'skipped' });
+assert.deepEqual(unexpectedBuildSkip.infrastructure, ['build']);
+
 const commandFailure = classifyMaintenanceState({
   ...base,
   links: { found: false, infrastructureFailure: true },
@@ -55,5 +68,13 @@ assert.equal(classifyCommandOutput('links', 1, '{"passed":false,"links":[{"state
 const unavailableBuildOutput = classifyCommandOutput('links', 1, '');
 assert.equal(unavailableBuildOutput.found, false);
 assert.equal(unavailableBuildOutput.infrastructureFailure, true);
+
+const missingCliArgument = spawnSync(
+  process.execPath,
+  [path.join(__dirname, 'classify-maintenance-command.js'), 'links', '1', 'payload.json', 'output', 'summary', 'result'],
+  { encoding: 'utf8' },
+);
+assert.notEqual(missingCliArgument.status, 0);
+assert.match(missingCliArgument.stderr, /usage: classify-maintenance-command/);
 
 console.log('scheduled maintenance contract tests passed (clean/finding/infrastructure/duplicate/recovery)');
