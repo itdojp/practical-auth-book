@@ -22,12 +22,12 @@
     "build:safe": "node scripts/build-with-conflict-detection.js"
   },
   "dependencies": {
-    "fs-extra": "^11.3.0",
+    "fs-extra": "^11.3.6",
     "glob": "^13.0.6"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
-    "markdownlint-cli": "^0.48.0"
+    "markdownlint-cli": "^0.49.1"
   },
   "keywords": [
     "book",
