@@ -90,12 +90,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx --yes "linkinator@${LINKINATOR_VERSION}" \
-            'https://itdojp.github.io/practical-auth-book/' \
-            --recurse --skip 'localhost|127.0.0.1' --timeout 30000 --concurrency 10 \
-            --retry-errors --retry-errors-count 2 --retry-errors-jitter 250 \
-            --status-code '429:warn' --format json \
-            > links.json 2> links.stderr
+          node scripts/run-public-link-check.js 'https://itdojp.github.io/practical-auth-book/'
           rc=$?
           set -e
           node scripts/classify-maintenance-command.js links "$rc" links.json links.stderr "$GITHUB_OUTPUT" "$GITHUB_STEP_SUMMARY" links-result.json
@@ -176,6 +171,9 @@ jobs:
             links.json
             links.stderr
             links-result.json
+            links-attempt-*.json
+            links-attempt-*.stderr
+            links-attempts.json
           if-no-files-found: ignore
           retention-days: 14
 

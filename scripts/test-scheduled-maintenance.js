@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
+const { runWithRetries } = require('./run-public-link-check');
 const {
   classifyCommandOutput,
   classifyMaintenanceState,
@@ -82,5 +83,19 @@ const missingCliArgument = spawnSync(
 );
 assert.notEqual(missingCliArgument.status, 0);
 assert.match(missingCliArgument.stderr, /usage: classify-maintenance-command/);
+
+const transientLinkScan = runWithRetries(
+  (attempt) => ({ exitCode: attempt === 1 ? 1 : 0 }),
+  { wait: () => {} },
+);
+assert.deepEqual(transientLinkScan.attempts.map(({ exitCode }) => exitCode), [1, 0]);
+assert.equal(transientLinkScan.final.exitCode, 0);
+
+const persistentLinkScan = runWithRetries(
+  () => ({ exitCode: 1 }),
+  { wait: () => {} },
+);
+assert.deepEqual(persistentLinkScan.attempts.map(({ exitCode }) => exitCode), [1, 1, 1]);
+assert.equal(persistentLinkScan.final.exitCode, 1);
 
 console.log('scheduled maintenance contract tests passed (clean/finding/infrastructure/duplicate/recovery)');
