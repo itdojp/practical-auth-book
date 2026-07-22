@@ -23,8 +23,9 @@ npm test
 npm run build:validate
 ```
 
-ローカル品質ゲートと CI は Node.js 22.22.2 以上を前提とします。この baseline は
-`markdownlint-cli` 0.49 系の Node.js 22 要件を満たすため、Node.js 20 へ戻さないでください。
+ローカル品質ゲートと CI は Node.js 22.22.2 以上を前提とします。runtime baseline と
+依存バージョンの更新は別々にレビューし、実際に導入されるバージョンは `package.json` と
+`package-lock.json` を正本とします。Node.js 22 を要求する品質ツールを扱うため、Node.js 20 へ戻さないでください。
 
 `npm run check:security` は optional dependency を除外した `npm audit` を実行し、CI と同じ依存関係範囲で既知脆弱性がないことを確認します。
 `npm run check:metadata` は `book-config.json`、`package.json`、
