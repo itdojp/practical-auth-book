@@ -24,6 +24,9 @@ function classifyCommandOutput(mode, exitCode, payload) {
     if (!parsed.value || Array.isArray(parsed.value) || typeof parsed.value !== 'object') {
       return { found: false, infrastructureFailure: true, reason: 'outdated result is not an object' };
     }
+    if (parsed.value.error && typeof parsed.value.error === 'object') {
+      return { found: false, infrastructureFailure: true, reason: 'npm outdated returned an error envelope' };
+    }
     found = Object.keys(parsed.value).length > 0;
   } else if (mode === 'audit') {
     const counts = parsed.value?.metadata?.vulnerabilities;

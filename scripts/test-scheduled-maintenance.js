@@ -63,6 +63,11 @@ assert.deepEqual(classifyCommandOutput('outdated', 1, '{"pkg":{"current":"1","la
   infrastructureFailure: false,
   reason: 'findings detected',
 });
+assert.deepEqual(classifyCommandOutput('outdated', 1, '{"error":{"code":"EAI_AGAIN"}}'), {
+  found: false,
+  infrastructureFailure: true,
+  reason: 'npm outdated returned an error envelope',
+});
 assert.equal(classifyCommandOutput('audit', 0, '{"metadata":{"vulnerabilities":{"total":0}}}').found, false);
 assert.equal(classifyCommandOutput('links', 1, '{"passed":false,"links":[{"state":"BROKEN"}]}').found, true);
 assert.equal(classifyCommandOutput('links', 0, '{"passed":true,"links":[{"state":"SKIPPED"}]}').found, false);
