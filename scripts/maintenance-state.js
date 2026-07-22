@@ -6,7 +6,7 @@ function parseJson(payload) {
   try {
     return { value: JSON.parse(payload), error: null };
   } catch (error) {
-    return { value: null, error: error.message };
+    return { value: null, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -67,9 +67,14 @@ function classifyMaintenanceState(input) {
 
   const findings = [];
   const commandInfrastructure = [];
+  const commandPrerequisitesSucceeded =
+    input.install === 'success' && input.validation === 'success' && input.build === 'success';
   for (const key of ['outdated', 'audit', 'links']) {
     const result = input[key] || {};
-    if (result.infrastructureFailure) commandInfrastructure.push(`${key}-command`);
+    const outcomeFailure =
+      result.outcome !== 'success' &&
+      !(result.outcome === 'skipped' && !commandPrerequisitesSucceeded);
+    if (result.infrastructureFailure || outcomeFailure) commandInfrastructure.push(`${key}-command`);
     if (result.found) findings.push(key);
   }
 

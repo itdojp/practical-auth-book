@@ -11,7 +11,7 @@ const {
   renderIssueBody,
 } = require('./maintenance-state');
 
-const cleanCommand = { found: false, infrastructureFailure: false };
+const cleanCommand = { outcome: 'success', found: false, infrastructureFailure: false };
 const base = {
   install: 'success',
   validation: 'success',
@@ -26,7 +26,10 @@ const clean = classifyMaintenanceState(base);
 assert.equal(clean.issueRequired, false);
 assert.equal(clean.infrastructureFailure, false);
 
-const finding = classifyMaintenanceState({ ...base, outdated: { found: true, infrastructureFailure: false } });
+const finding = classifyMaintenanceState({
+  ...base,
+  outdated: { outcome: 'success', found: true, infrastructureFailure: false },
+});
 assert.equal(finding.issueRequired, true);
 assert.deepEqual(finding.findings, ['outdated']);
 
@@ -47,11 +50,31 @@ assert.deepEqual(unexpectedBuildSkip.infrastructure, ['build']);
 
 const commandFailure = classifyMaintenanceState({
   ...base,
-  links: { found: false, infrastructureFailure: true },
+  links: { outcome: 'success', found: false, infrastructureFailure: true },
 });
 assert.deepEqual(commandFailure.infrastructure, ['links-command']);
 
-const duplicate = classifyMaintenanceState({ ...base, outdated: { found: true, infrastructureFailure: false } });
+const commandCrash = classifyMaintenanceState({
+  ...base,
+  audit: { outcome: 'failure', found: false, infrastructureFailure: false },
+});
+assert.deepEqual(commandCrash.infrastructure, ['audit-command']);
+
+const upstreamSkip = classifyMaintenanceState({
+  ...base,
+  install: 'failure',
+  validation: 'skipped',
+  build: 'skipped',
+  outdated: { outcome: 'skipped', found: false, infrastructureFailure: false },
+  audit: { outcome: 'skipped', found: false, infrastructureFailure: false },
+  links: { outcome: 'skipped', found: false, infrastructureFailure: false },
+});
+assert.deepEqual(upstreamSkip.infrastructure, ['install']);
+
+const duplicate = classifyMaintenanceState({
+  ...base,
+  outdated: { outcome: 'success', found: true, infrastructureFailure: false },
+});
 assert.equal(duplicate.fingerprint, finding.fingerprint);
 assert.match(renderIssueBody(finding, 'https://example.test/run'), /maintenance-fingerprint/);
 assert.equal(chooseIssueAction(finding, false), 'create');

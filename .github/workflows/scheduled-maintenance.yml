@@ -104,10 +104,13 @@ jobs:
           VALIDATION_OUTCOME: ${{ steps.validation.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           CONTRACT_OUTCOME: ${{ steps.contract.outcome }}
+          OUTDATED_OUTCOME: ${{ steps.outdated.outcome }}
           OUTDATED: ${{ steps.outdated.outputs.found || 'false' }}
           OUTDATED_INFRA: ${{ steps.outdated.outputs.infrastructure_failure || 'false' }}
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
           AUDIT: ${{ steps.audit.outputs.found || 'false' }}
           AUDIT_INFRA: ${{ steps.audit.outputs.infrastructure_failure || 'false' }}
+          LINKS_OUTCOME: ${{ steps.links.outcome }}
           LINKS: ${{ steps.links.outputs.found || 'false' }}
           LINKS_INFRA: ${{ steps.links.outputs.infrastructure_failure || 'false' }}
         with:
@@ -120,9 +123,9 @@ jobs:
               validation: process.env.VALIDATION_OUTCOME,
               build: process.env.BUILD_OUTCOME,
               contract: process.env.CONTRACT_OUTCOME,
-              outdated: {found: bool(process.env.OUTDATED), infrastructureFailure: bool(process.env.OUTDATED_INFRA)},
-              audit: {found: bool(process.env.AUDIT), infrastructureFailure: bool(process.env.AUDIT_INFRA)},
-              links: {found: bool(process.env.LINKS), infrastructureFailure: bool(process.env.LINKS_INFRA)},
+              outdated: {outcome: process.env.OUTDATED_OUTCOME, found: bool(process.env.OUTDATED), infrastructureFailure: bool(process.env.OUTDATED_INFRA)},
+              audit: {outcome: process.env.AUDIT_OUTCOME, found: bool(process.env.AUDIT), infrastructureFailure: bool(process.env.AUDIT_INFRA)},
+              links: {outcome: process.env.LINKS_OUTCOME, found: bool(process.env.LINKS), infrastructureFailure: bool(process.env.LINKS_INFRA)},
             });
             core.setOutput('infrastructure_failure', String(state.infrastructureFailure));
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
