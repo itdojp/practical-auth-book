@@ -65,6 +65,7 @@ assert.deepEqual(classifyCommandOutput('outdated', 1, '{"pkg":{"current":"1","la
 });
 assert.equal(classifyCommandOutput('audit', 0, '{"metadata":{"vulnerabilities":{"total":0}}}').found, false);
 assert.equal(classifyCommandOutput('links', 1, '{"passed":false,"links":[{"state":"BROKEN"}]}').found, true);
+assert.equal(classifyCommandOutput('links', 0, '{"passed":true,"links":[{"state":"SKIPPED"}]}').found, false);
 const unavailableBuildOutput = classifyCommandOutput('links', 1, '');
 assert.equal(unavailableBuildOutput.found, false);
 assert.equal(unavailableBuildOutput.infrastructureFailure, true);

@@ -35,7 +35,7 @@ function classifyCommandOutput(mode, exitCode, payload) {
     if (typeof parsed.value?.passed !== 'boolean' || !Array.isArray(parsed.value?.links)) {
       return { found: false, infrastructureFailure: true, reason: 'link result schema is invalid' };
     }
-    found = !parsed.value.passed || parsed.value.links.some((link) => link.state !== 'OK');
+    found = !parsed.value.passed;
   } else {
     throw new Error(`unknown maintenance command mode: ${mode}`);
   }
@@ -47,35 +47,40 @@ function classifyCommandOutput(mode, exitCode, payload) {
 }
 
 function classifyMaintenanceState(input) {
-  const infrastructure = [];
-  if (input.install !== 'success') infrastructure.push('install');
+  const workflowInfrastructure = [];
+  if (input.install !== 'success') workflowInfrastructure.push('install');
   if (
     input.validation !== 'success' &&
     !(input.validation === 'skipped' && input.install !== 'success')
-  ) infrastructure.push('validation');
+  ) workflowInfrastructure.push('validation');
   if (
     input.build !== 'success' &&
     !(
       input.build === 'skipped' &&
       (input.install !== 'success' || input.validation !== 'success')
     )
-  ) infrastructure.push('build');
-  if (input.contract !== 'success') infrastructure.push('contract');
+  ) workflowInfrastructure.push('build');
+  if (input.contract !== 'success') workflowInfrastructure.push('contract');
 
   const findings = [];
+  const commandInfrastructure = [];
   for (const key of ['outdated', 'audit', 'links']) {
     const result = input[key] || {};
-    if (result.infrastructureFailure) infrastructure.push(`${key}-command`);
+    if (result.infrastructureFailure) commandInfrastructure.push(`${key}-command`);
     if (result.found) findings.push(key);
   }
 
-  infrastructure.sort();
+  workflowInfrastructure.sort();
+  commandInfrastructure.sort();
+  const infrastructure = [...workflowInfrastructure, ...commandInfrastructure].sort();
   findings.sort();
   const fingerprint = JSON.stringify({ infrastructure, findings });
   return {
     issueRequired: infrastructure.length > 0 || findings.length > 0,
     infrastructureFailure: infrastructure.length > 0,
     infrastructure,
+    workflowInfrastructure,
+    commandInfrastructure,
     findings,
     fingerprint,
   };
@@ -94,11 +99,11 @@ function renderIssueBody(state, runUrl) {
 
 | Check | Result |
 | --- | --- |
-| Workflow infrastructure | ${state.infrastructureFailure ? 'failure' : 'success'} |
+| Workflow infrastructure failures | ${state.workflowInfrastructure.length ? state.workflowInfrastructure.join(', ') : 'false'} |
 | Outdated dependencies | ${has('outdated')} |
 | Production audit findings | ${has('audit')} |
 | External link findings | ${has('links')} |
-| Command infrastructure failures | ${state.infrastructure.length ? state.infrastructure.join(', ') : 'false'} |
+| Command infrastructure failures | ${state.commandInfrastructure.length ? state.commandInfrastructure.join(', ') : 'false'} |
 
 Detection findings and command infrastructure failures are reported separately in the [workflow run](${runUrl}).
 ${MARKER}`;
