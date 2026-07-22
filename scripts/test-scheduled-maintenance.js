@@ -1,42 +1,52 @@
 'use strict';
 
-function classify({ build, outdated, audit, links }) {
-  const findings = [
-    outdated && 'outdated',
-    audit && 'audit',
-    links && 'links',
-  ].filter(Boolean);
-  return {
-    createOrUpdateIssue: findings.length > 0 || build === 'failure',
-    infrastructureFailure: build === 'failure',
-    findingTypes: findings,
-  };
-}
+const assert = require('node:assert/strict');
+const {
+  classifyCommandOutput,
+  classifyMaintenanceState,
+  renderIssueBody,
+} = require('./maintenance-state');
 
-const cases = [
-  [{ build: 'success', outdated: false, audit: false, links: false }, false, false],
-  [{ build: 'success', outdated: true, audit: false, links: false }, true, false],
-  [{ build: 'success', outdated: false, audit: true, links: false }, true, false],
-  [{ build: 'success', outdated: false, audit: false, links: true }, true, false],
-  [{ build: 'success', outdated: true, audit: true, links: true }, true, false],
-  [{ build: 'failure', outdated: false, audit: false, links: false }, true, true],
-];
+const cleanCommand = { found: false, infrastructureFailure: false };
+const base = {
+  install: 'success',
+  validation: 'success',
+  build: 'success',
+  contract: 'success',
+  outdated: cleanCommand,
+  audit: cleanCommand,
+  links: cleanCommand,
+};
 
-for (const [input, issue, infrastructure] of cases) {
-  const actual = classify(input);
-  if (actual.createOrUpdateIssue !== issue || actual.infrastructureFailure !== infrastructure) {
-    throw new Error(`classification mismatch: ${JSON.stringify(input)} => ${JSON.stringify(actual)}`);
-  }
-}
+const clean = classifyMaintenanceState(base);
+assert.equal(clean.issueRequired, false);
+assert.equal(clean.infrastructureFailure, false);
 
-const fingerprints = new Set();
-for (const [input] of cases) {
-  const result = classify(input);
-  if (result.createOrUpdateIssue) fingerprints.add(JSON.stringify(result));
-}
-if (fingerprints.size !== 5) throw new Error('finding fingerprints were not stable');
+const finding = classifyMaintenanceState({ ...base, outdated: { found: true, infrastructureFailure: false } });
+assert.equal(finding.issueRequired, true);
+assert.deepEqual(finding.findings, ['outdated']);
 
-const recovered = classify({ build: 'success', outdated: false, audit: false, links: false });
-if (recovered.createOrUpdateIssue) throw new Error('recovery incorrectly creates an issue');
+const buildFailure = classifyMaintenanceState({ ...base, build: 'failure' });
+assert.equal(buildFailure.infrastructureFailure, true);
+assert.deepEqual(buildFailure.infrastructure, ['build']);
 
-console.log(`scheduled maintenance contract tests passed (${cases.length} cases, ${fingerprints.size} fingerprints)`);
+const commandFailure = classifyMaintenanceState({
+  ...base,
+  links: { found: false, infrastructureFailure: true },
+});
+assert.deepEqual(commandFailure.infrastructure, ['links-command']);
+
+const duplicate = classifyMaintenanceState({ ...base, outdated: { found: true, infrastructureFailure: false } });
+assert.equal(duplicate.fingerprint, finding.fingerprint);
+assert.match(renderIssueBody(finding, 'https://example.test/run'), /maintenance-fingerprint/);
+
+assert.deepEqual(classifyCommandOutput('outdated', 1, '{"pkg":{"current":"1","latest":"2"}}'), {
+  found: true,
+  infrastructureFailure: false,
+  reason: 'findings detected',
+});
+assert.equal(classifyCommandOutput('audit', 0, '{"metadata":{"vulnerabilities":{"total":0}}}').found, false);
+assert.equal(classifyCommandOutput('links', 1, '{"passed":false,"links":[{"state":"BROKEN"}]}').found, true);
+assert.equal(classifyCommandOutput('links', 1, 'not json').infrastructureFailure, true);
+
+console.log('scheduled maintenance contract tests passed (clean/finding/infrastructure/duplicate/recovery)');
