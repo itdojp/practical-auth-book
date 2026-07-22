@@ -12,6 +12,20 @@ const path = require('path');
 const { execSync } = require('child_process');
 const readline = require('readline');
 
+const MINIMUM_NODE_VERSION = [22, 22, 2];
+const MINIMUM_NODE_VERSION_TEXT = MINIMUM_NODE_VERSION.join('.');
+
+function isNodeVersionSupported(version) {
+  const match = /^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(version || '');
+  if (!match) return false;
+  const current = match.slice(1).map(Number);
+  for (let index = 0; index < MINIMUM_NODE_VERSION.length; index += 1) {
+    if (current[index] > MINIMUM_NODE_VERSION[index]) return true;
+    if (current[index] < MINIMUM_NODE_VERSION[index]) return false;
+  }
+  return true;
+}
+
 // Color functions for better UX
 const colors = {
   green: (text) => `\x1b[32m${text}\x1b[0m`,
@@ -74,10 +88,9 @@ class EasySetup {
     
     // Node.js version check
     const nodeVersion = process.version;
-    const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
-    
-    if (majorVersion < 20) {
-      throw new Error(`Node.js 20以上が必要です。現在: ${nodeVersion}`);
+
+    if (!isNodeVersionSupported(nodeVersion)) {
+      throw new Error(`Node.js ${MINIMUM_NODE_VERSION_TEXT}以上が必要です。現在: ${nodeVersion}`);
     }
     
     // Git check
@@ -346,3 +359,4 @@ if (require.main === module) {
 }
 
 module.exports = EasySetup;
+module.exports.isNodeVersionSupported = isNodeVersionSupported;

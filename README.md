@@ -23,7 +23,10 @@ npm test
 npm run build:validate
 ```
 
-注: `markdownlint-cli` は CI の Node 20 互換を維持するため 0.48 系のまま使い、audit findings は `markdownlint-cli` 配下に限定した `overrides` で解消しています。
+ローカル品質ゲートと通常の CI は Node.js 22.22.2 以上を前提とします。scheduled maintenance の
+公開リンク監査だけは、link checker 用の分離runtimeとして Node.js 24 を使用します。runtime baseline と
+依存バージョンの更新は別々にレビューし、実際に導入されるバージョンは `package.json` と
+`package-lock.json` を正本とします。Node.js 22 を要求する品質ツールを扱うため、通常の CI を Node.js 20 へ戻さないでください。
 
 `npm run check:security` は optional dependency を除外した `npm audit` を実行し、CI と同じ依存関係範囲で既知脆弱性がないことを確認します。
 `npm run check:metadata` は `book-config.json`、`package.json`、

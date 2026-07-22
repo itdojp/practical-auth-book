@@ -5,7 +5,7 @@
   "author": "ITDO Inc.（株式会社アイティードゥ）",
   "license": "CC-BY-NC-SA-4.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.22.2"
   },
   "scripts": {
     "setup": "node easy-setup.js",
@@ -18,6 +18,7 @@
     "help": "echo 'Available commands:\n  npm run setup - Interactive setup\n  npm run build - Build the book\n  npm run check:security - Run npm audit without optional dependencies\n  npm run preview - Local preview'",
     "check:metadata": "node scripts/check-metadata-consistency.js",
     "check:security": "npm audit --omit=optional",
+    "check:runtime": "node scripts/check-node-runtime.js",
     "build:safe": "node scripts/build-with-conflict-detection.js"
   },
   "dependencies": {
