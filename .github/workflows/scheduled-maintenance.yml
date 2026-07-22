@@ -86,9 +86,16 @@ jobs:
           set -e
           node scripts/classify-maintenance-command.js audit "$rc" audit.json audit.stderr "$GITHUB_OUTPUT" "$GITHUB_STEP_SUMMARY" audit-result.json
 
+      - name: Setup Node.js for link audit
+        id: link-node
+        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success' && steps.build.outcome == 'success'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+
       - name: Check public external links
         id: links
-        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success' && steps.build.outcome == 'success'
+        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success' && steps.build.outcome == 'success' && steps.link-node.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
