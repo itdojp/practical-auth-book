@@ -23,7 +23,8 @@ npm test
 npm run build:validate
 ```
 
-注: `markdownlint-cli` は CI の Node 20 互換を維持するため 0.48 系のまま使い、audit findings は `markdownlint-cli` 配下に限定した `overrides` で解消しています。
+ローカル品質ゲートと CI は Node.js 22.22.2 以上を前提とします。この baseline は
+`markdownlint-cli` 0.49 系の Node.js 22 要件を満たすため、Node.js 20 へ戻さないでください。
 
 `npm run check:security` は optional dependency を除外した `npm audit` を実行し、CI と同じ依存関係範囲で既知脆弱性がないことを確認します。
 `npm run check:metadata` は `book-config.json`、`package.json`、

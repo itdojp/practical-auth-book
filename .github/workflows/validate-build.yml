@@ -28,7 +28,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: '20'
+        node-version: '22.22.2'
         cache: 'npm'
         
     - name: Install dependencies
@@ -72,9 +72,11 @@ jobs:
     - name: Summary
       if: always()
       run: |
-        echo "## Build Validation Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-        echo "- Jekyll Conflicts: Checked ✓" >> $GITHUB_STEP_SUMMARY
-        echo "- Link Validation: Skipped (disabled for large content)" >> $GITHUB_STEP_SUMMARY
-        echo "- Preview Server: Tested ✓" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "## Build Validation Summary"
+          echo ""
+          echo "- Build Status: ${{ job.status }}"
+          echo "- Jekyll Conflicts: Checked ✓"
+          echo "- Link Validation: Skipped (disabled for large content)"
+          echo "- Preview Server: Tested ✓"
+        } >> "$GITHUB_STEP_SUMMARY"
