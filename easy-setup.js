@@ -13,6 +13,7 @@ const { execSync } = require('child_process');
 const readline = require('readline');
 
 const MINIMUM_NODE_VERSION = [22, 22, 2];
+const MINIMUM_NODE_VERSION_TEXT = MINIMUM_NODE_VERSION.join('.');
 
 function isNodeVersionSupported(version) {
   const match = /^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(version || '');
@@ -89,7 +90,7 @@ class EasySetup {
     const nodeVersion = process.version;
 
     if (!isNodeVersionSupported(nodeVersion)) {
-      throw new Error(`Node.js 22.22.2以上が必要です。現在: ${nodeVersion}`);
+      throw new Error(`Node.js ${MINIMUM_NODE_VERSION_TEXT}以上が必要です。現在: ${nodeVersion}`);
     }
     
     // Git check

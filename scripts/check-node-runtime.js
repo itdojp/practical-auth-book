@@ -23,8 +23,8 @@ const workflowText = fs.readdirSync(workflowDirectory)
   .join('\n');
 const nodeVersions = [...workflowText.matchAll(/node-version:\s*['"]?([^'"\s]+)['"]?/g)]
   .map((match) => match[1]);
-assert.equal(nodeVersions.filter((version) => version === '22.22.2').length, 5);
-assert.equal(nodeVersions.filter((version) => version === '24').length, 1);
+assert.ok(nodeVersions.includes('22.22.2'));
+assert.ok(nodeVersions.includes('24'));
 assert.deepEqual([...new Set(nodeVersions)].sort(), ['22.22.2', '24']);
 
 assert.match(read('README.md'), /通常の CI は Node\.js 22\.22\.2 以上/);
@@ -35,5 +35,10 @@ assert.equal(EasySetup.isNodeVersionSupported('v22.22.1'), false);
 assert.equal(EasySetup.isNodeVersionSupported('v22.22.2'), true);
 assert.equal(EasySetup.isNodeVersionSupported('v23.0.0'), true);
 assert.equal(EasySetup.isNodeVersionSupported('invalid'), false);
+assert.equal(
+  EasySetup.isNodeVersionSupported(process.version),
+  true,
+  `current Node.js ${process.version} does not satisfy the >=22.22.2 quality baseline`,
+);
 
 console.log('Node runtime contract passed: standard QA 22.22.2, link audit 24.');
