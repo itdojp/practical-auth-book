@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   classifyCommandOutput,
   classifyMaintenanceState,
+  chooseIssueAction,
   renderIssueBody,
 } = require('./maintenance-state');
 
@@ -39,6 +40,10 @@ assert.deepEqual(commandFailure.infrastructure, ['links-command']);
 const duplicate = classifyMaintenanceState({ ...base, outdated: { found: true, infrastructureFailure: false } });
 assert.equal(duplicate.fingerprint, finding.fingerprint);
 assert.match(renderIssueBody(finding, 'https://example.test/run'), /maintenance-fingerprint/);
+assert.equal(chooseIssueAction(finding, false), 'create');
+assert.equal(chooseIssueAction(duplicate, true), 'update');
+assert.equal(chooseIssueAction(clean, true), 'recover');
+assert.equal(chooseIssueAction(clean, false), 'none');
 
 assert.deepEqual(classifyCommandOutput('outdated', 1, '{"pkg":{"current":"1","latest":"2"}}'), {
   found: true,
@@ -47,6 +52,8 @@ assert.deepEqual(classifyCommandOutput('outdated', 1, '{"pkg":{"current":"1","la
 });
 assert.equal(classifyCommandOutput('audit', 0, '{"metadata":{"vulnerabilities":{"total":0}}}').found, false);
 assert.equal(classifyCommandOutput('links', 1, '{"passed":false,"links":[{"state":"BROKEN"}]}').found, true);
-assert.equal(classifyCommandOutput('links', 1, 'not json').infrastructureFailure, true);
+const unavailableBuildOutput = classifyCommandOutput('links', 1, '');
+assert.equal(unavailableBuildOutput.found, false);
+assert.equal(unavailableBuildOutput.infrastructureFailure, true);
 
 console.log('scheduled maintenance contract tests passed (clean/finding/infrastructure/duplicate/recovery)');

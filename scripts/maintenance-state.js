@@ -71,6 +71,11 @@ function classifyMaintenanceState(input) {
   };
 }
 
+function chooseIssueAction(state, hasExistingIssue) {
+  if (state.issueRequired) return hasExistingIssue ? 'update' : 'create';
+  return hasExistingIssue ? 'recover' : 'none';
+}
+
 function renderIssueBody(state, runUrl) {
   const has = (name) => state.findings.includes(name);
   return `${MARKER}
@@ -93,5 +98,6 @@ module.exports = {
   MARKER,
   classifyCommandOutput,
   classifyMaintenanceState,
+  chooseIssueAction,
   renderIssueBody,
 };

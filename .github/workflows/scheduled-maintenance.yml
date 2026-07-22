@@ -112,7 +112,7 @@ jobs:
         with:
           script: |
             const path = `${process.env.GITHUB_WORKSPACE}/scripts/maintenance-state.js`;
-            const { MARKER, classifyMaintenanceState, renderIssueBody } = require(path);
+            const { MARKER, classifyMaintenanceState, chooseIssueAction, renderIssueBody } = require(path);
             const bool = (value) => value === 'true';
             const state = classifyMaintenanceState({
               install: process.env.INSTALL_OUTCOME,
@@ -129,15 +129,16 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'maintenance,automated', per_page: 100
             });
             const existing = issues.find((issue) => issue.body?.includes(MARKER));
-            if (state.issueRequired) {
+            const action = chooseIssueAction(state, Boolean(existing));
+            if (action === 'create' || action === 'update') {
               const title = `Scheduled Maintenance Check - ${new Date().toISOString().split('T')[0]}`;
               const body = renderIssueBody(state, runUrl);
-              if (existing) {
+              if (action === 'update') {
                 await github.rest.issues.update({owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, title, body});
               } else {
                 await github.rest.issues.create({owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['maintenance', 'automated']});
               }
-            } else if (existing) {
+            } else if (action === 'recover') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number,
                 body: `Automated recovery confirmed. All maintenance checks are clean: ${runUrl}`
