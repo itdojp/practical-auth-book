@@ -7,114 +7,182 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  LINKINATOR_VERSION: '8.0.1'
 
 permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: scheduled-maintenance
+  cancel-in-progress: false
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '20'
           cache: npm
 
-      - name: Install dependencies and build canonical site
-        id: build
+      - name: Install Node.js dependencies
+        id: install
+        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          npm ci --omit=optional 2>&1 | tee build.log
-          npm run build 2>&1 | tee -a build.log
+          npm ci --omit=optional 2>&1 | tee install.log
+
+      - name: Validate canonical source
+        id: validation
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test 2>&1 | tee validation.log
+          npm run build:validate 2>&1 | tee -a validation.log
+
+      - name: Build canonical site
+        id: build
+        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success'
+        continue-on-error: true
+        uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 # v1.0.13
+        with:
+          source: ./docs
+          destination: ./_site
 
       - name: Test maintenance state contract
+        id: contract
+        if: always()
+        continue-on-error: true
         run: node scripts/test-scheduled-maintenance.js
 
       - name: Check outdated dependencies
         id: outdated
+        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success' && steps.build.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
           set +e
-          npm outdated > outdated.log 2>&1
+          npm outdated --json > outdated.json 2> outdated.stderr
           rc=$?
-          cat outdated.log >> "$GITHUB_STEP_SUMMARY"
-          if [ "$rc" -eq 0 ]; then
-            echo 'found=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'found=true' >> "$GITHUB_OUTPUT"
-          fi
+          set -e
+          node scripts/classify-maintenance-command.js outdated "$rc" outdated.json outdated.stderr "$GITHUB_OUTPUT" "$GITHUB_STEP_SUMMARY" outdated-result.json
 
       - name: Security audit
         id: audit
+        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success' && steps.build.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
           set +e
-          npm audit --omit=dev > audit.log 2>&1
+          npm audit --omit=dev --json > audit.json 2> audit.stderr
           rc=$?
-          cat audit.log >> "$GITHUB_STEP_SUMMARY"
-          if [ "$rc" -eq 0 ]; then
-            echo 'found=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'found=true' >> "$GITHUB_OUTPUT"
-          fi
+          set -e
+          node scripts/classify-maintenance-command.js audit "$rc" audit.json audit.stderr "$GITHUB_OUTPUT" "$GITHUB_STEP_SUMMARY" audit-result.json
 
-      - name: Check external links
+      - name: Check public external links
         id: links
+        if: steps.install.outcome == 'success' && steps.validation.outcome == 'success' && steps.build.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
           set +e
-          npm install --global linkinator
-          linkinator _site --recurse --skip 'localhost|127.0.0.1' --timeout 30000 > links.log 2>&1
+          node scripts/run-public-link-check.js 'https://itdojp.github.io/practical-auth-book/'
           rc=$?
-          cat links.log >> "$GITHUB_STEP_SUMMARY"
-          if [ "$rc" -eq 0 ]; then
-            echo 'found=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'found=true' >> "$GITHUB_OUTPUT"
-          fi
+          set -e
+          node scripts/classify-maintenance-command.js links "$rc" links.json links.stderr "$GITHUB_OUTPUT" "$GITHUB_STEP_SUMMARY" links-result.json
 
-      - name: Create or update maintenance issue
-        if: always() && (steps.outdated.outputs.found == 'true' || steps.audit.outputs.found == 'true' || steps.links.outputs.found == 'true' || steps.build.outcome == 'failure')
-        uses: actions/github-script@v9
+      - name: Create, update, or recover maintenance issue
+        id: manage
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          OUTDATED: ${{ steps.outdated.outputs.found || 'false' }}
-          AUDIT: ${{ steps.audit.outputs.found || 'false' }}
-          LINKS: ${{ steps.links.outputs.found || 'false' }}
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          VALIDATION_OUTCOME: ${{ steps.validation.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          CONTRACT_OUTCOME: ${{ steps.contract.outcome }}
+          OUTDATED_OUTCOME: ${{ steps.outdated.outcome }}
+          OUTDATED: ${{ steps.outdated.outputs.found || 'false' }}
+          OUTDATED_INFRA: ${{ steps.outdated.outputs.infrastructure_failure || 'false' }}
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
+          AUDIT: ${{ steps.audit.outputs.found || 'false' }}
+          AUDIT_INFRA: ${{ steps.audit.outputs.infrastructure_failure || 'false' }}
+          LINKS_OUTCOME: ${{ steps.links.outcome }}
+          LINKS: ${{ steps.links.outputs.found || 'false' }}
+          LINKS_INFRA: ${{ steps.links.outputs.infrastructure_failure || 'false' }}
         with:
           script: |
-            const title = `Scheduled Maintenance Check - ${new Date().toISOString().split('T')[0]}`;
-            const marker = '<!-- scheduled-maintenance -->';
-            const body = `${marker}
-            ## Automated Maintenance Check
-
-            | Check | Result |
-            | --- | --- |
-            | Install/build infrastructure | ${process.env.BUILD_OUTCOME} |
-            | Outdated dependencies | ${process.env.OUTDATED} |
-            | Production audit findings | ${process.env.AUDIT} |
-            | External link findings | ${process.env.LINKS} |
-
-            Detection findings and command infrastructure failures are reported separately in the [workflow run](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}).
-            ${marker}`;
+            const path = `${process.env.GITHUB_WORKSPACE}/scripts/maintenance-state.js`;
+            const { MARKER, classifyMaintenanceState, chooseIssueAction, renderIssueBody } = require(path);
+            const bool = (value) => value === 'true';
+            const state = classifyMaintenanceState({
+              install: process.env.INSTALL_OUTCOME,
+              validation: process.env.VALIDATION_OUTCOME,
+              build: process.env.BUILD_OUTCOME,
+              contract: process.env.CONTRACT_OUTCOME,
+              outdated: {outcome: process.env.OUTDATED_OUTCOME, found: bool(process.env.OUTDATED), infrastructureFailure: bool(process.env.OUTDATED_INFRA)},
+              audit: {outcome: process.env.AUDIT_OUTCOME, found: bool(process.env.AUDIT), infrastructureFailure: bool(process.env.AUDIT_INFRA)},
+              links: {outcome: process.env.LINKS_OUTCOME, found: bool(process.env.LINKS), infrastructureFailure: bool(process.env.LINKS_INFRA)},
+            });
+            core.setOutput('infrastructure_failure', String(state.infrastructureFailure));
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
             const issues = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'maintenance,automated', per_page: 100
             });
-            const existing = issues.find(issue => issue.body?.includes(marker));
-            if (existing) {
-              await github.rest.issues.update({owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body, title});
-            } else {
-              await github.rest.issues.create({owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['maintenance', 'automated']});
+            const existing = issues.find((issue) => issue.body?.includes(MARKER));
+            const action = chooseIssueAction(state, Boolean(existing));
+            if (action === 'create' || action === 'update') {
+              const title = `Scheduled Maintenance Check - ${new Date().toISOString().split('T')[0]}`;
+              const body = renderIssueBody(state, runUrl);
+              if (action === 'update') {
+                await github.rest.issues.update({owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, title, body});
+              } else {
+                await github.rest.issues.create({owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['maintenance', 'automated']});
+              }
+            } else if (action === 'recover') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number,
+                body: `Automated recovery confirmed. All maintenance checks are clean: ${runUrl}`
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number,
+                state: 'closed', state_reason: 'completed'
+              });
             }
+            await core.summary
+              .addHeading('Maintenance state')
+              .addCodeBlock(JSON.stringify(state, null, 2), 'json')
+              .write();
+
+      - name: Upload maintenance evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: maintenance-evidence
+          path: |
+            install.log
+            validation.log
+            outdated.json
+            outdated.stderr
+            outdated-result.json
+            audit.json
+            audit.stderr
+            audit-result.json
+            links.json
+            links.stderr
+            links-result.json
+            links-attempt-*.json
+            links-attempt-*.stderr
+            links-attempts.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Fail on infrastructure error
-        if: steps.build.outcome == 'failure'
+        if: always() && steps.manage.outputs.infrastructure_failure == 'true'
         run: exit 1
